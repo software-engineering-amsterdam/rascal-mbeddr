@@ -1,0 +1,8 @@
+
+// some comment
+
+int main(void) {
+  thisIs * ambiguous;
+  println("Hello world!\n");
+  return 1;
+}
