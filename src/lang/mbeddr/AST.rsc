@@ -68,7 +68,12 @@ data Stat
   | \break()
   | \return()
   | \returnExpr(Expr expr)
+  | line(int lineNo, str file) // not in grammar
   ;
+
+Module insertLineDirectives(Module m) = visit (m) {
+  case list[Stat] ss => [ line(s@location.begin.line, s@location.path), s | s <- ss]
+};
 
 data Literal
   = hex(str val)
