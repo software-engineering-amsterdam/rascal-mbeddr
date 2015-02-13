@@ -12,128 +12,121 @@ module lang::mbeddr::C
 import ParseTree;
 
 start syntax Module  
-   = \module: "module" QIdentifier ";" Import* ToplevelDeclaration+;
+   = \module: "module" QId ";" Import* Decl*;
    
 syntax Import
-  = \import: "import" QIdentifier ";";
+  = \import: "import" QId ";";
   
-syntax QIdentifier
-  = qid: {Identifier "."}+;
+syntax QId
+  = qid: {Id "."}+;
 
-syntax ToplevelDeclaration 
-    = function: Modifier* Type Identifier "(" Parameters ")" "{" Declaration* Statement* "}" 
-    | prototype: Modifier* Type Identifier "(" Parameters ")" ";"
-    | typeDef: Modifier* "typedef" Type Identifier ";"
-    | struct: Modifier* "struct" Identifier ";" 
-    | structDecl: Modifier* "struct" Identifier "{" StructDeclaration* "}" 
-    | union: Modifier* "union" Identifier ";" 
-    | unionDecl: Modifier* "union" Identifier "{" StructDeclaration* "}" 
-    | enum: Modifier* "enum" Identifier ";" 
-    | enumDecl: Modifier* "enum" Identifier "{" {Enumerator ","}+ "}"
-    | Declaration 
+syntax Decl 
+    = function: Modifier* Type Id "(" {Param ","}* ")" "{" Decl* Stat* "}" 
+    | function: Modifier* Type Id "(" {Param ","}* ")" ";"
+    | typeDef: Modifier* "typedef" Type Id ";"
+    | struct: Modifier* "struct" Id ";" 
+    | struct: Modifier* "struct" Id "{" Field* "}" 
+    | union: Modifier* "union" Id ";" 
+    | union: Modifier* "union" Id "{" Field* "}" 
+    | enum: Modifier* "enum" Id ";" 
+    | enum: Modifier* "enum" Id "{" {Enum ","}+ "}"
+    | variable: Modifier* Type Id ";"
+    | variable: Modifier* Type Id "=" Expr ";"
     ;
-    
-syntax Declaration 
-    = variableDecl: Modifier* Type Identifier ";"
-    | variableDeclInit: Modifier* Type Identifier "=" Expression ";"
-    ;
-
 
 syntax Param
-   = param: Modifier* Type Identifier
+   = param: Modifier* Type Id
    ;
 
-syntax Parameters 
-    = params: {Param ","}* 
-    | varargs: {Param ","}+ "," "..."
-    | \void: "void"
-    ;
-
-syntax Statement 
-    = block: "{" Declaration* Statement* "}" 
-    | labeled: Identifier ":" Statement 
-    | \case: "case" Expression ":" Statement 
-    | \default: "default" ":" Statement 
+syntax Stat 
+    = block: "{" Decl* Stat* "}" 
+    | labeled: Id ":" Stat 
+    | \case: "case" Expr ":" Stat 
+    | \default: "default" ":" Stat 
     | semi: ";" 
-    | expr: Expression ";" 
-    | ifThen: "if" "(" Expression ")" Statement 
-    | ifThenElse: "if" "(" Expression ")" Statement "else" Statement 
-    | \switch: "switch" "(" Expression ")" Statement 
-    | \while: "while" "(" Expression ")" Statement 
-    | doWhile: "do" Statement "while" "(" Expression ")" ";" 
-    | \for: "for" "(" Expression? ";" Expression? ";" Expression? ")" Statement 
-    | goto: "goto" Identifier ";" 
+    | expr: Expr ";" 
+    | ifThen: "if" "(" Expr ")" Stat 
+    | ifThenElse: "if" "(" Expr ")" Stat "else" Stat 
+    | \switch: "switch" "(" Expr ")" Stat 
+    | \while: "while" "(" Expr ")" Stat 
+    | doWhile: "do" Stat "while" "(" Expr ")" ";" 
+    | \for: "for" "(" Expr? ";" Expr? ";" Expr? ")" Stat 
+    | goto: "goto" Id ";" 
     | \continue: "continue" ";" 
     | \break: "break" ";" 
     | \return: "return" ";" 
-    | returnExpr: "return" Expression ";"
+    | returnExpr: "return" Expr ";"
     ;
 
-syntax Expression 
-    = variable: Identifier 
-    | @category="Constant" hexadecimalConstant: HexadecimalConstant 
-    | @category="Constant" integerConstant: IntegerConstant 
-    | @category="Constant" characterConstant: CharacterConstant 
-    | @category="Constant" floatingPointConstant: FloatingPointConstant 
-    | @category="Constant" stringConstant: StringConstant 
-    | subscript: Expression "[" Expression "]" 
-    | call: Expression "(" {Expression ","}* ")" 
-    | sizeOf: "sizeof" "(" TypeName ")" 
-    | bracket "(" Expression ")" 
-    | field: Expression "." Identifier 
-    | ptrField: Expression "-\>" Identifier 
-    | postIncr: Expression "++" 
-    | postDecr: Expression "--" 
-    > preIncr: [+] !<< "++" Expression 
-    | preDecr: [\-] !<< "--" Expression 
-    | addrOf: "&" Expression 
-    | refOf: "*" Expression 
-    | pos: "+" Expression 
-    | neg: "-" Expression 
-    | bitNot: "~" Expression 
-    | not: "!" Expression 
-    | sizeOfExpression: "sizeof" Expression exp // May be ambiguous with "sizeof(TypeName)".
-    | "(" TypeName ")" Expression 
-    > left ( mul: Expression lexp "*" Expression rexp // May be ambiguous with "TypeName *Declarator".
-           | div: Expression "/" Expression 
-           | \mod: Expression "%" Expression
+syntax Literal
+  = hex: HexadecimalConstant 
+  | \int: IntegerConstant 
+  | char: CharacterConstant 
+  | float: FloatingPointConstant 
+  | string: StringConstant
+  ;
+
+syntax Expr 
+    = var: Id 
+    | @category="Constant" lit: Literal 
+    | subscript: Expr "[" Expr "]" 
+    | call: Expr "(" {Expr ","}* ")" 
+    | sizeOf: "sizeof" "(" Type ")" 
+    | bracket "(" Expr ")" 
+    | field: Expr "." Id 
+    | ptrField: Expr "-\>" Id 
+    | postIncr: Expr "++" 
+    | postDecr: Expr "--" 
+    > preIncr: [+] !<< "++" Expr 
+    | preDecr: [\-] !<< "--" Expr 
+    | addrOf: "&" Expr 
+    | refOf: "*" Expr 
+    | pos: "+" Expr 
+    | neg: "-" Expr 
+    | bitNot: "~" Expr 
+    | not: "!" Expr 
+    | sizeOfExpr: "sizeof" Expr exp // May be ambiguous with "sizeof(TypeName)".
+    | cast: "(" Type ")" Expr 
+    > left ( mul: Expr lexp "*" Expr rexp // May be ambiguous with "TypeName *Declarator".
+           | div: Expr "/" Expr 
+           | \mod: Expr "%" Expr
            ) 
-    > left ( add: Expression "+" Expression 
-           | sub: Expression "-" Expression
+    > left ( add: Expr "+" Expr 
+           | sub: Expr "-" Expr
            )
-    > left ( shl: Expression "\<\<" Expression 
-           | shr: Expression "\>\>" Expression
+    > left ( shl: Expr "\<\<" Expr 
+           | shr: Expr "\>\>" Expr
            )
-    > left ( lt: Expression "\<" Expression 
-           | gt: Expression "\>" Expression 
-           | leq: Expression "\<=" Expression 
-           | geq: Expression "\>=" Expression
+    > left ( lt: Expr "\<" Expr 
+           | gt: Expr "\>" Expr 
+           | leq: Expr "\<=" Expr 
+           | geq: Expr "\>=" Expr
            )
-    > left ( eq: Expression "==" Expression 
-           | neq: Expression "!=" Expression
+    > left ( eq: Expr "==" Expr 
+           | neq: Expr "!=" Expr
            )
-    > left bitAnd: Expression "&" Expression 
-    > left bitXor: Expression "^" Expression 
-    > left bitOr: Expression "|" Expression 
-    > left and: Expression "&&" Expression 
-    > left or: Expression "||" Expression 
-    > right cond: Expression "?" Expression ":" Expression 
-    > right ( assign: Expression "=" Expression 
-            | mulAssign: Expression "*=" Expression 
-            | divAssign: Expression "/=" Expression 
-            | modAssign: Expression "%=" Expression 
-            | addAssign: Expression "+=" Expression 
-            | subAssign: Expression "-=" Expression 
-            | shlAssign: Expression "\<\<=" Expression 
-            | shrAssign: Expression "\>\>=" Expression 
-            | bitAndAssign: Expression "&=" Expression 
-            | bitXorAssign: Expression "^=" Expression 
-            | bitOrAssign: Expression "|=" Expression
+    > left bitAnd: Expr "&" Expr 
+    > left bitXor: Expr "^" Expr 
+    > left bitOr: Expr "|" Expr 
+    > left and: Expr "&&" Expr 
+    > left or: Expr "||" Expr 
+    > right cond: Expr "?" Expr ":" Expr 
+    > right ( assign: Expr "=" Expr 
+            | mulAssign: Expr "*=" Expr 
+            | divAssign: Expr "/=" Expr 
+            | modAssign: Expr "%=" Expr 
+            | addAssign: Expr "+=" Expr 
+            | subAssign: Expr "-=" Expr 
+            | shlAssign: Expr "\<\<=" Expr 
+            | shrAssign: Expr "\>\>=" Expr 
+            | bitAndAssign: Expr "&=" Expr 
+            | bitXorAssign: Expr "^=" Expr 
+            | bitOrAssign: Expr "|=" Expr
             )
     ;
 
 
-lexical Identifier = id: ([a-zA-Z_] [a-zA-Z0-9_]* !>> [a-zA-Z0-9_]) \ Keyword;
+lexical Id = id: ([a-zA-Z_] [a-zA-Z0-9_]* !>> [a-zA-Z0-9_]) \ Keyword;
 
 
 keyword Keyword 
@@ -183,7 +176,7 @@ keyword Keyword
 
 
 syntax Type 
-    = identifier: Identifier 
+    = identifier: Id 
     | \void: "void" 
     | int8: "int8"
     | int16: "int16"
@@ -196,17 +189,17 @@ syntax Type
     | \boolean: "boolean"
     | \float: "float" 
     | \double: "double" 
-    | struct: "struct" Identifier 
-    | structDecl: "struct" Identifier "{" Field* "}" 
-    | structAnonDecl: "struct" "{" Field* "}" 
-    | union: "union" Identifier 
-    | unionDecl: "union" Identifier "{" Field* "}" 
-    | unionAnonDecl: "union" "{" Field* "}" 
-    | enum: "enum" Identifier 
-    | enumDecl: "enum" Identifier "{" {Enumerator ","}+ "}" 
-    | enumAnonDecl: "enum" "{" {Enumerator ","}+ "}"
-    | openArray: Type "[" "]"
-    | fixedArray: Type "[" IntegerConstant "]"
+    | struct: "struct" Id 
+    | struct: "struct" Id "{" Field* "}" 
+    | struct: "struct" "{" Field* "}" 
+    | union: "union" Id 
+    | union: "union" Id "{" Field* "}" 
+    | union: "union" "{" Field* "}" 
+    | enum: "enum" Id 
+    | enum: "enum" Id "{" {Enum ","}+ "}" 
+    | enum: "enum" "{" {Enum ","}+ "}"
+    | array: Type "[" "]"
+    | array: Type "[" IntegerConstant "]"
     | pointer: Type "*"
     | function: Type "(" {Type ","}* ")"
     ;
@@ -223,12 +216,12 @@ syntax Modifier
   ;
 
 syntax Field 
-    = field: Type Identifier ";"
+    = field: Type Id ";"
     ;
 
-syntax Enumerator 
-    = name: Identifier 
-    | nameValue: Identifier "=" Expression!comma
+syntax Enum 
+    = const: Id 
+    | const: Id "=" Expr
     ;
 
 lexical IntegerConstant = [0-9]+ [uUlL]* !>> [0-9];
