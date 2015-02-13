@@ -14,6 +14,7 @@ typedef int thisIs;
 
 uint32 main() {
   thisIs * amb;
+  this * notAmb = 3;
   println("Hello world!\n");
   return 1;
 }
