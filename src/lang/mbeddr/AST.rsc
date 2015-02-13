@@ -8,6 +8,20 @@
 @contributor{Tijs van der Storm - storm@cwi.nl}
 module lang::mbeddr::AST
 
+anno loc Module@location;
+anno loc Import@location;
+anno loc QId@location;
+anno loc Id@location;
+anno loc Decl@location;
+anno loc Stat@location;
+anno loc Expr@location;
+anno loc Param@location;
+anno loc Literal@location;
+anno loc Type@location;
+anno loc Modifier@location;
+anno loc Field@location;
+anno loc Enum@location;
+
 data Module
   = \module(QId name, list[Import] imports, list[Decl] decls);
 
@@ -18,7 +32,7 @@ data QId
   = qid(list[Id] parts);
 
 data Decl
-  = function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Decl] decls, list[Stat] stats) 
+  = function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats) 
   | function(list[Modifier] mods, Type \type, Id name, list[Param] params)
   | typeDef(list[Modifier] mods, Type \type, Id name)
   | struct(list[Modifier] mods, Id name) 
@@ -36,7 +50,8 @@ data Param
   ;
 
 data Stat
-  = block(list[Decl] decls, list[Stat] stats)
+  = block(list[Stat] stats)
+  | decl(Decl decl)
   | labeled(Id label, Stat stat)
   | \case(Expr guard, Stat body)
   | \default(Stat body)

@@ -7,7 +7,7 @@
 }
 @contributor{Arnold Lankamp - Arnold.Lankamp@cwi.nl}
 @contributor{Tijs van der Storm - storm@cwi.nl}
-module lang::mbeddr::C
+module lang::mbeddr::MBeddrC
 
 import ParseTree;
 
@@ -21,7 +21,7 @@ syntax QId
   = qid: {Id "."}+;
 
 syntax Decl 
-    = function: Modifier* Type Id "(" {Param ","}* ")" "{" Decl* Stat* "}" 
+    = function: Modifier* Type Id "(" {Param ","}* ")" "{" Stat* "}" 
     | function: Modifier* Type Id "(" {Param ","}* ")" ";"
     | typeDef: Modifier* "typedef" Type Id ";"
     | struct: Modifier* "struct" Id ";" 
@@ -39,7 +39,8 @@ syntax Param
    ;
 
 syntax Stat 
-    = block: "{" Decl* Stat* "}" 
+    = block: "{" Stat* "}"
+    | decl: Decl // c99 
     | labeled: Id ":" Stat 
     | \case: "case" Expr ":" Stat 
     | \default: "default" ":" Stat 
