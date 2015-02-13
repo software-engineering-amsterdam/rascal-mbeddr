@@ -11,7 +11,14 @@ module lang::mbeddr::C
 
 import ParseTree;
 
-start syntax TranslationUnit = ToplevelDeclaration+;
+start syntax Module  
+   = \module: "module" QIdentifier ";" Import* ToplevelDeclaration+;
+   
+syntax Import
+  = \import: "import" QIdentifier ";";
+  
+syntax QIdentifier
+  = qid: {Identifier "."}+;
 
 syntax ToplevelDeclaration 
     = function: Modifier* Type Identifier "(" Parameters ")" "{" Declaration* Statement* "}" 
@@ -130,7 +137,9 @@ lexical Identifier = id: ([a-zA-Z_] [a-zA-Z0-9_]* !>> [a-zA-Z0-9_]) \ Keyword;
 
 
 keyword Keyword 
-    = "auto" 
+    = "module"
+    | "import"
+    | "auto" 
     | "break" 
     | "case" 
     //| "char" 
