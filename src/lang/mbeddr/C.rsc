@@ -11,102 +11,129 @@ module lang::mbeddr::C
 
 import ParseTree;
 
+start syntax TranslationUnit = ToplevelDeclaration+;
+
+syntax ToplevelDeclaration 
+    = function: Modifier* Type Identifier "(" Parameters ")" "{" Declaration* Statement* "}" 
+    | prototype: Modifier* Type Identifier "(" Parameters ")" ";"
+    | typeDef: Modifier* "typedef" Type Identifier ";"
+    | struct: Modifier* "struct" Identifier ";" 
+    | structDecl: Modifier* "struct" Identifier "{" StructDeclaration* "}" 
+    | union: Modifier* "union" Identifier ";" 
+    | unionDecl: Modifier* "union" Identifier "{" StructDeclaration* "}" 
+    | enum: Modifier* "enum" Identifier ";" 
+    | enumDecl: Modifier* "enum" Identifier "{" {Enumerator ","}+ "}"
+    | Declaration 
+    ;
+    
+syntax Declaration 
+    = variableDecl: Modifier* Type Identifier ";"
+    | variableDeclInit: Modifier* Type Identifier "=" Expression ";"
+    ;
+
+
+syntax Param
+   = param: Modifier* Type Identifier
+   ;
+
+syntax Parameters 
+    = params: {Param ","}* 
+    | varargs: {Param ","}+ "," "..."
+    | \void: "void"
+    ;
+
 syntax Statement 
-    = "{" Declaration* Statement* "}" 
-    | Identifier ":" Statement 
-    | "case" Expression ":" Statement 
-    | "default" ":" Statement 
-    | ";" 
-    | Expression ";" 
-    | "if" "(" Expression ")" Statement 
-    | "if" "(" Expression ")" Statement "else" Statement 
-    | "switch" "(" Expression ")" Statement 
-    | "while" "(" Expression ")" Statement 
-    | "do" Statement "while" "(" Expression ")" ";" 
-    | "for" "(" Expression? ";" Expression? ";" Expression? ")" Statement 
-    | "goto" Identifier ";" 
-    | "continue" ";" 
-    | "break" ";" 
-    | "return" ";" 
-    | "return" Expression ";"
+    = block: "{" Declaration* Statement* "}" 
+    | labeled: Identifier ":" Statement 
+    | \case: "case" Expression ":" Statement 
+    | \default: "default" ":" Statement 
+    | semi: ";" 
+    | expr: Expression ";" 
+    | ifThen: "if" "(" Expression ")" Statement 
+    | ifThenElse: "if" "(" Expression ")" Statement "else" Statement 
+    | \switch: "switch" "(" Expression ")" Statement 
+    | \while: "while" "(" Expression ")" Statement 
+    | doWhile: "do" Statement "while" "(" Expression ")" ";" 
+    | \for: "for" "(" Expression? ";" Expression? ";" Expression? ")" Statement 
+    | goto: "goto" Identifier ";" 
+    | \continue: "continue" ";" 
+    | \break: "break" ";" 
+    | \return: "return" ";" 
+    | returnExpr: "return" Expression ";"
     ;
 
 syntax Expression 
     = variable: Identifier 
-    | @category="Constant" HexadecimalConstant 
-    | @category="Constant" IntegerConstant 
-    | @category="Constant" CharacterConstant 
-    | @category="Constant" FloatingPointConstant 
-    | @category="Constant" StringConstant 
-    | Expression "[" Expression "]" 
-    | Expression "(" {NonCommaExpression ","}* ")" 
-    | "sizeof" "(" TypeName ")" 
-    | bracket \bracket: "(" Expression ")" 
-    | Expression "." Identifier 
-    | Expression "-\>" Identifier 
-    | Expression "++" 
-    | Expression "--" 
-    > [+] !<< "++" Expression 
-    | [\-] !<< "--" Expression 
-    | "&" Expression 
-    | "*" Expression 
-    | "+" Expression 
-    | "-" Expression 
-    | "~" Expression 
-    | "!" Expression 
+    | @category="Constant" hexadecimalConstant: HexadecimalConstant 
+    | @category="Constant" integerConstant: IntegerConstant 
+    | @category="Constant" characterConstant: CharacterConstant 
+    | @category="Constant" floatingPointConstant: FloatingPointConstant 
+    | @category="Constant" stringConstant: StringConstant 
+    | subscript: Expression "[" Expression "]" 
+    | call: Expression "(" {Expression ","}* ")" 
+    | sizeOf: "sizeof" "(" TypeName ")" 
+    | bracket "(" Expression ")" 
+    | field: Expression "." Identifier 
+    | ptrField: Expression "-\>" Identifier 
+    | postIncr: Expression "++" 
+    | postDecr: Expression "--" 
+    > preIncr: [+] !<< "++" Expression 
+    | preDecr: [\-] !<< "--" Expression 
+    | addrOf: "&" Expression 
+    | refOf: "*" Expression 
+    | pos: "+" Expression 
+    | neg: "-" Expression 
+    | bitNot: "~" Expression 
+    | not: "!" Expression 
     | sizeOfExpression: "sizeof" Expression exp // May be ambiguous with "sizeof(TypeName)".
     | "(" TypeName ")" Expression 
-    > left ( multiplicationExpression: Expression lexp "*" Expression rexp // May be ambiguous with "TypeName *Declarator".
-           | Expression "/" Expression 
-           | Expression "%" Expression
+    > left ( mul: Expression lexp "*" Expression rexp // May be ambiguous with "TypeName *Declarator".
+           | div: Expression "/" Expression 
+           | \mod: Expression "%" Expression
            ) 
-    > left ( Expression "+" Expression 
-           | Expression "-" Expression
+    > left ( add: Expression "+" Expression 
+           | sub: Expression "-" Expression
            )
-    > left ( Expression "\<\<" Expression 
-           | Expression "\>\>" Expression
+    > left ( shl: Expression "\<\<" Expression 
+           | shr: Expression "\>\>" Expression
            )
-    > left ( Expression "\<" Expression 
-           | Expression "\>" Expression 
-           | Expression "\<=" Expression 
-           | Expression "\>=" Expression
+    > left ( lt: Expression "\<" Expression 
+           | gt: Expression "\>" Expression 
+           | leq: Expression "\<=" Expression 
+           | geq: Expression "\>=" Expression
            )
-    > left ( Expression "==" Expression 
-           | Expression "!=" Expression
+    > left ( eq: Expression "==" Expression 
+           | neq: Expression "!=" Expression
            )
-    > left Expression "&" Expression 
-    > left Expression "^" Expression 
-    > left Expression "|" Expression 
-    > left Expression "&&" Expression 
-    > left Expression "||" Expression 
-    > right Expression "?" Expression ":" Expression 
-    > right ( Expression "=" Expression 
-            | Expression "*=" Expression 
-            | Expression "/=" Expression 
-            | Expression "%=" Expression 
-            | Expression "+=" Expression 
-            | Expression "-=" Expression 
-            | Expression "\<\<=" Expression 
-            | Expression "\>\>=" Expression 
-            | Expression "&=" Expression 
-            | Expression "^=" Expression 
-            | Expression "
-            | =" Expression
+    > left bitAnd: Expression "&" Expression 
+    > left bitXor: Expression "^" Expression 
+    > left bitOr: Expression "|" Expression 
+    > left and: Expression "&&" Expression 
+    > left or: Expression "||" Expression 
+    > right cond: Expression "?" Expression ":" Expression 
+    > right ( assign: Expression "=" Expression 
+            | mulAssign: Expression "*=" Expression 
+            | divAssign: Expression "/=" Expression 
+            | modAssign: Expression "%=" Expression 
+            | addAssign: Expression "+=" Expression 
+            | subAssign: Expression "-=" Expression 
+            | shlAssign: Expression "\<\<=" Expression 
+            | shrAssign: Expression "\>\>=" Expression 
+            | bitAndAssign: Expression "&=" Expression 
+            | bitXorAssign: Expression "^=" Expression 
+            | bitOrAssign: Expression "|=" Expression
             )
-    > left commaExpression: Expression "," Expression
     ;
 
-syntax NonCommaExpression = nonCommaExpression: Expression expr;
 
-lexical Identifier = ([a-zA-Z_] [a-zA-Z0-9_]* !>> [a-zA-Z0-9_]) \ Keyword;
+lexical Identifier = id: ([a-zA-Z_] [a-zA-Z0-9_]* !>> [a-zA-Z0-9_]) \ Keyword;
 
-syntax AnonymousIdentifier = ;
 
 keyword Keyword 
     = "auto" 
     | "break" 
     | "case" 
-    | "char" 
+    //| "char" 
     | "const" 
     | "continue" 
     | "default" 
@@ -119,141 +146,80 @@ keyword Keyword
     | "for" 
     | "goto" 
     | "if" 
-    | "int" 
+    | "int8" 
+    | "int16" 
+    | "int32" 
+    | "int64" 
+    | "uint8" 
+    | "uint16" 
+    | "uint32" 
+    | "uint64" 
     | "long" 
     | "register" 
     | "return" 
-    | "short" 
-    | "signed" 
+    //| "short" 
+    //| "signed" 
     | "sizeof" 
     | "static" 
     | "struct" 
     | "switch" 
     | "typedef" 
     | "union" 
-    | "unsigned" 
+    //| "unsigned" 
     | "void" 
     | "volatile" 
     | "while"
     ;
 
-syntax Declaration 
-    = declarationWithInitDecls: Specifier+ specs {InitDeclarator ","}+ initDeclarators ";" 
-    | declarationWithoutInitDecls: Specifier+ specs ";" // Avoid.
-    ;
 
-syntax GlobalDeclaration 
-    = globalDeclarationWithInitDecls: Specifier* specs0 {InitDeclarator ","}+ initDeclarators ";" 
-    | globalDeclarationWithoutInitDecls: Specifier+ specs1 ";" // Avoid.
-    ;
 
-syntax InitDeclarator 
-    = Declarator decl 
-    | Declarator decl "=" Initializer
-    ;
-
-syntax Specifier 
-    = storageClass: StorageClass 
-    | typeSpecifier: TypeSpecifier 
-    | typeQualifier: TypeQualifier
-    ;
-
-syntax StorageClass 
-    = typeDef: "typedef" 
-    | "extern" 
-    | "static" 
-    | "auto" 
-    | "register"
-    ;
-
-syntax TypeSpecifier 
+syntax Type 
     = identifier: Identifier 
     | \void: "void" 
-    | char: "char" 
-    | short: "short" 
-    | \int: "int" 
-    | long: "long" 
+    | int8: "int8"
+    | int16: "int16"
+    | int32: "int32"
+    | int64: "int64"
+    | uint8: "uint8"
+    | uint16: "uint16"
+    | uint32: "uint32"
+    | uint64: "uint64"
+    | \boolean: "boolean"
     | \float: "float" 
     | \double: "double" 
-    | \boolean: "boolean"
-    | "signed" 
-    | "unsigned" 
     | struct: "struct" Identifier 
-    | structDecl: "struct" Identifier "{" StructDeclaration* "}" 
-    | structAnonDecl: "struct" "{" StructDeclaration* "}" 
+    | structDecl: "struct" Identifier "{" Field* "}" 
+    | structAnonDecl: "struct" "{" Field* "}" 
     | union: "union" Identifier 
-    | unionDecl: "union" Identifier "{" StructDeclaration* "}" 
-    | unionAnonDecl: "union" "{" StructDeclaration* "}" 
+    | unionDecl: "union" Identifier "{" Field* "}" 
+    | unionAnonDecl: "union" "{" Field* "}" 
     | enum: "enum" Identifier 
     | enumDecl: "enum" Identifier "{" {Enumerator ","}+ "}" 
     | enumAnonDecl: "enum" "{" {Enumerator ","}+ "}"
+    | openArray: Type "[" "]"
+    | fixedArray: Type "[" IntegerConstant "]"
+    | pointer: Type "*"
+    | function: Type "(" {Type ","}* ")"
     ;
 
-syntax TypeQualifier 
-    = "const" 
-    | "volatile"
+syntax Modifier
+  = const: "const" 
+  | volatile: "volatile"
+  | extern: "extern" 
+  | static: "static" 
+  | auto: "auto" 
+  | register: "register"
+  | exported: "exported"
+  | static: "static"
+  ;
+
+syntax Field 
+    = field: Type Identifier ";"
     ;
-
-syntax StructDeclaration 
-    = structDeclWithDecl: Specifier+ specs {StructDeclarator ","}+ ";" // TODO: Disallow store class specifiers.
-    | structDeclWithoutDecl: Specifier+ specs ";" // TODO: Disallow store class specifiers. Avoid.
-    ;
-
-syntax StructDeclarator 
-    = Declarator 
-    | Declarator? ":" Expression // Prefer the one where 'Declarator' is filled.
-    ;
-
-syntax Parameters 
-    = {Parameter ","}+ MoreParameters? 
-    | "void"
-    ;
-
-syntax MoreParameters = "," "...";
-
-syntax Parameter = Specifier* Declarator;
-
-syntax PrototypeParameter = Specifier* AbstractDeclarator;
-
-syntax PrototypeParameters 
-    = {PrototypeParameter ","}+ MoreParameters? 
-    | "void"
-    ;
-
-syntax Initializer 
-    = NonCommaExpression 
-    | "{" {Initializer ","}+ ","?  "}"
-    ;
-
-syntax TypeName = Specifier+ AbstractDeclarator;
 
 syntax Enumerator 
-    = Identifier 
-    | Identifier "=" NonCommaExpression
-    ;
-
-syntax AbstractDeclarator 
-    = identifier: AnonymousIdentifier 
-    | bracket \bracket: "(" AbstractDeclarator decl ")" 
-    | arrayDeclarator: AbstractDeclarator decl "[" Expression? exp "]" 
-    | functionDeclarator: AbstractDeclarator decl "(" Parameters? params ")" 
-    > pointerDeclarator: "*" TypeQualifier* qualifiers AbstractDeclarator decl
-    ;
-
-syntax PrototypeDeclarator 
-    = identifier: Identifier 
-    | bracket \bracket: "(" AbstractDeclarator abs_decl ")" 
-    | arrayDeclarator: PrototypeDeclarator proto_decl "[" Expression? exp "]" 
-    | functionDeclarator: PrototypeDeclarator proto_decl "(" PrototypeParameters? params ")" 
-    > pointerDeclarator: "*" TypeQualifier* qualifiers PrototypeDeclarator decl
-    ;
-
-syntax Declarator 
-    = identifier: Identifier 
-    | bracket \bracket: "(" Declarator decl ")" 
-    | arrayDeclarator: Declarator decl "[" Expression? exp "]" 
-    | functionDeclarator: Declarator decl "(" Parameters? params ")" 
-    > pointerDeclarator: "*" TypeQualifier* qualifiers Declarator decl
+    = name: Identifier 
+    | nameValue: Identifier "=" Expression!comma
     ;
 
 lexical IntegerConstant = [0-9]+ [uUlL]* !>> [0-9];
@@ -282,20 +248,6 @@ lexical StringConstantContent
     | ![\\\"]
     ;
 
-// TODO: Type specifiers are required for K&R style parameter declarations, initialization of them is not allowed however.
-// TODO: Disallow storage class specifiers as specifiers.
-// TODO: Disallow ArrayDeclarators in the declarator.
-syntax FunctionDefinition = defaultFunctionDefinition: Specifier* specs Declarator Declaration* "{" Declaration* Statement* "}";
-
-syntax FunctionPrototype = defaultFunctionPrototype: Specifier* specs PrototypeDeclarator decl ";";
-
-syntax ExternalDeclaration 
-    = FunctionDefinition 
-    | FunctionPrototype 
-    | GlobalDeclaration
-    ;
-
-start syntax TranslationUnit = ExternalDeclaration+;
 
 lexical Comment 
     = [/][*] MultiLineCommentBodyToken* [*][/] 
