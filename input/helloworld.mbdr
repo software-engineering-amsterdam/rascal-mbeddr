@@ -1,8 +1,20 @@
 
+module HelloWorld;
+
+import std.io;
+
 // some comment
 
-int main(void) {
-  thisIs * ambiguous;
+typedef struct Person {
+   uint8* name;
+   uint8 age;
+}*[10] Person;
+
+typedef int thisIs;
+
+uint32 main() {
+  thisIs * amb;
+  this * notAmb = 3;
   println("Hello world!\n");
   return 1;
 }

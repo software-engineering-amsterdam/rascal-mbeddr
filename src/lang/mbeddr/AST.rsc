@@ -8,6 +8,20 @@
 @contributor{Tijs van der Storm - storm@cwi.nl}
 module lang::mbeddr::AST
 
+anno loc Module@location;
+anno loc Import@location;
+anno loc QId@location;
+anno loc Id@location;
+anno loc Decl@location;
+anno loc Stat@location;
+anno loc Expr@location;
+anno loc Param@location;
+anno loc Literal@location;
+anno loc Type@location;
+anno loc Modifier@location;
+anno loc Field@location;
+anno loc Enum@location;
+
 data Module
   = \module(QId name, list[Import] imports, list[Decl] decls);
 
@@ -18,13 +32,13 @@ data QId
   = qid(list[Id] parts);
 
 data Decl
-  = function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Decl] decls, list[Stat] stats) 
+  = function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats) 
   | function(list[Modifier] mods, Type \type, Id name, list[Param] params)
   | typeDef(list[Modifier] mods, Type \type, Id name)
   | struct(list[Modifier] mods, Id name) 
-  | struct(list[Modifier] mods, Id name, list[Field] structDecls) 
+  | struct(list[Modifier] mods, Id name, list[Field] fields) 
   | union(list[Modifier] mods, Id name) 
-  | union(list[Modifier] mods, Id name, list[Field] structDecls) 
+  | union(list[Modifier] mods, Id name, list[Field] fields) 
   | enum(list[Modifier] mods, Id name) 
   | enum(list[Modifier] mods, Id name, list[Enum] enums)
   | variable(list[Modifier] mods, Type \type, Id name)
@@ -36,7 +50,8 @@ data Param
   ;
 
 data Stat
-  = block(list[Decl] decls, list[Stat] stats)
+  = block(list[Stat] stats)
+  | decl(Decl decl)
   | labeled(Id label, Stat stat)
   | \case(Expr guard, Stat body)
   | \default(Stat body)
@@ -53,7 +68,12 @@ data Stat
   | \break()
   | \return()
   | \returnExpr(Expr expr)
+  | line(int lineNo, str file) // not in grammar
   ;
+
+Module insertLineDirectives(Module m) = visit (m) {
+  case list[Stat] ss => [ line(s@location.begin.line, s@location.path), s | s <- ss]
+};
 
 data Literal
   = hex(str val)
