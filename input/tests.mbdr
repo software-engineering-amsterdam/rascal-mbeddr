@@ -1,0 +1,11 @@
+module Tests;
+import mbeddr.core.unittests;
+
+void main() {
+	test [ HelloWorldTest, HelloWorldTest ];
+}
+
+exported testcase HelloWorldTest {
+	assert(0) 10 == 10;
+	assert(1) 10 > 5; 
+}

@@ -1,0 +1,12 @@
+// some comment
+module BaseExtensions; 
+
+#constant x = 10;
+
+(int32,int32)=>(int32) add = [ int32 x, int32 y | x + y ];
+
+uint8 main() {
+	int32 z = add(5, 5);
+	
+	return z;
+}
