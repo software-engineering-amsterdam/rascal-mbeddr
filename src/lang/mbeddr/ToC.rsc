@@ -5,6 +5,16 @@ import util::SimpleBox;
 import List;
 import Node;
 
+
+Box toBox(\module(QId name, list[Import] imports, list[Decl] decls))
+  = V(
+     H(L("#ifndef), L(toCName(name)), hs=1),
+     H(L("#define"), L(toCName(name)), hs=1),
+     V([ toBox(i) | i <- imports ]),
+     V([ toBox(d) | d <- decls ]),
+     H(L("#endif")
+   ); 
+
 //list[Box] hsep(str sep, []) = [];
 //list[Box] hsep(str sep, [x]) = [toBox(x)];
 //list[Box] hsep(str sep, [x, y]) = [toBox(x), H(sep), toBox(y)];
