@@ -288,7 +288,7 @@ Box toBox(Enum::const(Id name, Expr init))
  * Statements
  */
  
-Box stats2box(list[Stat] stats) = V([ toBox(s) | s <- stats]);
+Box stats2Box(list[Stat] stats) = V([ toBox(s) | s <- stats]);
  
 Box toBox(block(list[Stat] stats)) = V(L("{"), I(stats2Box(stats)), L("}"));
 Box toBox(decl(Decl decl)) = toBox(decl);
@@ -300,7 +300,7 @@ Box toBox(expr(Expr expr)) = H(toBox(expr), L(";"));
 Box toBox(ifThen(Expr cond, Stat body)) = 
   V(
     H(L("if"), H(L("("), toBox(cond), L(")")), L("{"), hs=1),
-    I(stats2box(body.stats)),
+    I(stats2Box(body.stats)),
     L("}")
   )
   when body is block;
@@ -317,10 +317,10 @@ Box toBox(ifThen(Expr cond, Stat body)) =
 Box toBox(ifThenElse(Expr cond, Stat body, Stat els)) =
   V(
     H(L("if"), H(L("("), toBox(cond), L(")")), L("{"), hs=1),
-    I(stats2box(body.stats)),
+    I(stats2Box(body.stats)),
     L("}"),
     H(L("else"), H("{"), hs=1),
-    I(stats2box(els.stats)),
+    I(stats2Box(els.stats)),
     L("}")
   )
   when body is block, els is block;
@@ -331,7 +331,7 @@ Box toBox(ifThenElse(Expr cond, Stat body, Stat els)) =
     I(toBox(body)),
     L("}"),
     H(L("else"), H("{"), hs=1),
-    I(stats2box(els.stats)),
+    I(stats2Box(els.stats)),
     L("}")
   )
   when !(body is block), els is block;
@@ -339,7 +339,7 @@ Box toBox(ifThenElse(Expr cond, Stat body, Stat els)) =
 Box toBox(ifThenElse(Expr cond, Stat body, Stat els)) =
   V(
     H(L("if"), H(L("("), toBox(cond), L(")")), L("{"), hs=1),
-    I(stats2box(body.stats)),
+    I(stats2Box(body.stats)),
     L("}"),
     H(L("else"), H("{"), hs=1),
     I(toBox(els)),
@@ -362,7 +362,7 @@ Box toBox(ifThenElse(Expr cond, Stat body, Stat els)) =
 Box toBox(\while(Expr cond, Stat body)) = 
   V(
     H(L("while"), H(L("("), toBox(cond), L(")")), L("{"), hs=1),
-    I(stats2box(body.stats)),
+    I(stats2Box(body.stats)),
     L("}")
   )
   when body is block;
@@ -379,7 +379,7 @@ Box toBox(\while(Expr cond, Stat body)) =
 Box toBox(doWhile(Stat body, Expr cond)) = 
   V(
     H(L("do"), L("{"), hs=1),
-    I(stats2box(body.stats)),
+    I(stats2Box(body.stats)),
     L("}"),
     H(L("while"), H(L("("), toBox(cond), L(")"), L(";")), hs=1)
   )
@@ -397,7 +397,7 @@ Box toBox(doWhile(Stat body, Expr cond)) =
 
 Box toBox(\for(list[Expr] init, list[Expr] conds, list[Expr] update, Stat body)) = 
   V(
-    H(L("for"), H(L("("), exprs2box(init), L(";")), H(exprs2box(conds), L(";")), H(exprs2box(update), L(")")), L("{"), hs=1),
+    H(L("for"), H(L("("), exprs2Box(init), L(";")), H(exprs2Box(conds), L(";")), H(exprs2Box(update), L(")")), L("{"), hs=1),
     I(stats2Box(body.stats)),
     L("}")
   )
@@ -405,7 +405,7 @@ Box toBox(\for(list[Expr] init, list[Expr] conds, list[Expr] update, Stat body))
 
 Box toBox(\for(list[Expr] init, list[Expr] conds, list[Expr] update, Stat body)) = 
   V(
-    H(L("for"), H(L("("), exprs2box(init), L(";")), H(exprs2box(conds), L(";")), H(exprs2box(update), L(")")), L("{"), hs=1),
+    H(L("for"), H(L("("), exprs2Box(init), L(";")), H(exprs2Box(conds), L(";")), H(exprs2Box(update), L(")")), L("{"), hs=1),
     I(toBox(body)),
     L("}")
   )
@@ -469,7 +469,7 @@ Box toBox(\default(Stat body)) =
 
 
 Box toBox(line(int lineNo, str file)) 
-  = H("#line", L("<lineNo>"), L("\"<file>\""));
+  = H(L("#line"), H(L("<lineNo>"), L(",")), L("\"<file>\""), hs=1);
   
   
 Box toBox(Type::id(Id name)) = L(name.name);

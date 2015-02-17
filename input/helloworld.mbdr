@@ -15,6 +15,17 @@ typedef int16 as thisIs;
 exported uint32 main() {
   //thisIs * amb;
   //this * notAmb = 3;
+  if (x > 3) {
+    println("Hello world!\n");
+    println("Hello world!\n");
+    do {
+      println("Hello world!\n");
+    }
+    while (z < 3);
+  }
+  for (;;) {
+    println("Hello world!\n");
+  }
   println("Hello world!\n");
   return 1;
 }
