@@ -15,7 +15,7 @@ Box toBox(\module(QId name, list[Import] imports, list[Decl] decls))
   = V(
      H(L("#ifndef"), L(toCName(name)), hs=1),
      H(L("#define"), L(toCName(name)), hs=1),
-     V([ toBox(i) | i <- imports ]),
+     V([ toBox(i) | Import i <- imports ]),
      V([ toBox(d) | d <- decls ], vs=2),
      H(L("#endif"))
    ); 
@@ -23,9 +23,9 @@ Box toBox(\module(QId name, list[Import] imports, list[Decl] decls))
 Box toBox(\import(n))
   = H(L("#include"), H(L("\<"), L(toPath(n)), L(".h"), L("\>")), hs=1); 
 
-str toCName(qid(ids)) = intercalate("_", [ i.name | i <- ids ]);
+str toCName(qid(ids)) = intercalate("_", [ i.name | Id i <- ids ]);
 
-str toPath(qid(ids)) = intercalate("/", [ i.name | i <- ids ]); 
+str toPath(qid(ids)) = intercalate("/", [ i.name | Id i <- ids ]); 
 
 
 
@@ -221,7 +221,7 @@ Box mods2Box(list[Modifier] mods) = H([ L(getName(m)) | m <- mods], hs=1);
 Box params2box(list[Param] ps) = H([ H(param2Box(p), L(",")) | p <- ps ]);
 
 Box param2Box(param(list[Modifier] mods, Type \type, Id name))
-  = hEmptyPrefix(mods, mods2box, toBox(\type), L(name.name), hs=1);
+  = hEmptyPrefix(mods, mods2Box, toBox(\type), L(name.name), hs=1);
 
 Box toBox(Decl::function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats))
   = V(
@@ -319,7 +319,7 @@ Box toBox(ifThenElse(Expr cond, Stat body, Stat els)) =
     H(L("if"), H(L("("), toBox(cond), L(")")), L("{"), hs=1),
     I(stats2Box(body.stats)),
     L("}"),
-    H(L("else"), H("{"), hs=1),
+    H(L("else"), L("{"), hs=1),
     I(stats2Box(els.stats)),
     L("}")
   )
@@ -330,7 +330,7 @@ Box toBox(ifThenElse(Expr cond, Stat body, Stat els)) =
     H(L("if"), H(L("("), toBox(cond), L(")")), L("{"), hs=1),
     I(toBox(body)),
     L("}"),
-    H(L("else"), H("{"), hs=1),
+    H(L("else"), L("{"), hs=1),
     I(stats2Box(els.stats)),
     L("}")
   )
@@ -341,7 +341,7 @@ Box toBox(ifThenElse(Expr cond, Stat body, Stat els)) =
     H(L("if"), H(L("("), toBox(cond), L(")")), L("{"), hs=1),
     I(stats2Box(body.stats)),
     L("}"),
-    H(L("else"), H("{"), hs=1),
+    H(L("else"), L("{"), hs=1),
     I(toBox(els)),
     L("}")
   )
@@ -352,7 +352,7 @@ Box toBox(ifThenElse(Expr cond, Stat body, Stat els)) =
     H(L("if"), H(L("("), toBox(cond), L(")")), L("{"), hs=1),
     I(toBox(body)),
     L("}"),
-    H(L("else"), H("{"), hs=1),
+    H(L("else"), L("{"), hs=1),
     I(toBox(els)),
     L("}")
   )
