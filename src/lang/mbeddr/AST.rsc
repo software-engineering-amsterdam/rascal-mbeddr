@@ -89,6 +89,7 @@ data Expr
   | subscript(Expr array, Expr sub)
   | call(Expr func, list[Expr] args)
   | sizeof(Type \type)
+  | struct(list[Expr] records)
   | field(Expr record, Id name)
   | ptrField(Expr record, Id name)
   | postIncr(Expr arg)

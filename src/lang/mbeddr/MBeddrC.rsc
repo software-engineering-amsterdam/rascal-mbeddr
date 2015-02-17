@@ -23,13 +23,13 @@ syntax QId
 syntax Decl 
     = function: Modifier* Type Id "(" {Param ","}* ")" "{" Stat* "}" 
     | function: Modifier* Type Id "(" {Param ","}* ")" ";"
-    | typeDef: Modifier* "typedef" Type Id ";"
+    | typeDef: Modifier* "typedef" Type "as" Id ";"
     | struct: Modifier* "struct" Id ";" 
-    | struct: Modifier* "struct" Id "{" Field* "}" 
+    | struct: Modifier* "struct" Id "{" Field* "}" ";"
     | union: Modifier* "union" Id ";" 
-    | union: Modifier* "union" Id "{" Field* "}" 
+    | union: Modifier* "union" Id "{" Field* "}" ";"
     | enum: Modifier* "enum" Id ";" 
-    | enum: Modifier* "enum" Id "{" {Enum ","}+ "}"
+    | enum: Modifier* "enum" Id "{" {Enum ","}+ "}" ";"
     | variable: Modifier* Type Id ";"
     | variable: Modifier* Type Id "=" Expr ";"
     ;
@@ -73,7 +73,8 @@ syntax Expr
     | subscript: Expr "[" Expr "]" 
     | call: Expr "(" {Expr ","}* ")" 
     | sizeOf: "sizeof" "(" Type ")" 
-    | bracket "(" Expr ")" 
+    | bracket "(" Expr ")"
+    | struct: "{" {Expr ","}* "}" 
     | field: Expr "." Id 
     | ptrField: Expr "-\>" Id 
     | postIncr: Expr "++" 
@@ -156,7 +157,8 @@ keyword Keyword
     | "uint8" 
     | "uint16" 
     | "uint32" 
-    | "uint64" 
+    | "uint64"
+    | "char" 
     | "long" 
     | "register" 
     | "return" 
@@ -177,7 +179,7 @@ keyword Keyword
 
 
 syntax Type 
-    = identifier: Id 
+    = id: Id 
     | \void: "void" 
     | int8: "int8"
     | int16: "int16"
@@ -187,6 +189,7 @@ syntax Type
     | uint16: "uint16"
     | uint32: "uint32"
     | uint64: "uint64"
+    | char: "char"
     | \boolean: "boolean"
     | \float: "float" 
     | \double: "double" 
