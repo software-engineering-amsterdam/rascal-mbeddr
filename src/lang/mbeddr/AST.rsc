@@ -58,7 +58,7 @@ data Stat
   | semi()
   | expr(Expr expr)
   | ifThen(Expr cond, Stat body)
-  | ifThenElse(Expr cond, Stat body, Stat elseBody )
+  | ifThenElse(Expr cond, Stat body, Stat els)
   | \switch(Expr cond, Stat body)
   | \while(Expr cond, Stat body)
   | doWhile(Stat body, Expr cond)

@@ -1,20 +1,31 @@
 
 module HelloWorld;
 
-import std.io;
+import stdio;
 
 // some comment
 
 typedef struct Person {
    uint8* name;
    uint8 age;
-}*[10] Person;
+}*[10] as Person;
 
-typedef int thisIs;
+typedef int16 as thisIs;
 
-uint32 main() {
-  thisIs * amb;
-  this * notAmb = 3;
+exported uint32 main() {
+  //thisIs * amb;
+  //this * notAmb = 3;
+  if (x > 3) {
+    println("Hello world!\n");
+    println("Hello world!\n");
+    do {
+      println("Hello world!\n");
+    }
+    while (z < 3);
+  }
+  for (;;) {
+    println("Hello world!\n");
+  }
   println("Hello world!\n");
   return 1;
 }
