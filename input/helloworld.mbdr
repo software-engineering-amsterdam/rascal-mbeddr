@@ -1,20 +1,20 @@
 
 module HelloWorld;
 
-import std.io;
+import stdio;
 
 // some comment
 
-typedef struct Person {
+static typedef struct Person {
    uint8* name;
    uint8 age;
-}*[10] Person;
+}*[10] as Person;
 
-typedef int thisIs;
+static typedef int16 as thisIs;
 
-uint32 main() {
-  thisIs * amb;
-  this * notAmb = 3;
+exported uint32 main() {
+  //thisIs * amb;
+  //this * notAmb = 3;
   println("Hello world!\n");
   return 1;
 }
