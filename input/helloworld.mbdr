@@ -5,12 +5,12 @@ import stdio;
 
 // some comment
 
-static typedef struct Person {
+typedef struct Person {
    uint8* name;
    uint8 age;
 }*[10] as Person;
 
-static typedef int16 as thisIs;
+typedef int16 as thisIs;
 
 exported uint32 main() {
   //thisIs * amb;

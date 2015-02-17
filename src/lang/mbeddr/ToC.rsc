@@ -206,64 +206,73 @@ Box toBox(bitOrAssign(Expr lhs, Expr rhs))
 /*
  * Declarations 
  */  
+ 
+ 
+Box hEmptyPrefix(list[&T] ts, Box(list[&T]) tb, Box bs..., int hs=0)
+  = H(tb(ts) + bs, hs = hs)
+  when size(ts) > 0;
+
+Box hEmptyPrefix(list[&T] ts, Box(list[&T]) tb, Box bs..., int hs=0)
+  = H(bs, hs = hs)
+  when size(ts) == 0;
   
 Box mods2Box(list[Modifier] mods) = H([ L(getName(m)) | m <- mods], hs=1);  
 
 Box params2box(list[Param] ps) = H([ H(param2Box(p), L(",")) | p <- ps ]);
 
 Box param2Box(param(list[Modifier] mods, Type \type, Id name))
-  = H(mods2box(mods), toBox(\type), L(name.name), hs=1);
+  = hEmptyPrefix(mods, mods2box, toBox(\type), L(name.name), hs=1);
 
 Box toBox(Decl::function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats))
   = V(
-      H(mods2Box(mods), toBox(\type), H(L(name.name), L("("), params2box(params), L(")")), L("{"), hs=1),
+      hEmptyPrefix(mods, mods2Box, toBox(\type), H(L(name.name), L("("), params2box(params), L(")")), L("{"), hs=1),
       I([ toBox(s) | s <- stats ]),
       L("}")
     ); 
   
 Box toBox(Decl::function(list[Modifier] mods, Type \type, Id name, list[Param] params))
-  = H(mods2Box(mods), toBox(\type), H(L(name.name), L("("), params2box(params), H(L(")"), L(";"))), hs=1);
+  = hEmptyPrefix(mods, mods2Box, toBox(\type), H(L(name.name), L("("), params2box(params), H(L(")"), L(";"))), hs=1);
 
 
 Box toBox(typeDef(list[Modifier] mods, Type \type, Id name))
-  = H(mods2Box(mods), L("typedef"), toBox(\type), H(L(name.name), L(";")), hs=1); 
+  = hEmptyPrefix(mods, mods2Box, L("typedef"), toBox(\type), H(L(name.name), L(";")), hs=1); 
   
 Box toBox(Decl::struct(list[Modifier] mods, Id name, list[Field] fields)) 
   = V(
-       H(mods2Box(mods), L("struct"), L(name.name), L("{"), hs=1),
+       hEmptyPrefix(mods, mods2Box, L("struct"), L(name.name), L("{"), hs=1),
        I([ toBox(f) | f <- fields ]),
        L("}")
     ); 
   
 Box toBox(Decl::struct(list[Modifier] mods, Id name)) 
-  = H(mods2Box(mods), L("struct"), H(L(name.name), L(";")), hs=1);
+  = hEmptyPrefix(mods, mods2Box, L("struct"), H(L(name.name), L(";")), hs=1);
 
 Box toBox(Decl::union(list[Modifier] mods, Id name, list[Field] fields)) 
   = V(
-       H(mods2Box(mods), L("union"), L(name.name), L("{"), hs=1),
+       hEmptyPrefix(mods, mods2Box, L("union"), L(name.name), L("{"), hs=1),
        I([ toBox(f) | f <- fields ]),
        L("}")
     ); 
  
 Box toBox(Decl::union(list[Modifier] mods, Id name))
-  = H(mods2Box(mods), L("union"), H(L(name.name), L(";")), hs=1);
+  = hEmptyPrefix(mods, mods2Box, L("union"), H(L(name.name), L(";")), hs=1);
    
 Box toBox(Decl::enum(list[Modifier] mods, Id name, list[Enum] enums))
   = V(
-       H(mods2Box(mods), L("enum"), L(name.name), L("{"), hs=1),
+       hEmptyPrefix(mods, mods2Box, L("enum"), L(name.name), L("{"), hs=1),
        I([ toBox(e) | e <- enums ]),
        L("}")
     ); 
 
 Box toBox(Decl::enum(list[Modifier] mods, Id name))
-  = H(mods2Box(mods), L("enum"), H(L(name.name), L(";")), hs=1);
+  = hEmptyPrefix(mods, mods2Box, L("enum"), H(L(name.name), L(";")), hs=1);
   
 Box toBox(variable(list[Modifier] mods, Type \type, Id name))
-  = H(mods2Box(mods), toBox(\type), H(L(name.name), L(";")), hs=1);
+  = hEmptyPrefix(mods, mods2Box, toBox(\type), H(L(name.name), L(";")), hs=1);
 
 
 Box toBox(variable(list[Modifier] mods, Type \type, Id name, Expr init))
-  = H(mods2Box(mods), toBox(\type), L(name.name), L("="), H(toBox(init), L(";")), hs=1);
+  = hEmptyPrefix(mods, mods2Box, toBox(\type), L(name.name), L("="), H(toBox(init), L(";")), hs=1);
  
  
 Box toBox(Field::field(Type \type, Id name))
