@@ -1,9 +1,9 @@
-module UnitTest::Syntax
+module unittest::Syntax
 
-extend lang::mbeddr::C;
+extend lang::mbeddr::MBeddrC;
 
 syntax Decl
-	= \testCase: Modifier* "testcase" Id "{" Decl* Stat* "}"
+	= \testCase: Modifier* "testcase" Id "{" Stat* "}"
 	;
 	
 syntax Stat

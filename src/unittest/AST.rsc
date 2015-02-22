@@ -1,9 +1,9 @@
-module UnitTest::AST
+module unittest::AST
 
 extend lang::mbeddr::AST;
 	
 data Decl 
-	= \testCase(list[Modifier] mods, Id name, list[Decl] decls, list[Stat] stats)
+	= \testCase(list[Modifier] mods, Id name, list[Stat] stats)
 	;
 	
 data Stat
