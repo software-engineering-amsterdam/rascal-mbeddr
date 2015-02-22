@@ -17,11 +17,14 @@ exported uint32 main() {
   //this * notAmb = 3;
   if (x > 3) {
     println("Hello world!\n");
-    println("Hello world!\n");
-    do {
+    if (x > 3)
       println("Hello world!\n");
+    else {
+      do {
+        println("Hello world!\n");
+      }
+      while (z < 3);
     }
-    while (z < 3);
   }
   for (;;) {
     println("Hello world!\n");
