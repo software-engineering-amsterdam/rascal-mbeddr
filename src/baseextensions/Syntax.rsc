@@ -1,6 +1,6 @@
-module BaseExtensions::Syntax
+module baseextensions::Syntax
 
-extend lang::mbeddr::C;
+extend lang::mbeddr::MBeddrC;
 
 syntax Type 
 	= functionRef: "(" {Type ","}* ")" "=\>" "(" Type ")"  
@@ -11,6 +11,6 @@ syntax Decl
 	;
 	
 syntax Expr
- 	= lambda: "[" {Param ","}* "|" Decl* Stat* "]"
+ 	= lambda: "[" {Param ","}* "|" Stat* "]"
  	| lambda: "[" {Param ","}* "|" Expr "]"
 	;

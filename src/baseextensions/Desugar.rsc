@@ -1,20 +1,70 @@
-module BaseExtensions::Desugar
+module baseextensions::Desugar
 
-import BaseExtensions::AST;
+import IO;
+import List;
 
-Module desugar( Module ast ) {
-	return visit( ast ) {
-		case constant( Id name, Literal \value ) => constant( name, \value )
-		case functionRef( list[Type] args, Type returnType ) => function( returnType, args )
+import baseextensions::AST;
+
+Type desugar( functionRef( list[Type] args, Type returnType ) ) = function( returnType, args );
+Decl desugar( constant( Id name, Literal \value ) ) = constant( name, \value );
+
+Module transform( \module( name, imports, decls ) ) {
+	int i = 0;
+	bool foundLambda;
+	list[Decl] lambdas = [];
+	map[str, list[Param]] lambdaArguments = ();
+
+	// Find lambdas and lift to top-level function
+	do {
+		foundLambda = false;
 		
-		// TODO: Add closures to parent, use type system to detect return type
-		case lambda( list[Param] params, list[Decl] decls, list[Stat] stats ) : { 
-			closure = function( [static()], \void(), id("lambda_function"), params, decls, stats ); 
-			insert var( "lambda_function" );
+		decls += lambdas;
+		lambdas = [];
+		
+		decls = top-down visit( decls ) {
+			// TODO: Use type system to detect return type
+			case lambda( list[Param] params, stats_or_expr ) : { 
+				i += 1;
+				foundLambda = true; 
+				liftedParams = findLiftedParams( stats_or_expr, params );
+				
+				lambdas += function( [static()], \void(), id("lambda_function_$<i>"), params + liftedParams, stats_or_expr );
+				lambdaArguments["lambda_function_$<i>"] = liftedParams;
+				
+				insert var( id( "lambda_function_$<i>" ) );
+			}
 		}
-		case lambda( list[Param] params, Expr expr ) : {
-			closure = function( [static()], \void(), id("lambda_function"), params, [], \returnExpr( expr ) );
-			insert var( "lambda_function" );
+		
+	} while(foundLambda);
+	
+	// Inspect call graph and alter calls to lambda functions to append closure environment args 
+	decls = visit( decls ) {
+		case call( var( id( str name ) ), list[Expr] args ) : {
+			if( name in lambdaArguments ) {
+				insert call( var( id( name ) ), args + [ var( identifier ) | param( _, _, identifier ) <- lambdaArguments[ name ] ] );
+			}
 		}
 	}
+	
+	return \module( name, imports, decls );
 }
+
+private list[Param] findLiftedParams( lambdaBody, list[Param] lambdaParams ) {
+	result = [];
+	paramNames = extractParamNames( lambdaParams );
+
+	visit( lambdaBody ) {
+	// Detect all variable usages outside the scope of the lambda function
+	// TODO: Global variables shouldn't be detected
+		case var( id( varName ) ) : {
+			if( ! ( varName in paramNames ) ) {
+				// TODO: Use type system to detect param type
+				result += param( [], \void(), id( varName ) );
+			}		
+		}
+	}
+	
+	return result;
+}
+
+private list[str] extractParamNames( list[Param] params ) = [ paramName | param(_, _, id( paramName )) <- params ];
