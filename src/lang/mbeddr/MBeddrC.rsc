@@ -74,8 +74,9 @@ syntax Expr
     | call: Expr "(" {Expr ","}* ")" 
     | sizeOf: "sizeof" "(" Type ")" 
     | bracket "(" Expr ")"
-    | struct: "{" {Expr ","}* "}" 
-    | field: Expr "." Id 
+    | structInit: "{" {Expr ","}* "}"
+    | structInitNamed: "{" {("." Id "=" Expr) ","}* "}"  
+    | dotField: Expr "." Id 
     | ptrField: Expr "-\>" Id 
     | postIncr: Expr "++" 
     | postDecr: Expr "--" 
@@ -137,7 +138,7 @@ keyword Keyword
     | "auto" 
     | "break" 
     | "case" 
-    //| "char" 
+    | "char" 
     | "const" 
     | "continue" 
     | "default" 
@@ -157,8 +158,7 @@ keyword Keyword
     | "uint8" 
     | "uint16" 
     | "uint32" 
-    | "uint64"
-    | "char" 
+    | "uint64" 
     | "long" 
     | "register" 
     | "return" 
