@@ -1,0 +1,14 @@
+module TypeChecker;
+
+typedef struct point as point;
+struct point {
+	int32 x;
+	int32 y;
+};
+
+int8 add( int64 z ) {
+	point p = {z,10};
+	
+	int8 y = p.x;
+	return p.x;
+}

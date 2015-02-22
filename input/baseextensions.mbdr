@@ -1,12 +1,55 @@
 // some comment
 module BaseExtensions; 
 
-#constant x = 10;
+struct point {
+	int32 x;
+	int32 x;
+};
+typedef struct point as point;
 
-(int32,int32)=>(int32) add = [ int32 x, int32 y | x + y ];
+enum cardsuit;
+enum cardsuit {
+   CLUBS,
+   DIAMONDS,
+   HEARTS,
+   SPADES,
+   SPADES
+};
 
-uint8 main() {
-	int32 z = add(5, 5);
+union un;
+union un {
+	int8 x;
+};
+
+int32 add( point p, point p ) {
+	int32 d = 10;
+	int32 d = 10;
+	struct point {
+		int32 x;
+		int32 y;
+	};
 	
-	return z;
+	for( i = 0; i <= 10; i++ ) {
+		
+	}
+	
+	int32 z = 11;
+	
+	{
+		int32 z = 10;
+	}
+
+	return p.x + p.y;
+}
+
+void add();
+
+int32 main() {
+
+	void test() {
+	
+	}
+
+	point p = {5,5};
+	return add( p );
 }
