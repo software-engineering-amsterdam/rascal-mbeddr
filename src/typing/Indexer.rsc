@@ -1,122 +1,23 @@
-module typing::Checker
+module typing::Indexer
 
-import Node;
-import IO;
+import List;
 
+import typing::IndexTable;
 import lang::mbeddr::AST;
 
-data DeclType 
-	= enum() 
-	| typedef() 
-	| struct()
-	| union()
-	;
-data Scope 
-	= global( )
-	| function( Scope scope )
-	| block( Scope scope )
-	;
-
-public alias SymbolTableRow = tuple[Type \type,Scope scope,bool initialized];
-public alias SymbolTable = map[ str, SymbolTableRow ];
-
-public alias TypeTableRow = tuple[Type \type, Scope scope, bool initialized ];
-public alias TypeTable = map[ tuple[str,DeclType], TypeTableRow ];
-
-data RuntimeException = TypeCheckerError( str message, node astNode );
-
-SymbolTable store( SymbolTable table, 
-				   TypeTable types, 
-				   str name, 
-				   SymbolTableRow row, 
-				   node astNode ) {
-	
-	if( name in table && table[ name ].scope == row.scope ) {
-		item = table[ name ];
-		
-		if( item.initialized ) {
-			handleTypeError( "redefinition of \'<name>\'", astNode );
-		} else if( item.\type != row.\type ) {
-			handleTypeError("redefinition of \'<name>\' with a different type \'<delAnnotationsRec( row.\type )>\' vs \'<delAnnotationsRec( table[name].\type )>\'", astNode );
-		} else if( row.initialized ) {
-			return table[ name ].initialized = true;
-		}
-		
-	} else if( name in table && function(_,_) := row.\type && function(_,_) := table[ name ].\type && row.\type != table[ name ].\type ) {
-		
-		handleTypeError( "confliciting types for \'<name>\'", astNode );
-	
-	} else {
-		
-		// Custom type
-		if( id( id( typeName ) ) := row.\type && !doesTypeExist( types, typeName ) ) {
-			handleTypeError("unknown type name \'<typeName>\'", astNode );
-		} 
-		
-		// Struct type
-		if( struct( id( structName ) ) := row.\type && !doesStructExist( types, structName ) ) {
-			handleTypeError("unkown struct \'<structName>\'", astNode );
-		}
-		
-		// Enum type
-		if( enum( id( enumName ) ) := row.\type && !doesEnumExist( types, enumName ) ) {
-			handleTypeError("unkown enum \'<enumName>\'", astNode );
-		}
-		
-		return table[ name ] = row;
-	
-	}
-	
-	return table;
-	 
-}
-
-SymbolTableRow lookup( SymbolTable table, str name ) {
-	if( name in table ) {
-		return table[ name ];
-	}
-}
-
-TypeTable store( TypeTable table, tuple[str,DeclType] key, TypeTableRow row, node astNode ) {
-	if( key in table && 
-		table[key].scope == row.scope && 
-		table[key].initialized
-		) {
-		handleTypeError( "redefinition of \'<key>\'", astNode );
-	} else {
-		return table[key] = row;
-	}
-	
-	return table;
-}
-
-bool doesTypeExist( TypeTable types, str name ) {
-	return <name,typedef()> in types;
-}
-
-bool doesStructExist( TypeTable types, str name ) {
-	return <name,struct()> in types;
-}
-
-bool doesEnumExist( TypeTable types, str name ) {
-	return <name,enum()> in types;
-}
-
-anno SymbolTable node @ symboltable;
-anno TypeTable node @ typetable;
-
-void createSymbolTable( m:\module( name, imports, decls ) ) { visitor( (), (), global(), decls ); }
+Module createIndexTable( m:\module( name, imports, decls ) ) = \module( name, imports, visitor( (), (), global(), decls ) );
 
 list[&T <: node] visitor( SymbolTable table, TypeTable types, Scope scope, list[&T <: node] nodeList ) {
 	return for( n <- nodeList ) {
-		result = visitor( table, types, scope, n );
-		table = result.table;
-		types = result.types;
-		append result.n;
+		n = visitor( table, types, scope, n );
+		table = n@symboltable;
+		types = n@typetable;
+		append n;
 	}
 }
 
-tuple[&T <: node n, SymbolTable table, TypeTable types] visitor( SymbolTable table, TypeTable types, Scope scope, &T <: node n ) {
+// Write all switch cases as functions with pattern matching, make this module extendable by Mbeddr features to extend the typechecker
+&T <: node visitor( SymbolTable table, TypeTable types, Scope scope, &T <: node n ) {
 	switch( n ) {
 		// BLOCK STATEMENTS
 		
@@ -125,21 +26,21 @@ tuple[&T <: node n, SymbolTable table, TypeTable types] visitor( SymbolTable tab
 		}
 		
 		case ifThen(Expr cond, Stat body) : {
-			n = ifThen( cond, visitor( table, types, block( scope ), body ).n );	
+			n = ifThen( cond, visitor( table, types, block( scope ), body ) );	
 		}
   		
   		case ifThenElse(Expr cond, Stat body, Stat els) : {
-  			n = ifThenElse( cond, visitor( table, types, block( scope ), body ).n, visitor( table, types, block( scope ).n, els ) );
+  			n = ifThenElse( cond, visitor( table, types, block( scope ), body ), visitor( table, types, block( scope ), els ) );
   		}
   		
   		case \for(list[Expr] init, list[Expr] conds, list[Expr] update, Stat body) : {
-  			n = \for(init, conds, update, visitor( table, types, block( scope ), body ).n );
+  			n = \for(init, conds, update, visitor( table, types, block( scope ), body ) );
   		}
   		
   		case decl( d ) : {
   			result = visitor( table, types, scope, d );
-  			table = result.table;
-  			n = decl( result.n );
+  			table = result@symboltable;
+  			n = decl( result );
   		}
 		
 		// DECLARATIONS
@@ -150,8 +51,12 @@ tuple[&T <: node n, SymbolTable table, TypeTable types] visitor( SymbolTable tab
 			} else {
 				table = store( table, types, name, < \function( \type, parameterTypes( params ) ), scope, true >, f );
 				
-				paramSymbolTable = createParamSymbolTable( table, types, function( scope ), params );
-				stats = visitor( paramSymbolTable, types, function( scope ), stats );
+				params = visitor( table, types, function( scope ), params );
+				
+				table = size( params ) > 0 ? params[-1]@symboltable : table;
+				types = size( params ) > 0 ? params[-1]@typetable : types;
+				
+				stats = visitor( table, types, function( scope ), stats );
 				n = function( mods, \type, id( name ), params, stats );
 			}
 		}
@@ -217,24 +122,16 @@ tuple[&T <: node n, SymbolTable table, TypeTable types] visitor( SymbolTable tab
   		case c:const( id( name ), _ ) : {
   			table = store( table, types, name, < \void(), scope, true >, c );
   		}
+  		
+  		case p:param(list[Modifier] mods, Type \type, id( name ) ) : {
+  			table = store( table, types, name, < \type, scope, true >, p );
+  		}
 	}
 	
 	n@symboltable = table;
 	n@typetable = types;
 	
-	return <n,table,types>;
-}
-
-SymbolTable createParamSymbolTable( SymbolTable table, TypeTable types, Scope scope, list[Param] params ) {
-	for( p:param(list[Modifier] mods, Type \type, id( name ) ) <- params ) {
-		table = store( table, types, name, < \type, scope, true>, p );
-	}
-	
-	return table;
+	return n;
 }
 
 list[Type] parameterTypes( list[Param] params ) = [ paramType | param( _, paramType, _ ) <- params ];
-
-void handleTypeError( str msg, &T <: node astNode ) {
-	println("error: <msg>, @location: <getAnnotations( astNode )["location"]>");
-}
