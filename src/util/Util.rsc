@@ -1,8 +1,14 @@
 module util::Util
 
+import Node;
+
 import lang::mbeddr::AST;
 
 public str joinList( list[&T] l, str c ) = ( "" | it + e + c | e <- l )[0..-1];
+
+public list[Type] parameterTypes( list[Param] params ) = [ paramType | param( _, paramType, _ ) <- params ];
+
+public &T <: node copyAnnotations( &T <: node n, &T <: node m ) = setAnnotations( n, getAnnotations( m ) );
 
 public str typeToString( Type t ) {
 	switch( t ) {
@@ -34,4 +40,6 @@ public str typeToString( Type t ) {
 		case pointer(Type \type) : return "pointer <typeToString(\type)>";
 		case function(Type returnType, list[Type] args) : return "(<("" | it + "," + typeToString(arg) | arg <- args )>)=\>(<typeToString(returnType)>)";
   }
+  
+  return "";
 }

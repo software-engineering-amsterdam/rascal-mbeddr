@@ -3,11 +3,14 @@ module typing::Evaluator
 import List;
 import Node;
 import IO;
+import Message;
 
 import util::Util;
 import lang::mbeddr::AST;
 import typing::IndexTable;
 import typing::TypeTree;
+
+data Type = empty();
 
 anno Type Expr @ \type;
 
@@ -36,38 +39,29 @@ Module evaluator( &T <: node n, SymbolTable table, TypeTable types ) {
 	}
 	
 	
-	n = top-down-break visit( n ) {
+	n = visit( n ) {
 
-		case Expr e : {
-			try {
-				e@\type = evaluate( e );
-				insert e;
-			} catch TypeCheckerError( msg, l ) : {
-				println("error: <msg>, location: <l>");
-			}
-		}
+		case Expr e => evaluate( e )
+		
+		case Decl d => evaluate( d )
 				
-	}
-	
-	top-down visit( n ) {
-		
-		case Decl d : {
-			try {
-				evaluate( d );
-			} catch TypeCheckerError( msg, l ) : {
-				println("error: <msg>, location: <l>");
-			}
-		}
-		
 	}
 	
 	return n;
 	
 }
 
+Type getType( &T <: node n ) {
+	if( "type" in getAnnotations( n ) ) {
+		return n@\type;
+	} else {
+		return empty();
+	}
+}
+
 // EVALUATOR HELPERS
 
-private Type evaluateField( Expr e, Type \type, str name ) {
+private Expr evaluateField( Expr e, Type \type, str name ) {
 	if( struct( id( structName ) ) := \type ) {
 		typetable = e@typetable;
 		
@@ -82,36 +76,42 @@ private Type evaluateField( Expr e, Type \type, str name ) {
 		}
 	
 	} else {
-		throw TypeCheckerError( "member reference base type \'<typeToString(\type)>\' is not a structure or union", e@location );
+		return e@\message = error( "member reference base type \'<typeToString(\type)>\' is not a structure or union", e@location );
 	}
 }
 
-private Type evaluatePtrField( Expr e, Type record_type, list[Field] fields, str name ) {
+private Expr evaluatePtrField( Expr e, Type record_type, list[Field] fields, str name ) {
 	for( field( Type fieldType, id( fieldName ) ) <- fields ) {
 		if( fieldName == name ) {
-			return fieldType;
+			return e@\type = fieldType;
 		}
 	}
 	
-	throw TypeCheckerError("no member named \'<name>\' in \'<typeToString(record_type)>\'", e@location );
+	return e@message = error( "no member named \'<name>\' in \'<typeToString(record_type)>\'", e@location );
 }
 
-Type evaluateUnaryExpression( Expr e, Expr arg, TypeTree typeTree, Type category = number(), bool pointerArithmetic = false ) {
-	arg_type = evaluate( arg );
+private Expr evaluateUnaryExpression( Expr e, Expr arg, TypeTree typeTree, Type category = number(), bool pointerArithmetic = false ) {
+	arg_type = arg@\type;
+	
+	if( empty() := arg_type ) { return e; }
 
 	if( arg_type in typeTree[ category ] ) {
-		return arg_type;
+		return e@\type = arg_type;
 	} elseif( pointerArithmetic && pointer( \type ) := arg_type ) {
-		return arg_type;
+		return e@\type = arg_type;
 	} else {
-		throw TypeCheckerError("invalid argument type \'<typeToString(arg_type)>\' to unary expression", e@location );
+		return e@message = error( "invalid argument type \'<typeToString(arg_type)>\' to unary expression", e@location );
 	}
 }
 
 
-void evaluateStructInit( Decl v, Expr init, str structName ) {
-	if( struct( list[Field] initFields ) := init@\type && 
-		struct( list[Field] fields ) := v@typetable[ <structName,struct()> ].\type
+private Decl evaluateStructInit( Decl d, Expr init, str structName ) {
+	init_type = init@\type;
+	
+	if( empty() := init_type ) { return d; }
+	
+	if( struct( list[Field] initFields ) := init_type && 
+		struct( list[Field] fields ) := d@typetable[ <structName,struct()> ].\type
 	) {
 	
 		for( i <- [0..size(fields)] ) {
@@ -119,66 +119,98 @@ void evaluateStructInit( Decl v, Expr init, str structName ) {
 				field(Type initFieldType,_) := initFields[i] 
 			) {
 				if( !(initFieldType in CTypeTree[ fieldType ]) ) {
-					throw TypeCheckerError( "\'<typeToString(initFieldType)>\' not a subtype of \'<typeToString(fieldType)>\'", v@location );
+					return d@message = error(  "\'<typeToString(initFieldType)>\' not a subtype of \'<typeToString(fieldType)>\'", d@location );
 				} 
 			}
 		}
 		
 		
 	} else {
-		throw TypeCheckerError( "initializing \'<typeToString(\type)>\' with an expression of incompatible type \'<typeToString(init@\type)>\'", v@location );
+		return d@message = error(  "initializing \'<typeToString(\type)>\' with an expression of incompatible type \'<typeToString(init@\type)>\'", d@location );
 	}
 }
 
 
-Type evaluateBinaryExpression( Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type category = number(), bool pointerArithmetic = false ) {
-	lhs_type = evaluate( lhs );
-	rhs_type = evaluate( rhs );
+private Expr evaluateBinaryExpression( Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type category = number(), bool pointerArithmetic = false ) {
+	lhs_type = getType( lhs );
+	rhs_type = getType( rhs );
+	
+	if( empty() := lhs_type || empty() := rhs_type ) return e; 
 
 	if( pointerArithmetic && pointer( \type ) := lhs_type && rhs_type in typeTree[ int8() ] || pointer( \type ) := rhs_type && lhs_type in typeTree[ int8() ] ) {
-		return pointer( \type );
+		e@\type = pointer( \type );
 	} elseif( !( lhs_type in typeTree[ category ] || rhs_type in typeTree[ category ] ) ) {
-		throw TypeCheckerError( "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
+		e@message = error(  "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
 	}
 
 	if( lhs_type == rhs_type ) {
-		return lhs_type;
+		e@\type = lhs_type;
 	} elseif( rhs_type in typeTree[ lhs_type ] ) {
-		return lhs_type;
+		e@\type = lhs_type;
 	} elseif( lhs_type in typeTree[ rhs_type ] ) {
-		return rhs_type;
+		e@\type = rhs_type;
 	} else {
-		throw TypeCheckerError( "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
+		e@message = error(  "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
 	}
+	
+	return e;
+}
+
+Expr evaluateAssignment(  Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type category = int8(), bool pointerArithmetic = false ) {
+	if( var( id( name ) ) := lhs ) {
+		
+		if( !( name in e@symboltable ) ) {
+			return e@message = error(  "use of undeclared identifier \'<name>\'", e );
+		}
+		
+		lhs_type = e@symboltable[ name ].\type;
+		rhs_type = getType( rhs );	
+		
+		if( empty() := rhs_type ) { return e; }
+		
+		if( pointerArithmetic && pointer( \type ) := lhs_type && rhs_type in typeTree[ int8() ] ) { 
+			return e@\type = lhs_type;
+		} elseif( !( lhs_type in typeTree[ category ] || rhs_type in typeTree[ category ] ) ) {
+			return e@message = error(  "assigment operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
+		}
+		
+		if( lhs_type in typeTree[ rhs_type ] ) {
+			return e@\type = lhs_type;
+		} else {
+			return e@message = error( "type \'<typeToString(rhs_type)>\' is not a subtype of type \'<typeToString(lhs_type)>\'", e@location);
+		}
+	} else {
+		return e@message = error( "expression <delAnnotationsRec(lhs)> is not assignable", e@location );
+	}
+	
+	return e;
 }
 
 // DECLARATION EVALUATORS
 
-default void evaluate( Decl d ) {
+default Decl evaluate( Decl d ) = d;
+
+Decl evaluate( Decl f:function(list[Modifier] mods, Type \type, id( name ), list[Param] params, list[Stat] stats) ) {
+	int returns = 0;
 	
-	if( f:function(list[Modifier] mods, Type \type, id( name ), list[Param] params, list[Stat] stats) := d ) {
-		int returns = 0;
-		
-		top-down-break visit( stats ) {
-			case returnExpr(Expr expr) : {
-				returns += 1;
-				
-				if( !( \type in CTypeTree[ expr@\type ] ) ) {
-					throw TypeCheckerError( "return type \'<typeToString(expr@\type)>\' not a subtype of expected type \'<typeToString(\type)>\'", \type@location );	
-				}
+	top-down-break visit( stats ) {
+		case returnExpr(Expr expr) : {
+			returns += 1;
+			
+			if( !( \type in CTypeTree[ expr@\type ] ) ) {
+				return f@message = error(  "return type \'<typeToString(expr@\type)>\' not a subtype of expected type \'<typeToString(\type)>\'", \type@location );	
 			}
 		}
-		
-		if( returns == 0 && \type != \void() ) {
-			throw TypeCheckerError( "control reaches end of non-void function", f@location );
-		}
-		
 	}
 	
-	return;
+	if( returns == 0 && \type != \void() ) {
+		return f@message = error(  "control reaches end of non-void function", f@location );
+	}
+	
+	return f;	
 }
 
-void evaluate( v:variable(list[Modifier] mods, Type \type, id( name ), Expr init) ) {
+Decl evaluate( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr init) ) {
 	
 	if( id( id( typeName ) ) := \type ) {
 		\type = v@typetable[ <typeName,typedef()> ].\type;
@@ -187,19 +219,21 @@ void evaluate( v:variable(list[Modifier] mods, Type \type, id( name ), Expr init
 	if( struct( id( structName ) ) := \type ) {
 		evaluateStructInit( v, init, structName );
 	} elseif( !( \type in CTypeTree[ init@\type ] ) ) {
-		throw TypeCheckerError( "\'<typeToString(init@\type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
+		return v@message = error(  "\'<typeToString(init@\type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
 	} 
+	
+	return v;
 }
 
 // EXPRESSION EVALUATORS
 
-default Type evaluate( Expr e ) {
-	throw TypeCheckerError( "type checker does not know expression <e>", e@location );
+default Expr evaluate( Expr e ) {
+	return e@message = warning( "unkown expression to typechecker", e@location );
 } 
 
 // VARIABLES
 
-Type evaluate( e:var( id( name ) ) ) {
+Expr evaluate( e:var( id( name ) ) ) {
 	table = e@symboltable;
 	typetable = e@typetable;
 	
@@ -211,234 +245,209 @@ Type evaluate( e:var( id( name ) ) ) {
 			\type = typetable[ <typeDefName,typedef()> ].\type;
 		}
 		
-		return \type;
+		return e@\type = \type;
 	} else {
-		throw TypeCheckerError( "use of undeclared variable \'<name>\'", e@location );
+		return e@message = error( "use of undeclared variable \'<name>\'", e@location );
 	}
 }
 
 // LITERALS
 
-Type evaluate( e:lit( \int( v ) ) ) = int8();
+Expr evaluate( e:lit( \int( v ) ) ) { return e@\type = int8(); }
 
-Type evaluate( e:lit( char( v ) ) ) = char();
+Expr evaluate( e:lit( char( v ) ) ) { return e@\type = char(); }
 
-Type evaluate( e:lit( float( v ) ) ) = float();
+Expr evaluate( e:lit( float( v ) ) ) { return e@\type = float(); }
 
-Type evaluate( e:lit( hex( v ) ) ) = int8();
+Expr evaluate( e:lit( hex( v ) ) ) { return e@\type = int8(); }
 
-Type evaluate( e:lit( string( v ) ) ) = pointer( char() );
+Expr evaluate( e:lit( string( v ) ) ) { return e@\type = pointer( char() ); }
 
 // EXPRESSIONS
 
-Type evaluate( e:subscript( Expr array, Expr sub )  ) {
-	array_type = evaluate( array );
+Expr evaluate( e:subscript( Expr array, Expr sub )  ) {
+	array_type = getType( array );
+	sub_type = getType( sub );
+	
+	if( empty() := array_type || empty() := sub_type ) return e;
 	
 	if( array( \type ) := array_type || array( \type, _ ) := array_type || pointer( \type ) := array_type ) {
-		
-		sub_type = evaluate( sub );
-		
+	
 		if( sub_type in CIntegerTypeTree[ int8() ] ) {
-			return \type;
+			e@\type = \type;
 		} else {
-			throw TypeCheckerError( "array subscript is not an integer", sub@location );
+			e@message = error(  "array subscript is not an integer", sub@location );
 		}
 		
 	} else {
-		throw TypeCheckerError( "subscripted value is not an array, pointer, or vector", array@location );
+		e@message = error( "subscripted value is not an array, pointer, or vector", array@location );
 	}	
+	
+	return e;
 }
 
-Type evaluate( e:call( var( id( func ) ), list[Expr] args ) ) {
+Expr evaluate( e:call( var( id( func ) ), list[Expr] args ) ) {
 	table = e@symboltable;
 	
 	if( func in table && function(Type returnType, list[Type] argsTypes) := table[ func ].\type ) {
 		
 		if( size( argsTypes ) != size( args ) ) {
-			throw TypeCheckerError( "too many arguments to function call, expected <size(argsTypes)>, have <size(args)>", e@location );
+			e@message = error(  "too many arguments to function call, expected <size(argsTypes)>, have <size(args)>", e@location );
 		} 
 		
 		for( int i <- [0..size(args)] ) {
 			if( ! ( argsTypes[i] in CTypeTree[ evaluate( args[ i ] ) ] ) ) {
-				throw TypeCheckerError( "wrong argument type(s)", e@location );
+				e@message = error(  "wrong argument type(s)", e@location );
 			}
 		}
 		
-		return returnType;
+		e@\type = returnType;
 		
 	} else {
-		throw TypeCheckerError( "calling undefined function \'<func>\'", e@location );
+		e@message = error(  "calling undefined function \'<func>\'", e@location );
 	}
+	
+	return e;
 }
 
-Type evaluate( e:sizeof( Type \type ) ) = int8();
+Expr evaluate( e:sizeof( Type \type ) ) { return e@\type = int8(); }
 
-Type evaluate( e:structInit( list[Expr] records ) ) {
+Expr evaluate( e:structInit( list[Expr] records ) ) {
 	// TODO: support C99 syntax for struct initialization ({.id=expr})
-	return struct([ field( evaluate( record ), id("") ) | record <- records ]);
+	return e@\type = struct([ field( getType( record ), id("") ) | record <- records ]);
 }
 
-Type evaluate( e:dotField( Expr record, id( name ) ) ) {
-	record_type = evaluate( record );
+Expr evaluate( e:dotField( Expr record, id( name ) ) ) {
+	record_type = getType( record );
+	
+	if( empty() := record_type ) return e;
 	
 	return evaluateField( e, record_type, name );
 }
 
-Type evaluate( e:ptrField( Expr record, id( name ) ) ) {
-	Type record_type = evaluate( record );
+Expr evaluate( e:ptrField( Expr record, id( name ) ) ) {
+	record_type = getType( record );
+	
+	if( empty() := record_type ) return e;
+	
 	if( pointer( Type \type ) := record_type ) {
 		return evaluateField( e, \type, name );
 	} else {
-		throw TypeCheckerError( "member reference type \'<typeToString(record_type)>\' is not a pointer", e@location );
+		return e@message = error(  "member reference type \'<typeToString(record_type)>\' is not a pointer", e@location );
 	}
 }
 
-Type evaluate( e:postIncr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( e:postIncr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
 
-Type evaluate( e:postDecr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( e:postDecr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
 
-Type evaluate( e:preIncr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( e:preIncr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
 
-Type evaluate( e:preDecr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( e:preDecr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
 
-Type evaluate( e:addrOf( Expr arg ) ) = pointer( evaluate( arg ) );
+Expr evaluate( e:addrOf( Expr arg ) ) { return e@\type = pointer( getType( arg ) ); }
 
-Type evaluate( e:refOf( Expr arg ) ) {
-	arg_type = evaluate( arg );
+Expr evaluate( e:refOf( Expr arg ) ) {
+	arg_type = getType( arg );
+	
+	if( empty() := arg_type ) return e;
 	
 	if( pointer( \type ) := arg_type ) {
-		return \type;
+		e@\type = \type;
 	} else {
-		throw TypeCheckerError( "indirection requires pointer operand (\'<typeToString(arg_type)>\' invalid)", e@location );
-	}
-}
-
-Type evaluate( e:pos( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
-
-Type evaluate( e:neg( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
-
-Type evaluate( e:bitNot( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
-
-Type evaluate( e:not( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=boolean() );
-
-Type evaluate( e:sizeOfExpr( Expr arg ) ) = int8();
-
-Type evaluate( e:cast( Type \type, Expr arg ) ) = \type;
-
-Type evaluate( e:mul( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree );
-
-Type evaluate( e:div( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree );
-
-Type evaluate( e:\mod( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
-
-Type evaluate( e:add( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
-
-Type evaluate( e:sub( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true ); 
-
-Type evaluate( e:shl( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
-
-Type evaluate( e:shr( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
-
-Type evaluate( e:lt( Expr lhs, Expr rhs ) ) { 
-	evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number() );
-	return \boolean();	
-}
-
-Type evaluate( e:gt( Expr lhs, Expr rhs ) ) { 
-	evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number() );
-	return \boolean();	
-}
-
-Type evaluate( e:leq( Expr lhs, Expr rhs ) ) { 
-	evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number() );
-	return \boolean();	
-}
-
-Type evaluate( e:geq( Expr lhs, Expr rhs ) ) { 
-	evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number() );
-	return \boolean();	
-}
-
-Type evaluate( e:eq( Expr lhs, Expr rhs ) ) { 
-	evaluateBinaryExpression( e, lhs, rhs, CEqualityTypeTree, category=\number() );
-	return \boolean();	
-}
-
-Type evaluate( e:neq( Expr lhs, Expr rhs ) ) { 
-	evaluateBinaryExpression( e, lhs, rhs, CEqualityTypeTree, category=\number() );
-	return \boolean();	
-}
-
-Type evaluate( e:bitAnd( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
-
-Type evaluate( e:bitXor( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
-
-Type evaluate( e:bitOr( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
-
-Type evaluate( e:and( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=boolean() );
-
-Type evaluate( e:or( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=boolean() );
-
-Type evaluate( e:cond( Expr cond, Expr then, Expr els ) ) {
-	cond_type = evaluate( cond );
-	if( cond_type != \boolean() ) {
-		throw TypeCheckerError( "\'<typeToString(cond_type)>\' is not a subtype of \'boolean\'", e@location ); 
+		e@message = error(  "indirection requires pointer operand (\'<typeToString(arg_type)>\' invalid)", e@location );
 	}
 	
-	then_type = evaluate( then );
-	els_type = evaluate( els );
+	return e;
+}
+
+Expr evaluate( e:pos( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
+
+Expr evaluate( e:neg( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
+
+Expr evaluate( e:bitNot( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
+
+Expr evaluate( e:not( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=boolean() );
+
+Expr evaluate( e:sizeOfExpr( Expr arg ) ) { return e@\type = int8(); }
+
+Expr evaluate( e:cast( Type \type, Expr arg ) ) { return e@\type; }
+
+Expr evaluate( e:mul( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree );
+
+Expr evaluate( e:div( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree );
+
+Expr evaluate( e:\mod( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+
+Expr evaluate( e:add( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
+
+Expr evaluate( e:sub( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true ); 
+
+Expr evaluate( e:shl( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+
+Expr evaluate( e:shr( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+
+Expr evaluate( e:lt( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );	
+
+Expr evaluate( e:gt( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );
+
+Expr evaluate( e:leq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );
+
+Expr evaluate( e:geq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );
+
+Expr evaluate( e:eq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CEqualityTypeTree, category=\number(), override=\boolean() );
+
+Expr evaluate( e:neq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CEqualityTypeTree, category=\number(), override=\boolean() );
+
+Expr evaluate( e:bitAnd( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+
+Expr evaluate( e:bitXor( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+
+Expr evaluate( e:bitOr( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+
+Expr evaluate( e:and( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=boolean() );
+
+Expr evaluate( e:or( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=boolean() );
+
+Expr evaluate( e:cond( Expr cond, Expr then, Expr els ) ) {
+	cond_type = getType( cond );
+	
+	if( empty() := cond_type ) return e;
+	
+	if( cond_type != \boolean() ) {
+		return e@message = error(  "\'<typeToString(cond_type)>\' is not a subtype of \'boolean\'", e@location ); 
+	}
+	
+	then_type = getType( then );
+	els_type = getType( els );
+	
+	if( empty() := then_type || empty() := els_type ) return e;
 	
 	if( then_type != els_type ) {
-		throw TypeCheckerError( "<typeToString(then_type)>/<typeToString(els_type)> type mismatch in conditional expression (\'<typeToString(then_type)>\' and \'<typeToString(els_type)>\')", e@location );
+		return e@message = error(  "<typeToString(then_type)>/<typeToString(els_type)> type mismatch in conditional expression (\'<typeToString(then_type)>\' and \'<typeToString(els_type)>\')", e@location );
 	} 
 	
-	return then_type;
+	return e@\type = then_type;
 }
 
-Type evaluateAssignment(  Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type category = int8(), bool pointerArithmetic = false ) {
-	if( var( id( name ) ) := lhs ) {
-		
-		if( !( name in e@symboltable ) ) {
-			throw TypeCheckerError( "use of undeclared identifier \'<name>\'", e );
-		}
-		
-		lhs_type = e@symboltable[ name ].\type;
-		rhs_type = evaluate( rhs );	
-		
-		if( pointerArithmetic && pointer( \type ) := lhs_type && rhs_type in typeTree[ int8() ] ) { 
-			return lhs_type;
-		} elseif( !( lhs_type in typeTree[ category ] || rhs_type in typeTree[ category ] ) ) {
-			throw TypeCheckerError( "assigment operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
-		}
-		
-		if( lhs_type in typeTree[ rhs_type ] ) {
-			return lhs_type;
-		} else {
-			throw TypeCheckerError("type \'<typeToString(rhs_type)>\' is not a subtype of type \'<typeToString(lhs_type)>\'", e@location);
-		}
-	} else {
-		throw TypeCheckerError("expression <delAnnotationsRec(lhs)> is not assignable", e@location );
-	}
-}
+Expr evaluate( e:assign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree );
 
-Type evaluate( e:assign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree );
+Expr evaluate( e:mulAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number() );
 
-Type evaluate( e:mulAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number() );
+Expr evaluate( e:divAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number() );
 
-Type evaluate( e:divAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number() );
+Expr evaluate( e:modAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
 
-Type evaluate( e:modAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
+Expr evaluate( e:addAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
 
-Type evaluate( e:addAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( e:subAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
 
-Type evaluate( e:subAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( e:shlAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
 
-Type evaluate( e:shlAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
+Expr evaluate( e:shrAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
 
-Type evaluate( e:shrAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
+Expr evaluate( e:bitAndAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
 
-Type evaluate( e:bitAndAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
+Expr evaluate( e:bitXorAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
 
-Type evaluate( e:bitXorAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
-
-Type evaluate( e:bitOrAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
+Expr evaluate( e:bitOrAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );

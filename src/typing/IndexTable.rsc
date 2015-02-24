@@ -2,7 +2,9 @@ module typing::IndexTable
 
 import IO;
 import Node;
+import Message;
 
+import util::Util;
 import lang::mbeddr::AST;
 
 data DeclType 
@@ -16,6 +18,7 @@ data Scope
 	= global( )
 	| function( Scope scope )
 	| block( Scope scope )
+	| \switch( Scope scope )
 	;
 
 alias SymbolTableRow = tuple[ Type \type, Scope scope, bool initialized ];
@@ -24,54 +27,75 @@ alias SymbolTable = map[ str, SymbolTableRow ];
 alias TypeTableRow = tuple[Type \type, Scope scope, bool initialized ];
 alias TypeTable = map[ tuple[str,DeclType], TypeTableRow ];
 
+alias IndexTables = tuple[ SymbolTable symbols, TypeTable types ];
+
 data RuntimeException = TypeCheckerError( str message, loc location );
 
 anno SymbolTable node @ symboltable;
 anno TypeTable node @ typetable;
 
-SymbolTable store( SymbolTable table, 
-				   TypeTable types, 
-				   str name, 
-				   SymbolTableRow row, 
-				   node astNode ) {
+anno Message Module@message;
+anno Message Import@message;
+anno Message QId@message;
+anno Message Id@message;
+anno Message Decl@message;
+anno Message Stat@message;
+anno Message Expr@message;
+anno Message Param@message;
+anno Message Literal@message;
+anno Message Type@message;
+anno Message Modifier@message;
+anno Message Field@message;
+anno Message Enum@message;
+
+tuple[ IndexTables tables, str errorMsg ]
+store( IndexTables tables, 
+	   str name, 
+	   SymbolTableRow row
+	  ) {
+	
+	table = tables.symbols;
+	types = tables.types;
+	
+	str errorMsg = "";
 	
 	if( name in table && table[ name ].scope == row.scope ) {
 		item = table[ name ];
 		
 		if( item.initialized ) {
-			handleTypeError( "redefinition of \'<name>\'", astNode );
+			errorMsg = "redefinition of \'<name>\'";
 		} else if( item.\type != row.\type ) {
-			handleTypeError("redefinition of \'<name>\' with a different type \'<delAnnotationsRec( row.\type )>\' vs \'<delAnnotationsRec( table[name].\type )>\'", astNode );
+			errorMsg = "redefinition of \'<name>\' with a different type \'<typeToString( row.\type )>\' vs \'<typeToString( table[name].\type )>\'";
 		} else if( row.initialized ) {
 			return table[ name ].initialized = true;
 		}
 		
 	} else if( name in table && function(_,_) := row.\type && function(_,_) := table[ name ].\type && row.\type != table[ name ].\type ) {
 		
-		handleTypeError( "confliciting types for \'<name>\'", astNode );
+		errorMsg = "confliciting types for \'<name>\'";
 	
 	} else {
 		
 		// Custom type
 		if( id( id( typeName ) ) := row.\type && !doesTypeExist( types, typeName ) ) {
-			handleTypeError("unknown type name \'<typeName>\'", astNode );
+			errorMsg = "unknown type name \'<typeName>\'";
 		} 
 		
 		// Struct type
 		if( struct( id( structName ) ) := row.\type && !doesStructExist( types, structName ) ) {
-			handleTypeError("unkown struct \'<structName>\'", astNode );
+			errorMsg = "unkown struct \'<structName>\'";
 		}
 		
 		// Enum type
 		if( enum( id( enumName ) ) := row.\type && !doesEnumExist( types, enumName ) ) {
-			handleTypeError("unkown enum \'<enumName>\'", astNode );
+			errorMsg = "unkown enum \'<enumName>\'";
 		}
 		
-		return table[ name ] = row;
+		table[ name ] = row;
 	
 	}
 	
-	return table;
+	return < < table, types >, errorMsg >;
 	 
 }
 
@@ -81,17 +105,23 @@ SymbolTableRow lookup( SymbolTable table, str name ) {
 	}
 }
 
-TypeTable store( TypeTable table, tuple[str,DeclType] key, TypeTableRow row, node astNode ) {
-	if( key in table && 
-		table[key].scope == row.scope && 
-		table[key].initialized
+tuple[ IndexTables tables, str errorMsg ]
+store( IndexTables tables, 
+       tuple[str,DeclType] key, 
+       TypeTableRow row
+      ) {
+    errorMsg = "";  
+     
+	if( key in tables.types && 
+		tables.types[key].scope == row.scope && 
+		tables.types[key].initialized
 		) {
-		handleTypeError( "redefinition of \'<key>\'", astNode );
+		errorMsg = "redefinition of \'<key>\'";
 	} else {
-		return table[key] = row;
+		tables.types[key] = row;
 	}
 	
-	return table;
+	return < tables, errorMsg >;
 }
 
 bool doesTypeExist( TypeTable types, str name ) {
@@ -104,10 +134,6 @@ bool doesStructExist( TypeTable types, str name ) {
 
 bool doesEnumExist( TypeTable types, str name ) {
 	return <name,enum()> in types;
-}
-
-void handleTypeError( str msg, &T <: node astNode ) {
-	println("error: <msg>, @location: <getAnnotations( astNode )["location"]>");
 }
 
 
