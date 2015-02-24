@@ -1,12 +1,19 @@
 module Plugin
 
-import lang::mbeddr::MBeddrC;
+import IO;
+import Message;
+import Node;
 import ParseTree;
 import util::IDE;
 import util::Editors;
+
+import lang::mbeddr::MBeddrC;
 import lang::mbeddr::AST;
 import lang::mbeddr::ToC;
-import IO;
+
+import typing::IndexTable;
+import typing::Indexer;
+import typing::Evaluator;
 
 private str LANG = "MBeddr";
 private str EXT = "mbdr";
@@ -30,4 +37,33 @@ void main() {
             }        
         })]))
   });
+  
+  registerAnnotator(LANG, typeCheckerAnnotator); 
+}
+
+start[Module] typeCheckerAnnotator( start[Module] m) {
+	ast = implode(#lang::mbeddr::AST::Module, m);
+	
+	ast = evaluator( createIndexTable( ast ) );
+	
+	msgs = collectMessages( ast );
+	
+	return visit( m ) {
+		case Tree t => t[@message=msgs[t@\loc]]
+			when msgs[t@\loc]?
+	}
+}
+
+private map[loc,Message] collectMessages( Module m ) {
+	result = ();
+	
+	visit( m ) {
+		case &T <: node n : {
+			if( "message" in getAnnotations( n ) ) {
+				result[n@location] = n@message;
+			}
+		}
+	}
+	
+	return result;
 }
