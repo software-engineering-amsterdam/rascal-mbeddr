@@ -69,7 +69,7 @@ Box toBox(call(Expr func, list[Expr] args))
 Box toBox(sizeof(Type \type)) 
   = pH(L("("), pH(L("sizeof"), toBox(\type), hs=1), L(")"));
 
-Box toBox(Expr::field(Expr record, Id name)) 
+Box toBox(dotField(Expr record, Id name)) 
   = pH(toBox(record), L("."), L(name.name));
   
 Box toBox(ptrField(Expr record, Id name)) 
