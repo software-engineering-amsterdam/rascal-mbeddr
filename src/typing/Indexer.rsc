@@ -366,8 +366,8 @@ indexer( Expr e:call(Expr func, list[Expr] args), IndexTables tables, Scope scop
 }
 
 tuple[ Expr astNode, IndexTables tables, str errorMsg ]
-indexer( Expr e:structInit(list[Expr] records), IndexTables tables, Scope scope ) {
-	e = structInit( indexer( records, tables, scope ) );
+indexer( Expr e:struct(list[Expr] records), IndexTables tables, Scope scope ) {
+	e = struct( indexer( records, tables, scope ) );
 	return < e, tables, "" >;	
 }
 
