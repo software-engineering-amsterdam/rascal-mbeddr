@@ -46,9 +46,8 @@ Module evaluator( &T <: node n, SymbolTable table, TypeTable types ) {
 		case Decl d => evaluate( d )
 				
 	}
-	
-	return n;
-	
+
+	return n;	
 }
 
 Type getType( &T <: node n ) {
@@ -91,7 +90,7 @@ private Expr evaluatePtrField( Expr e, Type record_type, list[Field] fields, str
 }
 
 private Expr evaluateUnaryExpression( Expr e, Expr arg, TypeTree typeTree, Type category = number(), bool pointerArithmetic = false ) {
-	arg_type = arg@\type;
+	arg_type = getType( arg );
 	
 	if( empty() := arg_type ) { return e; }
 
@@ -106,7 +105,7 @@ private Expr evaluateUnaryExpression( Expr e, Expr arg, TypeTree typeTree, Type 
 
 
 private Decl evaluateStruct( Decl d, Expr init, str structName ) {
-	init_type = init@\type;
+	init_type = getType( init );
 	
 	if( empty() := init_type ) { return d; }
 	
