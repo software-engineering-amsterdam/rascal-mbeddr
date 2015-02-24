@@ -105,7 +105,7 @@ private Expr evaluateUnaryExpression( Expr e, Expr arg, TypeTree typeTree, Type 
 }
 
 
-private Decl evaluateStructInit( Decl d, Expr init, str structName ) {
+private Decl evaluateStruct( Decl d, Expr init, str structName ) {
 	init_type = init@\type;
 	
 	if( empty() := init_type ) { return d; }
@@ -217,7 +217,7 @@ Decl evaluate( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr
 	}
 	
 	if( struct( id( structName ) ) := \type ) {
-		evaluateStructInit( v, init, structName );
+		evaluateStruct( v, init, structName );
 	} elseif( !( \type in CTypeTree[ init@\type ] ) ) {
 		return v@message = error(  "\'<typeToString(init@\type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
 	} 
@@ -233,7 +233,7 @@ default Expr evaluate( Expr e ) {
 
 // VARIABLES
 
-Expr evaluate( e:var( id( name ) ) ) {
+Expr evaluate( Expr e:var( id( name ) ) ) {
 	table = e@symboltable;
 	typetable = e@typetable;
 	
@@ -253,19 +253,19 @@ Expr evaluate( e:var( id( name ) ) ) {
 
 // LITERALS
 
-Expr evaluate( e:lit( \int( v ) ) ) { return e@\type = int8(); }
+Expr evaluate( Expr e:lit( \int( v ) ) ) { return e@\type = int8(); }
 
-Expr evaluate( e:lit( char( v ) ) ) { return e@\type = char(); }
+Expr evaluate( Expr e:lit( char( v ) ) ) { return e@\type = char(); }
 
-Expr evaluate( e:lit( float( v ) ) ) { return e@\type = float(); }
+Expr evaluate( Expr e:lit( float( v ) ) ) { return e@\type = float(); }
 
-Expr evaluate( e:lit( hex( v ) ) ) { return e@\type = int8(); }
+Expr evaluate( Expr e:lit( hex( v ) ) ) { return e@\type = int8(); }
 
-Expr evaluate( e:lit( string( v ) ) ) { return e@\type = pointer( char() ); }
+Expr evaluate( Expr e:lit( string( v ) ) ) { return e@\type = pointer( char() ); }
 
 // EXPRESSIONS
 
-Expr evaluate( e:subscript( Expr array, Expr sub )  ) {
+Expr evaluate( Expr e:subscript( Expr array, Expr sub )  ) {
 	array_type = getType( array );
 	sub_type = getType( sub );
 	
@@ -286,7 +286,7 @@ Expr evaluate( e:subscript( Expr array, Expr sub )  ) {
 	return e;
 }
 
-Expr evaluate( e:call( var( id( func ) ), list[Expr] args ) ) {
+Expr evaluate( Expr e:call( var( id( func ) ), list[Expr] args ) ) {
 	table = e@symboltable;
 	
 	if( func in table && function(Type returnType, list[Type] argsTypes) := table[ func ].\type ) {
@@ -310,14 +310,14 @@ Expr evaluate( e:call( var( id( func ) ), list[Expr] args ) ) {
 	return e;
 }
 
-Expr evaluate( e:sizeof( Type \type ) ) { return e@\type = int8(); }
+Expr evaluate( Expr e:sizeof( Type \type ) ) { return e@\type = int8(); }
 
-Expr evaluate( e:structInit( list[Expr] records ) ) {
+Expr evaluate( Expr e:struct( list[Expr] records ) ) {
 	// TODO: support C99 syntax for struct initialization ({.id=expr})
 	return e@\type = struct([ field( getType( record ), id("") ) | record <- records ]);
 }
 
-Expr evaluate( e:dotField( Expr record, id( name ) ) ) {
+Expr evaluate( Expr e:dotField( Expr record, id( name ) ) ) {
 	record_type = getType( record );
 	
 	if( empty() := record_type ) return e;
@@ -325,7 +325,7 @@ Expr evaluate( e:dotField( Expr record, id( name ) ) ) {
 	return evaluateField( e, record_type, name );
 }
 
-Expr evaluate( e:ptrField( Expr record, id( name ) ) ) {
+Expr evaluate( Expr e:ptrField( Expr record, id( name ) ) ) {
 	record_type = getType( record );
 	
 	if( empty() := record_type ) return e;
@@ -337,17 +337,17 @@ Expr evaluate( e:ptrField( Expr record, id( name ) ) ) {
 	}
 }
 
-Expr evaluate( e:postIncr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( Expr e:postIncr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
 
-Expr evaluate( e:postDecr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( Expr e:postDecr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
 
-Expr evaluate( e:preIncr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( Expr e:preIncr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
 
-Expr evaluate( e:preDecr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( Expr e:preDecr( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=number(), pointerArithmetic=true );
 
-Expr evaluate( e:addrOf( Expr arg ) ) { return e@\type = pointer( getType( arg ) ); }
+Expr evaluate( Expr e:addrOf( Expr arg ) ) { return e@\type = pointer( getType( arg ) ); }
 
-Expr evaluate( e:refOf( Expr arg ) ) {
+Expr evaluate( Expr e:refOf( Expr arg ) ) {
 	arg_type = getType( arg );
 	
 	if( empty() := arg_type ) return e;
@@ -361,55 +361,55 @@ Expr evaluate( e:refOf( Expr arg ) ) {
 	return e;
 }
 
-Expr evaluate( e:pos( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
+Expr evaluate( Expr e:pos( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
 
-Expr evaluate( e:neg( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
+Expr evaluate( Expr e:neg( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
 
-Expr evaluate( e:bitNot( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
+Expr evaluate( Expr e:bitNot( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree );
 
-Expr evaluate( e:not( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=boolean() );
+Expr evaluate( Expr e:not( Expr arg ) ) = evaluateUnaryExpression( e, arg, CTypeTree, category=boolean() );
 
-Expr evaluate( e:sizeOfExpr( Expr arg ) ) { return e@\type = int8(); }
+Expr evaluate( Expr e:sizeOfExpr( Expr arg ) ) { return e@\type = int8(); }
 
-Expr evaluate( e:cast( Type \type, Expr arg ) ) { return e@\type; }
+Expr evaluate( Expr e:cast( Type \type, Expr arg ) ) { return e@\type; }
 
-Expr evaluate( e:mul( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree );
+Expr evaluate( Expr e:mul( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree );
 
-Expr evaluate( e:div( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree );
+Expr evaluate( Expr e:div( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree );
 
-Expr evaluate( e:\mod( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+Expr evaluate( Expr e:\mod( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
 
-Expr evaluate( e:add( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( Expr e:add( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
 
-Expr evaluate( e:sub( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true ); 
+Expr evaluate( Expr e:sub( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true ); 
 
-Expr evaluate( e:shl( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+Expr evaluate( Expr e:shl( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
 
-Expr evaluate( e:shr( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+Expr evaluate( Expr e:shr( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
 
-Expr evaluate( e:lt( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );	
+Expr evaluate( Expr e:lt( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );	
 
-Expr evaluate( e:gt( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );
+Expr evaluate( Expr e:gt( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );
 
-Expr evaluate( e:leq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );
+Expr evaluate( Expr e:leq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );
 
-Expr evaluate( e:geq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );
+Expr evaluate( Expr e:geq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, COrderedTypeTree, category=\number(), override=\boolean() );
 
-Expr evaluate( e:eq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CEqualityTypeTree, category=\number(), override=\boolean() );
+Expr evaluate( Expr e:eq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CEqualityTypeTree, category=\number(), override=\boolean() );
 
-Expr evaluate( e:neq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CEqualityTypeTree, category=\number(), override=\boolean() );
+Expr evaluate( Expr e:neq( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CEqualityTypeTree, category=\number(), override=\boolean() );
 
-Expr evaluate( e:bitAnd( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+Expr evaluate( Expr e:bitAnd( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
 
-Expr evaluate( e:bitXor( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+Expr evaluate( Expr e:bitXor( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
 
-Expr evaluate( e:bitOr( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
+Expr evaluate( Expr e:bitOr( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=int8() );
 
-Expr evaluate( e:and( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=boolean() );
+Expr evaluate( Expr e:and( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=boolean() );
 
-Expr evaluate( e:or( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=boolean() );
+Expr evaluate( Expr e:or( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=boolean() );
 
-Expr evaluate( e:cond( Expr cond, Expr then, Expr els ) ) {
+Expr evaluate( Expr e:cond( Expr cond, Expr then, Expr els ) ) {
 	cond_type = getType( cond );
 	
 	if( empty() := cond_type ) return e;
@@ -430,24 +430,24 @@ Expr evaluate( e:cond( Expr cond, Expr then, Expr els ) ) {
 	return e@\type = then_type;
 }
 
-Expr evaluate( e:assign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree );
+Expr evaluate( Expr e:assign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree );
 
-Expr evaluate( e:mulAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number() );
+Expr evaluate( Expr e:mulAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number() );
 
-Expr evaluate( e:divAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number() );
+Expr evaluate( Expr e:divAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number() );
 
-Expr evaluate( e:modAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
+Expr evaluate( Expr e:modAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
 
-Expr evaluate( e:addAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( Expr e:addAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
 
-Expr evaluate( e:subAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
+Expr evaluate( Expr e:subAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CTypeTree, category=number(), pointerArithmetic=true );
 
-Expr evaluate( e:shlAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
+Expr evaluate( Expr e:shlAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
 
-Expr evaluate( e:shrAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
+Expr evaluate( Expr e:shrAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
 
-Expr evaluate( e:bitAndAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
+Expr evaluate( Expr e:bitAndAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
 
-Expr evaluate( e:bitXorAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
+Expr evaluate( Expr e:bitXorAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
 
-Expr evaluate( e:bitOrAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );
+Expr evaluate( Expr e:bitOrAssign( Expr lhs, Expr rhs ) ) = evaluateAssignment( e, lhs, rhs, CIntegerTypeTree );

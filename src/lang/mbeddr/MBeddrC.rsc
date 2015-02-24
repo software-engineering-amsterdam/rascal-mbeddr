@@ -74,8 +74,8 @@ syntax Expr
     | call: Expr "(" {Expr ","}* ")" 
     | sizeOf: "sizeof" "(" Type ")" 
     | bracket "(" Expr ")"
-    | structInit: "{" {Expr ","}* "}"
-    | structInitNamed: "{" {("." Id "=" Expr) ","}* "}"  
+    | struct: "{" {Expr ","}* "}"
+    | struct: "{" {("." Id "=" Expr) ","}* "}"  
     | dotField: Expr "." Id 
     | ptrField: Expr "-\>" Id 
     | postIncr: Expr "++" 
