@@ -7,6 +7,9 @@ struct point {
 };
 
 int8 add( int64 z ) {
+	
+	case "blaat" : "test";
+	
 	point p = {z,10};
 	
 	int8 y = p.x;
