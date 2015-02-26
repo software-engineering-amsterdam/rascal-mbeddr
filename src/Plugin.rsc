@@ -3,6 +3,7 @@ module Plugin
 import IO;
 import Message;
 import Node;
+import Map;
 import ParseTree;
 import util::IDE;
 import util::Editors;
@@ -41,6 +42,16 @@ void main() {
   registerAnnotator(LANG, typeCheckerAnnotator); 
 }
 
+void printErrors( start[Module] m ) {
+	visit( m ) {
+		case Tree t : {
+			if( "message" in getAnnotations(t) ) {
+				println( t@message );
+			}
+		}
+	}
+}
+
 start[Module] typeCheckerAnnotator( start[Module] m) {
 	ast = implode(#lang::mbeddr::AST::Module, m);
 	
@@ -49,8 +60,13 @@ start[Module] typeCheckerAnnotator( start[Module] m) {
 	msgs = collectMessages( ast );
 	
 	return visit( m ) {
-		case Tree t => t[@message=msgs[t@\loc]]
-			when msgs[t@\loc]?
+		case Tree t : { 
+			if( msgs[t@\loc]? ) {
+				msg = msgs[t@\loc];
+				msgs = delete( msgs, t@\loc );
+				insert t[@message=msg];
+			}
+		} 
 	}
 }
 
