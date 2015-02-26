@@ -112,12 +112,11 @@ private Decl evaluateStruct( Decl d, Expr init, str structName ) {
 	if( struct( list[Field] initFields ) := init_type && 
 		struct( list[Field] fields ) := d@typetable[ <structName,struct()> ].\type
 	) {
-	
 		for( i <- [0..size(fields)] ) {
 			if( field(Type fieldType,_) := fields[i] && 
 				field(Type initFieldType,_) := initFields[i] 
 			) {
-				if( !(initFieldType in CTypeTree[ fieldType ]) ) {
+				if( !(fieldType in CTypeTree[ initFieldType ]) ) {
 					return d@message = error(  "\'<typeToString(initFieldType)>\' not a subtype of \'<typeToString(fieldType)>\'", d@location );
 				} 
 			}
@@ -192,12 +191,14 @@ default Decl evaluate( Decl d ) = d;
 Decl evaluate( Decl f:function(list[Modifier] mods, Type \type, id( name ), list[Param] params, list[Stat] stats) ) {
 	int returns = 0;
 	
-	top-down-break visit( stats ) {
-		case returnExpr(Expr expr) : {
+	f = top-down-break visit( f ) {
+		case r:returnExpr(Expr expr) : {
 			returns += 1;
+			expr_type = getType( expr );
 			
-			if( !( \type in CTypeTree[ expr@\type ] ) ) {
-				return f@message = error(  "return type \'<typeToString(expr@\type)>\' not a subtype of expected type \'<typeToString(\type)>\'", \type@location );	
+			if( !( empty() := expr_type ) && !( \type in CTypeTree[ expr_type ] ) ) {
+				expr@message = error(  "return type \'<typeToString( expr_type )>\' not a subtype of expected type \'<typeToString(\type)>\'", \type@location );
+				insert copyAnnotations( returnExpr( expr ), r );	
 			}
 		}
 	}
@@ -210,15 +211,20 @@ Decl evaluate( Decl f:function(list[Modifier] mods, Type \type, id( name ), list
 }
 
 Decl evaluate( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr init) ) {
+	init_type = getType( init );
 	
 	if( id( id( typeName ) ) := \type ) {
-		\type = v@typetable[ <typeName,typedef()> ].\type;
+		if( <typeName,typedef()> in v@typetable ) {
+			\type = v@typetable[ <typeName,typedef()> ].\type;
+		} else {
+			return v;
+		}
 	}
 	
 	if( struct( id( structName ) ) := \type ) {
-		evaluateStruct( v, init, structName );
-	} elseif( !( \type in CTypeTree[ init@\type ] ) ) {
-		return v@message = error(  "\'<typeToString(init@\type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
+		return evaluateStruct( v, init, structName );
+	} elseif( !(empty() := init_type) && !( \type in CTypeTree[ init_type ] ) ) {
+		return v@message = error(  "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
 	} 
 	
 	return v;
@@ -241,7 +247,11 @@ Expr evaluate( Expr e:var( id( name ) ) ) {
 		
 		// Resolve typedefs
 		if( id( id( typeDefName ) ) := \type ) {
-			\type = typetable[ <typeDefName,typedef()> ].\type;
+			if( <typeDefName,typedef()> in typetable ) {
+				\type = typetable[ <typeDefName,typedef()> ].\type;
+			} else {
+				return e;
+			}
 		}
 		
 		return e@\type = \type;
@@ -285,8 +295,12 @@ Expr evaluate( Expr e:subscript( Expr array, Expr sub )  ) {
 	return e;
 }
 
-Expr evaluate( Expr e:call( var( id( func ) ), list[Expr] args ) ) {
+Expr evaluate( Expr e:call( v:var( id( func ) ), list[Expr] args ) ) {
 	table = e@symboltable;
+	
+	// Remove error messages from the var id subnode
+	v = delAnnotation( v, "message" );
+	e = copyAnnotations( call( v, args ), e );
 	
 	if( func in table && function(Type returnType, list[Type] argsTypes) := table[ func ].\type ) {
 		

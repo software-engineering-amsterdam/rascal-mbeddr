@@ -10,6 +10,14 @@ import util::Util;
 import typing::IndexTable;
 import lang::mbeddr::AST;
 
+bool inSwitch( Scope s ) {
+	visit( s ) {
+		case \switch(_) : return true;
+	}
+	
+	return false;
+}
+
 Module createIndexTable( m:\module( name, imports, decls ) ) = copyAnnotations( \module( name, imports, indexer( decls, <(), ()>, global() ) ), m );
 
 list[&T <: node] indexer( list[&T <: node] nodeList, IndexTables tables, Scope scope ) {
@@ -54,7 +62,7 @@ indexer( Stat b:block(list[Stat] stats),
 	   	 IndexTables tables, 
 	   	 Scope scope
 	   ) {
-	n = block( indexWrapper( stats, tables, block( scope ) ) );		 
+	n = block( indexer( stats, tables, block( scope ) ) );		 
 	return < n, tables, "" >;
 }
 
@@ -109,7 +117,7 @@ indexer( Stat s:\case(Expr guard, Stat body),
 		 Scope scope ) {
 	errorMsg = "";
 	
-	if( !( \switch( Scope outerScope ) := scope ) ) {
+	if( ! inSwitch( scope ) ) {
 		errorMsg = "\'case\' statement is not allowed here";
 	}
 	
@@ -189,10 +197,12 @@ indexer( Decl f:function(list[Modifier] mods, Type \type, id( name ), list[Param
 		
 		params = indexer( params, tables, function( scope ) );
 		
-		table = size( params ) > 0 ? params[-1]@symboltable : table;
-		types = size( params ) > 0 ? params[-1]@typetable : types;
+		table = size( params ) > 0 ? params[-1]@symboltable : storeResult.tables.symbols;
+		types = size( params ) > 0 ? params[-1]@typetable : storeResult.tables.types;
 		
-		body = indexer( body, tables, function( scope ) );
+		//iprintln( params[-1] );
+		
+		body = indexer( body, <table, types>, function( scope ) );
 		n = function( mods, \type, id( name ), params, body );
 	
 		return < n, tables, storeResult.errorMsg >;	
@@ -341,13 +351,13 @@ indexer( Decl c:const( id( name ), _ ),
 	return < c, storeResult.tables, storeResult.errorMsg >;
 }
 
-tuple[ Decl astNode, IndexTables tables, str errorMsg ]
-indexer( Decl p:param(list[Modifier] mods, Type \type, id( name ) ),
+tuple[ Param astNode, IndexTables tables, str errorMsg ]
+indexer( Param p:param(list[Modifier] mods, Type \type, id( name ) ),
 		 IndexTables tables, 
 		 Scope scope ) {
 	
 	storeResult = store( tables, name, < \type, scope, true > );
-	
+
 	return < p, storeResult.tables, storeResult.errorMsg >;
 }
 
