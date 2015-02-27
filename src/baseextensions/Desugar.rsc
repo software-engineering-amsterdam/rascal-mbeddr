@@ -3,63 +3,46 @@ module baseextensions::Desugar
 import IO;
 import List;
 
+import util::Util;
+import typing::IndexTable;
 import baseextensions::AST;
+import baseextensions::TypeChecker;
 
 Type desugar( functionRef( list[Type] args, Type returnType ) ) = function( returnType, args );
 Decl desugar( constant( Id name, Literal \value ) ) = constant( name, \value );
 
-Module transform( \module( name, imports, decls ) ) {
+Module transform( m:\module( name, imports, decls ) ) {
 	int i = 0;
-	bool foundLambda;
-	list[Decl] lambdas = [];
-	map[str, list[Param]] lambdaArguments = ();
+	list[Decl] liftedLambdas = [];
+	SymbolTable liftedLambdaGlobals = (); 
 
 	// Find lambdas and lift to top-level function
-	do {
-		foundLambda = false;
-		
-		decls += lambdas;
-		lambdas = [];
-		
-		decls = top-down visit( decls ) {
-			// TODO: Use type system to detect return type
-			case lambda( list[Param] params, stats_or_expr ) : { 
-				i += 1;
-				foundLambda = true; 
-				liftedParams = findLiftedParams( stats_or_expr, params );
-				
-				lambdas += function( [static()], \void(), id("lambda_function_$<i>"), params + liftedParams, stats_or_expr );
-				lambdaArguments["lambda_function_$<i>"] = liftedParams;
-				
-				insert var( id( "lambda_function_$<i>" ) );
-			}
-		}
-		
-	} while(foundLambda);
+	m = innermost visit( m ) {
+		case l:lambda( list[Param] params, body ) : { 
+			i += 1;
+			liftedParams = findLiftedParams( body, params, liftedLambdaGlobals );
 	
-	// Inspect call graph and alter calls to lambda functions to append closure environment args 
-	decls = visit( decls ) {
-		case call( var( id( str name ) ), list[Expr] args ) : {
-			if( name in lambdaArguments ) {
-				insert call( var( id( name ) ), args + [ var( identifier ) | param( _, _, identifier ) <- lambdaArguments[ name ] ] );
-			}
+			liftedLambdas += function( [static()], l@\type, id("lambda_function_$<i>"), params + liftedParams, liftLambdaBody( body ) );
+			liftedLambdaGlobals["lambda_function_$<i>"] = < l@\type, global(), true >;
+			
+			// TODO detect uses of lambda and replace those 
+			n = var( id( "lambda_function_$<i>" ) );
+			insert n;
 		}
 	}
 	
-	return \module( name, imports, decls );
+	return insertDecls( m, liftedLambdas );
 }
 
-private list[Param] findLiftedParams( lambdaBody, list[Param] lambdaParams ) {
+private list[Param] findLiftedParams( lambdaBody, list[Param] lambdaParams, SymbolTable globals ) {
 	result = [];
 	paramNames = extractParamNames( lambdaParams );
 
-	visit( lambdaBody ) {
-	// Detect all variable usages outside the scope of the lambda function
-	// TODO: Global variables shouldn't be detected
-		case var( id( varName ) ) : {
-			if( ! ( varName in paramNames ) ) {
-				// TODO: Use type system to detect param type
-				result += param( [], \void(), id( varName ) );
+	top-down visit( lambdaBody ) {
+		// Detect all variable usages outside the scope of the lambda function
+		case e:var( id( varName ) ) : {
+			if( ! ( varName in paramNames ) && ! ( varName in globals ) ) {
+				result += param( [], e@symboltable[ varName ].\type, id( varName ) );
 			}		
 		}
 	}
@@ -67,4 +50,18 @@ private list[Param] findLiftedParams( lambdaBody, list[Param] lambdaParams ) {
 	return result;
 }
 
+private SymbolTable findGlobals( SymbolTable symbols ) {
+	result = ();
+	for( ( name : row ) <- symbols, global( row.scope ) ) {
+		result[ name ] = row;
+	}
+	return result;	
+}
+
+private Module insertDecls( m:\module( name, imports, decls ), list[Decl] toInsert ) = copyAnnotations( \module( name, imports, toInsert + decls ), m );
+
+private list[Stat] liftLambdaBody( list[Stat] b ) = b;
+private list[Stat] liftLambdaBody( Expr e ) = [returnExpr(e)];
+
+private list[Type] extractParamTypes( list[Param] params ) = [ paramType | param(_,paramType,_) <- params ];
 private list[str] extractParamNames( list[Param] params ) = [ paramName | param(_, _, id( paramName )) <- params ];
