@@ -8,13 +8,16 @@ import ParseTree;
 import util::IDE;
 import util::Editors;
 
-import lang::mbeddr::MBeddrC;
-import lang::mbeddr::AST;
 import lang::mbeddr::ToC;
 
 import typing::IndexTable;
-import typing::Indexer;
-import typing::Evaluator;
+
+import baseextensions::Syntax;
+
+import baseextensions::AST;
+
+import baseextensions::TypeChecker;
+import baseextensions::Desugar;
 
 private str LANG = "MBeddr";
 private str EXT = "mbdr";
@@ -27,16 +30,9 @@ void main() {
   registerContributions(LANG, {
      popup(
        menu("MBeddr", [
-        action("Show C", void (Tree tree, loc selection) {
-            println("Showing C...");
-            if (start[Module] m := tree) {
-              ast = implode(#lang::mbeddr::AST::Module, m);
-              src = module2c(ast);
-              out = m@\loc[extension="c"];
-              writeFile(out, src);
-              edit(out, []);
-            }        
-        })]))
+        action("Show C", convert2C)]
+        )
+      )
   });
   
   registerAnnotator(LANG, typeCheckerAnnotator); 
@@ -50,6 +46,23 @@ void printErrors( start[Module] m ) {
 			}
 		}
 	}
+}
+
+void convert2C(Tree tree, loc selection) {
+    println("Showing C...");
+    if (start[Module] m := tree) {
+      ast = implode(#lang::mbeddr::AST::Module, m);
+      ast = evaluator( createIndexTable( ast ) );
+      ast = removeTypeCheckerAnnotations( transform( ast ) );
+      
+      src = module2c(ast);
+      out = m@\loc[extension="c"];
+      
+      println( src );
+      
+      writeFile(out, src);
+      edit(out, []);
+    }        
 }
 
 start[Module] typeCheckerAnnotator( start[Module] m) {
