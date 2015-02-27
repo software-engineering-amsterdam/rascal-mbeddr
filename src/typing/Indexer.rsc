@@ -8,15 +8,9 @@ import ParseTree;
 
 import util::Util;
 import typing::IndexTable;
+import typing::Scope;
 import lang::mbeddr::AST;
 
-bool inSwitch( Scope s ) {
-	visit( s ) {
-		case \switch(_) : return true;
-	}
-	
-	return false;
-}
 
 Module createIndexTable( m:\module( name, imports, decls ) ) = copyAnnotations( \module( name, imports, indexer( decls, <(), ()>, global() ) ), m );
 
@@ -32,7 +26,7 @@ list[&T <: node] indexer( list[&T <: node] nodeList, IndexTables tables, Scope s
 &T <: node indexWrapper( &T <: node oldNode, IndexTables tables, Scope scope ) {
 	result = indexer( oldNode, tables, scope );
 	newNode = result.astNode;
-	newNode = setAnnotations( newNode, getAnnotations( oldNode ) );
+	newNode = copyAnnotations( newNode, oldNode );
 	
 	newNode@symboltable = result.tables.symbols;
 	newNode@typetable = result.tables.types;
@@ -172,14 +166,32 @@ indexer( Stat s:doWhile(Stat body, Expr cond),
 } 
 
 tuple[ Stat astNode, IndexTables tables, str errorMsg ]
+indexer( Stat r:\return(),
+		 IndexTables tables, 
+		 Scope scope ) {
+	return < r[@scope = scope], tables, "" >;
+}
+
+tuple[ Stat astNode, IndexTables tables, str errorMsg ]
 indexer( Stat s:\returnExpr(Expr expr),
 		 IndexTables tables, 
 		 Scope scope ) {
+	
 	s = \returnExpr( indexWrapper( expr, tables, scope ) );
-	return < s, tables, "" >;
+	
+	return < s[@scope = scope], tables, "" >;
 } 
 
 // DECLARATIONS
+
+tuple[ list[Param] params, IndexTables tables ] indexParams(list[Param] params, IndexTables tables, Scope scope ) {
+	params = indexer( params, tables, function( scope ) );
+	
+	symbols = size( params ) > 0 ? params[-1]@symboltable : tables.symbols;
+	types = size( params ) > 0 ? params[-1]@typetable : tables.types;
+		
+	return < params, <symbols, types> >;
+}
 
 tuple[ Decl astNode, IndexTables tables, str errorMsg ]
 indexer( Decl f:function(list[Modifier] mods, Type \type, id( name ), list[Param] params, list[Stat] body),
@@ -191,21 +203,15 @@ indexer( Decl f:function(list[Modifier] mods, Type \type, id( name ), list[Param
 		return< f, tables, "function definition is not allowed here" >;
 		
 	} else {
+		scope = function(scope);
 		storeResult = store( tables, name, < \function( \type, parameterTypes( params ) ), scope, true > );
 		
-		tables = storeResult.tables;
+		result = indexParams( params, storeResult.tables, scope );
 		
-		params = indexer( params, tables, function( scope ) );
-		
-		table = size( params ) > 0 ? params[-1]@symboltable : storeResult.tables.symbols;
-		types = size( params ) > 0 ? params[-1]@typetable : storeResult.tables.types;
-		
-		//iprintln( params[-1] );
-		
-		body = indexer( body, <table, types>, function( scope ) );
-		n = function( mods, \type, id( name ), params, body );
+		body = indexer( body, result.tables, scope );
+		n = function( mods, \type, id( name ), result.params, body );
 	
-		return < n, tables, storeResult.errorMsg >;	
+		return < n[@scope=scope], tables, storeResult.errorMsg >;	
 	}	
 }
 

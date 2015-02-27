@@ -9,10 +9,20 @@ import util::Util;
 import lang::mbeddr::AST;
 import typing::IndexTable;
 import typing::TypeTree;
+import typing::Scope;
+
+anno Type Expr @ \type;
 
 data Type = empty();
 
-anno Type Expr @ \type;
+bool isEmpty( Type t ) {
+	e = empty();
+	return e := t;
+}
+
+&T <: node removeTypeCheckerAnnotations( &T <: node n ) {
+	return delAnnotationRec( n, ["symboltable","typetable","type","scope"] );
+}
 
 Module evaluator( m:\module( name, imports, decls ) ) = evaluator( m, (), () );
 
@@ -92,7 +102,7 @@ private Expr evaluatePtrField( Expr e, Type record_type, list[Field] fields, str
 private Expr evaluateUnaryExpression( Expr e, Expr arg, TypeTree typeTree, Type category = number(), bool pointerArithmetic = false ) {
 	arg_type = getType( arg );
 	
-	if( empty() := arg_type ) { return e; }
+	if( isEmpty(arg_type ) ) { return e; }
 
 	if( arg_type in typeTree[ category ] ) {
 		return e@\type = arg_type;
@@ -107,7 +117,7 @@ private Expr evaluateUnaryExpression( Expr e, Expr arg, TypeTree typeTree, Type 
 private Decl evaluateStruct( Decl d, Expr init, str structName ) {
 	init_type = getType( init );
 	
-	if( empty() := init_type ) { return d; }
+	if( isEmpty(init_type ) ) { return d; }
 	
 	if( struct( list[Field] initFields ) := init_type && 
 		struct( list[Field] fields ) := d@typetable[ <structName,struct()> ].\type
@@ -133,7 +143,7 @@ private Expr evaluateBinaryExpression( Expr e, Expr lhs, Expr rhs, TypeTree type
 	lhs_type = getType( lhs );
 	rhs_type = getType( rhs );
 	
-	if( empty() := lhs_type || empty() := rhs_type ) return e; 
+	if( isEmpty(lhs_type ) || isEmpty(rhs_type ) ) return e; 
 
 	if( pointerArithmetic && pointer( \type ) := lhs_type && rhs_type in typeTree[ int8() ] || pointer( \type ) := rhs_type && lhs_type in typeTree[ int8() ] ) {
 		e@\type = pointer( \type );
@@ -164,7 +174,7 @@ Expr evaluateAssignment(  Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type ca
 		lhs_type = e@symboltable[ name ].\type;
 		rhs_type = getType( rhs );	
 		
-		if( empty() := rhs_type ) { return e; }
+		if( isEmpty(rhs_type ) ) { return e; }
 		
 		if( pointerArithmetic && pointer( \type ) := lhs_type && rhs_type in typeTree[ int8() ] ) { 
 			return e@\type = lhs_type;
@@ -193,12 +203,16 @@ Decl evaluate( Decl f:function(list[Modifier] mods, Type \type, id( name ), list
 	
 	f = top-down-break visit( f ) {
 		case r:returnExpr(Expr expr) : {
-			returns += 1;
-			expr_type = getType( expr );
-			
-			if( !( empty() := expr_type ) && !( \type in CTypeTree[ expr_type ] ) ) {
-				expr@message = error(  "return type \'<typeToString( expr_type )>\' not a subtype of expected type \'<typeToString(\type)>\'", \type@location );
-				insert copyAnnotations( returnExpr( expr ), r );	
+			if( sameFunctionScope( r@scope, f@scope ) ) {
+				returns += 1;
+				expr_type = getType( expr );
+				
+				if( !( isEmpty(expr_type ) ) && !( \type in CTypeTree[ expr_type ] ) ) {
+					iprintln( \type );
+					iprintln( expr_type );
+					expr@message = error(  "return type \'<typeToString( expr_type )>\' not a subtype of expected type \'<typeToString(\type)>\'", \type@location );
+					insert copyAnnotations( returnExpr( expr ), r );	
+				}
 			}
 		}
 	}
@@ -223,8 +237,24 @@ Decl evaluate( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr
 	
 	if( struct( id( structName ) ) := \type ) {
 		return evaluateStruct( v, init, structName );
-	} elseif( !(empty() := init_type) && !( \type in CTypeTree[ init_type ] ) ) {
-		return v@message = error(  "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
+	} elseif( !isEmpty(init_type ) ) {
+		if( function( Type return_type, list[Type] args ) := \type ) {
+			
+			if( function( Type init_return_type, list[Type] init_args ) := init_type ) {
+				
+				if( !(return_type in CTypeTree[init_return_type]) ) {
+					v@message = error( "expected function with return type \'<typeToString(return_type)>\' but got \'<typeToString(init_return_type)>\'", v@location );
+				} else if( args != init_args ) {
+					v@message = error( "expected function with argument types \'<for( arg <- args ){><typeToString(arg)>,<}>\' but got \'<for( init_arg <- init_args ){><typeToString(init_arg)>,<}>\'", v@location );
+				}
+				
+			} else {
+				return v@message = error( "expected function but got \'<typeToString(init_type)>\'", v@location );
+			}
+			 
+		} elseif( !( \type in CTypeTree[ init_type ] ) ) {
+			return v@message = error(  "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
+		}
 	} 
 	
 	return v;
@@ -278,7 +308,7 @@ Expr evaluate( Expr e:subscript( Expr array, Expr sub )  ) {
 	array_type = getType( array );
 	sub_type = getType( sub );
 	
-	if( empty() := array_type || empty() := sub_type ) return e;
+	if( isEmpty(array_type ) || isEmpty(sub_type ) ) return e;
 	
 	if( array( \type ) := array_type || array( \type, _ ) := array_type || pointer( \type ) := array_type ) {
 	
@@ -333,7 +363,7 @@ Expr evaluate( Expr e:struct( list[Expr] records ) ) {
 Expr evaluate( Expr e:dotField( Expr record, id( name ) ) ) {
 	record_type = getType( record );
 	
-	if( empty() := record_type ) return e;
+	if( isEmpty(record_type ) ) return e;
 	
 	return evaluateField( e, record_type, name );
 }
@@ -341,7 +371,7 @@ Expr evaluate( Expr e:dotField( Expr record, id( name ) ) ) {
 Expr evaluate( Expr e:ptrField( Expr record, id( name ) ) ) {
 	record_type = getType( record );
 	
-	if( empty() := record_type ) return e;
+	if( isEmpty(record_type ) ) return e;
 	
 	if( pointer( Type \type ) := record_type ) {
 		return evaluateField( e, \type, name );
@@ -363,7 +393,7 @@ Expr evaluate( Expr e:addrOf( Expr arg ) ) { return e@\type = pointer( getType( 
 Expr evaluate( Expr e:refOf( Expr arg ) ) {
 	arg_type = getType( arg );
 	
-	if( empty() := arg_type ) return e;
+	if( isEmpty(arg_type ) ) return e;
 	
 	if( pointer( \type ) := arg_type ) {
 		e@\type = \type;
@@ -425,7 +455,7 @@ Expr evaluate( Expr e:or( Expr lhs, Expr rhs ) ) = evaluateBinaryExpression( e, 
 Expr evaluate( Expr e:cond( Expr cond, Expr then, Expr els ) ) {
 	cond_type = getType( cond );
 	
-	if( empty() := cond_type ) return e;
+	if( isEmpty(cond_type ) ) return e;
 	
 	if( cond_type != \boolean() ) {
 		return e@message = error(  "\'<typeToString(cond_type)>\' is not a subtype of \'boolean\'", e@location ); 
@@ -434,7 +464,7 @@ Expr evaluate( Expr e:cond( Expr cond, Expr then, Expr els ) ) {
 	then_type = getType( then );
 	els_type = getType( els );
 	
-	if( empty() := then_type || empty() := els_type ) return e;
+	if( isEmpty(then_type ) || isEmpty(els_type ) ) return e;
 	
 	if( then_type != els_type ) {
 		return e@message = error(  "<typeToString(then_type)>/<typeToString(els_type)> type mismatch in conditional expression (\'<typeToString(then_type)>\' and \'<typeToString(els_type)>\')", e@location );

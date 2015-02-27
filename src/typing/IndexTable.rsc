@@ -48,6 +48,10 @@ anno Message Modifier@message;
 anno Message Field@message;
 anno Message Enum@message;
 
+anno Scope Stat@scope;
+anno Scope Expr@scope;
+anno Scope Decl@scope;
+
 tuple[ IndexTables tables, str errorMsg ]
 store( IndexTables tables, 
 	   str name, 
