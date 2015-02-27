@@ -1,0 +1,13 @@
+module NestedReturns; 
+
+int8(int8,int8) add = [ int8 x, int8 y | 
+	int32(int8) f = [ int8 z | return z; ];
+	
+	return x + y;
+];
+
+int8 adder(int8 x, int8 y ) {
+	int32(int8) f = [ int8 z | return z; ];
+	
+	return x + y; 
+}
