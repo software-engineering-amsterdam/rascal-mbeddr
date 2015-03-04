@@ -11,19 +11,6 @@ import baseextensions::TypeChecker;
 
 public loc nested_returns = |project://rascal-mbeddr/src/baseextensions/test/input/nested-returns.mbeddr|;
 
-list[Message] findErrors( Module m ) {
-	msgs = [];
-	visit( m ) {
-		case &T <: node n : {
-			if( "message" in getAnnotations(n) ) {
-				msgs += n@message;
-			}
-		}
-	}
-	
-	return msgs;
-}
-
 public test bool nestedReturns() {
 	ast = createAST( nested_returns );
 	ast = evaluator( createIndexTable( ast ) );

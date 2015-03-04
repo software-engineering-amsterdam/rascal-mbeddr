@@ -1,0 +1,9 @@
+module MultipleLambda;
+
+int8(int8,int8) add = [ int8 x, int8 y | 
+	int32 r = [ | x + y ]();
+	
+	int32() f = [ | return x; ];
+	
+	return x + y;
+];
