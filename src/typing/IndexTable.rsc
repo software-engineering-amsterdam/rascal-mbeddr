@@ -48,9 +48,19 @@ anno Message Modifier@message;
 anno Message Field@message;
 anno Message Enum@message;
 
+anno Scope Module@scope;
+anno Scope Import@scope;
+anno Scope QId@scope;
+anno Scope Id@scope;
+anno Scope Decl@scope;
 anno Scope Stat@scope;
 anno Scope Expr@scope;
-anno Scope Decl@scope;
+anno Scope Param@scope;
+anno Scope Literal@scope;
+anno Scope Type@scope;
+anno Scope Modifier@scope;
+anno Scope Field@scope;
+anno Scope Enum@scope;
 
 tuple[ IndexTables tables, str errorMsg ]
 store( IndexTables tables, 
@@ -71,7 +81,7 @@ store( IndexTables tables,
 		} else if( item.\type != row.\type ) {
 			errorMsg = "redefinition of \'<name>\' with a different type \'<typeToString( row.\type )>\' vs \'<typeToString( table[name].\type )>\'";
 		} else if( row.initialized ) {
-			return table[ name ].initialized = true;
+			table[ name ].initialized = true;
 		}
 		
 	} else if( name in table && function(_,_) := row.\type && function(_,_) := table[ name ].\type && row.\type != table[ name ].\type ) {
@@ -139,5 +149,3 @@ bool doesStructExist( TypeTable types, str name ) {
 bool doesEnumExist( TypeTable types, str name ) {
 	return <name,enum()> in types;
 }
-
-
