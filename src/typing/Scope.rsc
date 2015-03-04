@@ -15,6 +15,8 @@ bool inSwitch( Scope s ) {
 	return false;
 }
 
+bool inGlobal( Scope s ) = global() := s;
+
 bool sameFunctionScope( Scope s1, Scope s2 ) {
 	funsS1 = 0;
 	funsS2 = 0;
@@ -29,6 +31,3 @@ bool sameFunctionScope( Scope s1, Scope s2 ) {
 	
 	return funsS2 == funsS1;
 }
-
-default bool global( Scope _ ) = false;
-bool global( Scope global() )  = true;
