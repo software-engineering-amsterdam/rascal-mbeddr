@@ -4,6 +4,7 @@ import lang::mbeddr::AST;
 import util::SimpleBox;
 import List;
 import Node;
+import IO;
 
 // TODO: move */[] from types to names?
 // TODO: separate header & c file.
@@ -55,6 +56,7 @@ Box pH(Box xs..., int hs = 0) = H([L("(")] + xs + [L(")")]);
  */
 
 Box toBox(var(Id id)) = L(id.name);
+Box toBox(lit(string(val))) = L("\"<val>\"");
 Box toBox(lit(Literal lit)) = L(lit.val);
 
 Box exprs2Box(list[Expr] exprs)
@@ -222,6 +224,8 @@ Box params2box(list[Param] ps) = H([ H(param2Box(p), L(",")) | p <- ps ]);
 
 Box param2Box(param(list[Modifier] mods, Type \type, Id name))
   = hEmptyPrefix(mods, mods2Box, toBox(\type), L(name.name), hs=1);
+
+default void toBox( &T <: node n ) = println( "unkown node: <n>" ); 
 
 Box toBox(Decl::function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats))
   = V(
