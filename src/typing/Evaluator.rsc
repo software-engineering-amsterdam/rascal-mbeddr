@@ -20,46 +20,6 @@ bool isEmpty( Type t ) {
 	return e := t;
 }
 
-&T <: node removeTypeCheckerAnnotations( &T <: node n ) {
-	return delAnnotationRec( n, ["symboltable","typetable","type","scope"] );
-}
-
-Module evaluator( m:\module( name, imports, decls ) ) = evaluator( m, (), () );
-
-Module evaluator( &T <: node n, SymbolTable table, TypeTable types ) {
-	
-	n = top-down visit( n ) {
-		case node n : {
-			annos = getAnnotations( n );
-
-			if( "symboltable" in annos ) {
-				table = n@symboltable;
-			} else {
-				n = n[@symboltable = table];
-			}
-			
-			if( "typetable" in annos ) {
-				types = n@typetable;
-			} else {
-				n = n[@typetable = types];
-			}
-			
-			insert n;
-		}
-	}
-	
-	
-	n = visit( n ) {
-
-		case Expr e => evaluate( e )
-		
-		case Decl d => evaluate( d )
-				
-	}
-
-	return n;	
-}
-
 Type getType( &T <: node n ) {
 	if( "type" in getAnnotations( n ) ) {
 		return n@\type;
@@ -136,19 +96,21 @@ private Decl evaluateStruct( Decl d, Expr init, str structName ) {
 	} else {
 		return d@message = error(  "initializing \'<typeToString(\type)>\' with an expression of incompatible type \'<typeToString(init@\type)>\'", d@location );
 	}
+	
+	return d;
 }
 
 
-private Expr evaluateBinaryExpression( Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type category = number(), bool pointerArithmetic = false ) {
+private Expr evaluateBinaryExpression( Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type category = number(), Type override=empty(), bool pointerArithmetic = false ) {
 	lhs_type = getType( lhs );
 	rhs_type = getType( rhs );
 	
 	if( isEmpty(lhs_type ) || isEmpty(rhs_type ) ) return e; 
 
-	if( pointerArithmetic && pointer( \type ) := lhs_type && rhs_type in typeTree[ int8() ] || pointer( \type ) := rhs_type && lhs_type in typeTree[ int8() ] ) {
-		e@\type = pointer( \type );
+	if( pointerArithmetic &&  ( pointer( \type ) := lhs_type && rhs_type in typeTree[ int8() ] || pointer( \type ) := rhs_type && lhs_type in typeTree[ int8() ] ) ) {
+		return e@\type = pointer( \type );
 	} elseif( !( lhs_type in typeTree[ category ] || rhs_type in typeTree[ category ] ) ) {
-		e@message = error(  "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
+		return e@message = error(  "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
 	}
 
 	if( lhs_type == rhs_type ) {
@@ -161,14 +123,27 @@ private Expr evaluateBinaryExpression( Expr e, Expr lhs, Expr rhs, TypeTree type
 		e@message = error(  "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
 	}
 	
+	if( !isEmpty( override ) ) {
+		e@\type = override;
+	}
+	
 	return e;
 }
+
+default &T <: node evaluatePointerAssignment( &T <: node n, lhs_type, rhs_type ) {
+	if( lhs_type in CTypeTree[ rhs_type ] ) {
+		return n;
+	} else {
+		return n[@message = error( "type \'<typeToString(rhs_type)>\' is not a subtype of type \'<typeToString(lhs_type)>\'", n@location )];
+	}
+} 
+&T <: node evaluatePointerAssignment( &T <: node n, pointer( lhs_type ), pointer( rhs_type ) ) = evaluatePointerAssignment( n, lhs_type, rhs_type );
 
 Expr evaluateAssignment(  Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type category = int8(), bool pointerArithmetic = false ) {
 	if( var( id( name ) ) := lhs ) {
 		
 		if( !( name in e@symboltable ) ) {
-			return e@message = error(  "use of undeclared identifier \'<name>\'", e );
+			return e@message = error( "use of undeclared identifier \'<name>\'", e@location );
 		}
 		
 		lhs_type = e@symboltable[ name ].\type;
@@ -178,6 +153,15 @@ Expr evaluateAssignment(  Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type ca
 		
 		if( pointerArithmetic && pointer( \type ) := lhs_type && rhs_type in typeTree[ int8() ] ) { 
 			return e@\type = lhs_type;
+		} elseif( pointer( _ ) := lhs_type && pointer( _ ) := rhs_type ) { 
+			e = evaluatePointerAssignment( e, lhs_type, rhs_type );
+			
+			if( !("message" in getAnnotations(e)) ) {
+				return e@\type = lhs_type;
+			} else {
+				return e;
+			}
+			
 		} elseif( !( lhs_type in typeTree[ category ] || rhs_type in typeTree[ category ] ) ) {
 			return e@message = error(  "assigment operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
 		}
@@ -194,6 +178,10 @@ Expr evaluateAssignment(  Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type ca
 	return e;
 }
 
+// STATEMENT EVALUATORS
+
+default Stat evaluate( Stat s ) = s;
+
 // DECLARATION EVALUATORS
 
 default Decl evaluate( Decl d ) = d;
@@ -203,15 +191,13 @@ Decl evaluate( Decl f:function(list[Modifier] mods, Type \type, id( name ), list
 	
 	f = top-down-break visit( f ) {
 		case r:returnExpr(Expr expr) : {
-			if( sameFunctionScope( r@scope, f@scope ) ) {
+			if( sameFunctionScope( r@scope, function(f@scope) ) ) {
 				returns += 1;
 				expr_type = getType( expr );
 				
 				if( !( isEmpty(expr_type ) ) && !( \type in CTypeTree[ expr_type ] ) ) {
-					iprintln( \type );
-					iprintln( expr_type );
 					expr@message = error(  "return type \'<typeToString( expr_type )>\' not a subtype of expected type \'<typeToString(\type)>\'", \type@location );
-					insert copyAnnotations( returnExpr( expr ), r );	
+					insert r.expr = expr;	
 				}
 			}
 		}
@@ -252,6 +238,8 @@ Decl evaluate( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr
 				return v@message = error( "expected function but got \'<typeToString(init_type)>\'", v@location );
 			}
 			 
+		} elseif( pointer(_) := \type && pointer(_) := init_type ) {
+			return evaluatePointerAssignment( v, \type, init_type );
 		} elseif( !( \type in CTypeTree[ init_type ] ) ) {
 			return v@message = error(  "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
 		}
@@ -302,6 +290,8 @@ Expr evaluate( Expr e:lit( hex( v ) ) ) { return e@\type = int8(); }
 
 Expr evaluate( Expr e:lit( string( v ) ) ) { return e@\type = pointer( char() ); }
 
+Expr evaluate( Expr e:lit( boolean( v ) ) ) { return e@\type = boolean(); }
+
 // EXPRESSIONS
 
 Expr evaluate( Expr e:subscript( Expr array, Expr sub )  ) {
@@ -330,16 +320,17 @@ Expr evaluate( Expr e:call( v:var( id( func ) ), list[Expr] args ) ) {
 	
 	// Remove error messages from the var id subnode
 	v = delAnnotation( v, "message" );
-	e = copyAnnotations( call( v, args ), e );
+	e.func = v;
+	e.args = args;
 	
 	if( func in table && function(Type returnType, list[Type] argsTypes) := table[ func ].\type ) {
 		
 		if( size( argsTypes ) != size( args ) ) {
-			e@message = error(  "too many arguments to function call, expected <size(argsTypes)>, have <size(args)>", e@location );
+			return e[@message = error(  "too many arguments to function call, expected <size(argsTypes)>, have <size(args)>", e@location )];
 		} 
 		
 		for( int i <- [0..size(args)] ) {
-			if( ! ( argsTypes[i] in CTypeTree[ evaluate( args[ i ] ) ] ) ) {
+			if( ! ( argsTypes[i] in CTypeTree[ getType( args[ i ] ) ] ) ) {
 				e@message = error(  "wrong argument type(s)", e@location );
 			}
 		}
