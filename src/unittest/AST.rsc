@@ -7,6 +7,13 @@ data Decl
 	;
 	
 data Stat
-	= \assert( Literal trace, Expr \test )
-	| \test( list[Id] tests )
+	= \assert( Expr \test )
+	;
+	
+data Expr
+	= \test( list[Id] tests )
+	;
+
+data Type
+	= testCase()
 	;

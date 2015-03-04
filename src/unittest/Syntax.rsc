@@ -1,5 +1,4 @@
 module unittest::Syntax
-
 extend lang::mbeddr::MBeddrC;
 
 syntax Decl
@@ -7,6 +6,11 @@ syntax Decl
 	;
 	
 syntax Stat
-	= \assert: "assert" "(" Literal ")" Expr ";"
-	| \test: "test" "[" {Id ","}+ "]" ";"
+	= \assert: "assert" Expr ";"
 	;
+	
+syntax Expr
+	= \test: "test" "[" {Id ","}* "]"
+	;
+	
+keyword Keyword = "test";

@@ -1,38 +1,47 @@
 module unittest::Desugar
+extend DesugarBase;
 
-import unittest::AST;
+// LOCAL IMPORTS
+import unittest::AST;  
 
-Decl desugar( \testCase(mods, name, stats), str ModuleName ) {
+Module desugar_unittest( Module m ) {
+	return visit( m ) {
+		case d:\testCase(_,_,_) => desugarTestCase( d, joinList( [ name | id( name ) <- m.name.parts ], "/" ) ) 
+	}
+}
+
+Decl desugarTestCase( Decl d:\testCase(mods, id(name), stats), str ModuleName ) {
+	d.mods = exportedMods( d.mods );
 	int i = 0;
 	list[Stat] body = [
-		variable( [], int8(), "failures", 0 ),
-		printf_expr("running test @ <ModuleName>:test_<name>:<i>\n")
+		decl( variable( [], int8(), id("failures"), lit( \int("0") ) ) ),
+		expr( printf_expr("running test @<ModuleName>:test_<name>:<i>\n") )
 	];
 	
 	body += visit( stats ) {
-		case \assert( trace, \test ) : {
+		case s:\assert( \test ) : {
 			i += 1;
-			insert ifThen( not( \test ), [
-				postIncr( var( "failures" ) ),
-				printf_expr("FAILED: @<ModuleName>:test_<name>:<i>\n"),
-				printf_expr("testID = <trace>\n")
-			] );
+			insert ifThen( not( \test ), block( [
+				expr( postIncr( var( id( "failures" ) ) ) ),
+				expr( printf_expr("FAILED: @<ModuleName>:test_<name>:<i>\n") ), 
+				expr( printf_expr("testID = <s@location>\n") )
+			] ) );
 		}
 	}
 	
-	body += \return( var( "failures" ) );
+	body += \returnExpr( var( id( "failures" ) ) );
 
-	return function(mods, int8(), "test_" + name, [], body);
+	return function(d.mods, int8(), id("test_" + name), [], body);
 }
 
-Stat desugar( \test( list[Id] tests ) ) {
+public Stat desugar( Stat s:returnExpr( t:\test( list[Id] tests ) ) ) {
 	list[Stat] body = [
-		variable( [], \int32(), id( "failureVals" ), 0 ),
-		variable( [], pointer( \int32() ), id( "failures" ), addrOf( var( id( "failureVals" ) ) ) )
+		decl( variable( [], \int32(), id( "failureVals" ), lit( \int("0") ) ) ),
+		decl( variable( [], pointer( \int32() ), id( "failures" ), addrOf( var( id( "failureVals" ) ) ) ) )
 	];
 	
 	body += for( \test <- tests ) {
-		append assign( var( id( "failures" ) ), add( var( id( "failures" ) ), call( var( \test ) ) ) ); 
+		append expr( assign( var( id( "failures" ) ), add( var( id( "failures" ) ), call( var( \test ), [] ) ) ) ); 
 	}
 	
 	body += returnExpr( var( id( "failureVals" ) ) );
@@ -41,5 +50,5 @@ Stat desugar( \test( list[Id] tests ) ) {
 }
 
 private Expr printf_expr( str arg ) {
-	return call( var( "printf" ), [ lit( string( arg ) ) ] );
+	return call( var( id( "printf" ) ), [ lit( string( arg ) ) ] );
 }
