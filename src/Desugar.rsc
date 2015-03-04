@@ -1,29 +1,16 @@
 module Desugar
 
-import IO;
-import Node;
-import ParseTree;
+extend baseextensions::Desugar;
+extend unittest::Desugar;
 
-import unittest::Syntax;
-import baseextensions::Syntax;
-
-import unittest::AST;
-import baseextensions::AST;
-
-import typing::Indexer;
-import typing::Evaluator;
-
-public loc unittests = |project://rascal-mbeddr/input/tests.mbdr|;
-public loc helloworld = |project://rascal-mbeddr/input/helloworld.mbdr|;
-public loc baseextensions = |project://rascal-mbeddr/input/baseextensions.mbdr|;
-public loc typechecker = |project://rascal-mbeddr/input/typechecker.mbdr|;
-
-Module runTypeChecker( Module m ) = evaluator( createIndexTable( m ) );
-
-Module createAST( loc location ) {
-	return implode( #Module, parse( location ) );
+Module desugarModule( Module m ) {
+	solve (m) {
+	  m = visit( m ) {
+		case Stat s => desugar( s )
+		case Expr e => desugar( e )
+		case Decl d => desugar( d )
+	  }
+	}
 }
 
-Tree parse( loc location ) {
-	return parse( #start[Module], location );
-}
+

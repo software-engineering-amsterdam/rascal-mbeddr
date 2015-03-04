@@ -1,5 +1,6 @@
 module Plugin
 
+// LIBRARY IMPORTS
 import IO;
 import Message;
 import Node;
@@ -8,23 +9,20 @@ import ParseTree;
 import util::IDE;
 import util::Editors;
 
+// LOCAL IMPORTS 
+import Parser;
+import TypeChecker;
+import Desugar;
 import lang::mbeddr::ToC;
-
 import typing::IndexTable;
-
-import baseextensions::Syntax;
-
-import baseextensions::AST;
-
-import baseextensions::TypeChecker;
-import baseextensions::Desugar;
+import util::Util;
 
 private str LANG = "MBeddr";
 private str EXT = "mbdr";
 
 void main() {
   registerLanguage(LANG, EXT, start[Module](str src, loc l) {
-    return parse(#start[Module], src, l);
+    return parse( src, l );
   });
   
   registerContributions(LANG, {
@@ -48,27 +46,39 @@ void printErrors( start[Module] m ) {
 	}
 }
 
+void printErrors( Module m ) {
+	visit( m ) {
+		case &T <: node n : {
+			if( "message" in getAnnotations(n) ) {
+				println( n@message );
+			}
+		}
+	}
+}
+
 void convert2C(Tree tree, loc selection) {
     println("Showing C...");
     if (start[Module] m := tree) {
-      ast = implode(#lang::mbeddr::AST::Module, m);
-      ast = evaluator( createIndexTable( ast ) );
-      ast = removeTypeCheckerAnnotations( transform( ast ) );
+      ast = createAST( m );
+      ast = runTypeChecker( ast );
+      
+      ast = desugar_unittest( ast );
+      ast = desugar_baseextensions( ast );
+      
+      ast = desugarModule( ast );
       
       src = module2c(ast);
       out = m@\loc[extension="c"];
       
-      println( src );
-      
-      writeFile(out, src);
-      edit(out, []);
+      writeFile(|project://rascal-mbeddr/<out.path>|, src);
+      //edit(out, []);
     }        
 }
 
-start[Module] typeCheckerAnnotator( start[Module] m) {
-	ast = implode(#lang::mbeddr::AST::Module, m);
+start[Module] typeCheckerAnnotator( start[Module] m ) {
+	ast = createAST( m );
 	
-	ast = evaluator( createIndexTable( ast ) );
+	ast = runTypeChecker( ast );
 	
 	msgs = collectMessages( ast );
 	
