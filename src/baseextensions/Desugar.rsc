@@ -1,17 +1,14 @@
 module baseextensions::Desugar
+extend Desugar;
 
-import IO;
+// LIBRARY IMPORTS
 import List;
 
-import util::Util;
+// LOCAL IMPORTS
 import typing::IndexTable;
 import baseextensions::AST;
-import baseextensions::TypeChecker;
 
-Type desugar( functionRef( list[Type] args, Type returnType ) ) = function( returnType, args );
-Decl desugar( constant( Id name, Literal \value ) ) = constant( name, \value );
-
-Module transform( m:\module( name, imports, decls ) ) {
+Module desugar_baseextensions( Module m:\module( name, imports, decls ) ) {
 	int i = 0;
 	list[Decl] liftedLambdas = [];
 	SymbolTable liftedLambdaGlobals = (); 
@@ -31,8 +28,19 @@ Module transform( m:\module( name, imports, decls ) ) {
 		}
 	}
 	
-	return insertDecls( m, liftedLambdas );
+	m.decls = liftedLambdas + m.decls;
+	return m;
 }
+
+Decl desugar( Decl f:function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats) ) {
+	return f.mods = exportedMods( f.mods );
+}
+
+Decl desugar( Decl f:function(list[Modifier] mods, Type \type, Id name, list[Param] params) ) {
+	return f.mods = exportedMods( f.mods );
+}
+
+Decl desugar( Decl c:constant( Id name, Literal \value ) ) = constant( name, \value );
 
 private list[Param] findLiftedParams( lambdaBody, list[Param] lambdaParams, SymbolTable globals ) {
 	result = [];
@@ -57,8 +65,6 @@ private SymbolTable findGlobals( SymbolTable symbols ) {
 	}
 	return result;	
 }
-
-private Module insertDecls( m:\module( name, imports, decls ), list[Decl] toInsert ) = copyAnnotations( \module( name, imports, toInsert + decls ), m );
 
 private list[Stat] liftLambdaBody( list[Stat] b ) = b;
 private list[Stat] liftLambdaBody( Expr e ) = [returnExpr(e)];
