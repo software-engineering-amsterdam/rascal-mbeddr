@@ -81,6 +81,7 @@ data Literal
   | char(str val)
   | float(str val)
   | string(str val)
+  | boolean(str val)
   ;
 
 data Expr 

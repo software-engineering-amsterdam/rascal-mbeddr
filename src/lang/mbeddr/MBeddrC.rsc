@@ -65,6 +65,7 @@ syntax Literal
   | char: CharacterConstant 
   | float: FloatingPointConstant 
   | string: StringConstant
+  | boolean: BooleanConstant
   ;
 
 syntax Expr 
@@ -174,6 +175,8 @@ keyword Keyword
     | "void" 
     | "volatile" 
     | "while"
+    | "true"
+    | "false"
     ;
 
 
@@ -227,6 +230,8 @@ syntax Enum
     = const: Id 
     | const: Id "=" Expr
     ;
+
+lexical BooleanConstant = "true" | "false";
 
 lexical IntegerConstant = [0-9]+ [uUlL]* !>> [0-9];
 
