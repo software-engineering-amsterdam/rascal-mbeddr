@@ -248,6 +248,58 @@ Decl evaluate( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr
 	return v;
 }
 
+// STATEMENT EVALUATORS
+
+default Stat evaluate( Stat s ) = s;
+
+Stat evaluate( Stat s:ifThen(Expr cond, Stat body) ) {
+	cond_type = getType( cond );
+	
+	if( isEmpty( cond_type ) ) { return s; }
+	
+	if( !( boolean() := cond_type ) ) {
+		return s@message = error( "if condition should be a \'boolean\'", s@location );
+	} else {
+		return s;
+	}
+}
+
+Stat evaluate( Stat s:ifThenElse(Expr cond, Stat body, Stat els) ) {
+	cond_type = getType( cond );
+	
+	if( isEmpty( cond_type ) ) { return s; }
+	
+	if( !( boolean() := cond_type ) ) {
+		return s@message = error( "if condition should be a \'boolean\'", s@location );
+	} else {
+		return s;
+	}
+}
+
+Stat evaluate( Stat s:\while(Expr cond, Stat body) ) {
+	cond_type = getType( cond );
+	
+	if( isEmpty( cond_type ) ) { return s; }
+	
+	if( !( boolean() := cond_type ) ) {
+		return s@message = error( "while condition should be a \'boolean\'", s@location );
+	} else {
+		return s;
+	}
+}
+
+Stat evaluate( Stat s:doWhile(Stat body, Expr cond)  ) {
+	cond_type = getType( cond );
+	
+	if( isEmpty( cond_type ) ) { return s; }
+	
+	if( !( boolean() := cond_type ) ) {
+		return s@message = error( "do while condition should be a \'boolean\'", s@location );
+	} else {
+		return s;
+	}
+}
+
 // EXPRESSION EVALUATORS
 
 default Expr evaluate( Expr e ) {

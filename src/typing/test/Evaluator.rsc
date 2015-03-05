@@ -139,12 +139,54 @@ public test bool test_function_call_3() {
 		   error( "wrong argument type(s)", _ ) := msgs[0];
 }
 
-public test bool test_switch_condition() {
+public test bool test_if_condition() {
 	str input = "module Test;
-				'// Switch condition should be a boolean
+				'// If condition should be a boolean
 				'void switchBool() {
-				'	switch( \"str\" ) {
-				'		case \"default\" : return;
+				'	if( \"str\" ) {
+				'		return;
+				'	}
+				'}";				
+	msgs = evaluator( input );
+
+	return size( msgs ) == 1 &&
+		   error( str msg, _ ) := msgs[0];
+}
+
+public test bool test_while_condition() {
+	str input = "module Test;
+				'// While condition should be a boolean
+				'void switchBool() {
+				'	while( \"str\" ) {
+				'		return;
+				'	}
+				'}";				
+	msgs = evaluator( input );
+
+	return size( msgs ) == 1 &&
+		   error( str msg, _ ) := msgs[0];
+}
+
+public test bool test_do_while_condition() {
+	str input = "module Test;
+				'// While condition should be a boolean
+				'void switchBool() {
+				'	do {
+				'		return;
+				'	} while( \"str\" );
+				'}";				
+	msgs = evaluator( input );
+
+	return size( msgs ) == 1 &&
+		   error( str msg, _ ) := msgs[0];
+}
+
+public test bool test_while_condition() {
+	str input = "module Test;
+				'// While condition should be a boolean
+				'void switchBool() {
+				'	while( \"str\" ) {
+				'		return;
 				'	}
 				'}";				
 	msgs = evaluator( input );
@@ -218,7 +260,6 @@ public test bool test_pointer_arithmetic_1() {
 				'char* k = i - 1;";
 	msgs = evaluator( input );
 	
-	println(msgs);
 	return size( msgs ) == 0;
 }
 
@@ -231,6 +272,5 @@ public test bool test_pointer_arithmetic_2() {
 				'}";
 	msgs = evaluator( input );
 	
-	println(msgs);
 	return size( msgs ) == 0;
 }
