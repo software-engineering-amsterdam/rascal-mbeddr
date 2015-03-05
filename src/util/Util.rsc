@@ -46,6 +46,19 @@ public str typeToString( Type t ) {
   return "";
 }
 
+public str litToString( Literal l ) {
+	switch( l ) {
+  		case hex(str val) : return "hex";
+  		case \int(str val) : return "int";
+  		case char(str val) : return "char";
+  		case float(str val) : return "float";
+  		case string(str val) : return "string";
+  		case boolean(str val) : return "boolean";
+	}
+	
+	return "";
+}
+
 &T <: node delAnnotationRec( &T <: node root, list[str] annoKeys ) {
 	for( annoKey <- annoKeys ) {
 		root = delAnnotationRec( root, annoKey );
@@ -59,3 +72,5 @@ public str typeToString( Type t ) {
 		case node n => delAnnotation( n, annoKey )
 	}
 }
+
+//int bitsToEncodeInt( int n ) = 
