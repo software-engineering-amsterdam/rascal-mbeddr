@@ -57,7 +57,6 @@ public test bool test_enum() {
 				'enum color c;";
 	msgs = indexer( input );
 	
-	println(msgs);
 	return size( msgs ) == 1 &&
 		   error( "unkown enum \'color\'", _ ) := msgs[0];
 }
