@@ -61,3 +61,12 @@ public test bool test_function_constraint() {
 	return size(msgs) == 1 &&
 		   error( "function declaration is constrained to global scope", _ ) := msgs[0];
 }
+
+public test bool test_addrOf_constraint() {
+	str input = "module Test;
+				'int8* x = &1;";
+	msgs = constraints( input );
+	
+	return size(msgs) == 1 &&
+		   error( "cannot take the address of an rvalue of type \'int\'", _ ) := msgs[0];
+}

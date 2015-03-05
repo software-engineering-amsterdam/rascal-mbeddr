@@ -4,6 +4,7 @@ import IO;
 import Message;
 
 import lang::mbeddr::AST;
+import util::Util;
 
 import typing::IndexTable;
 import typing::Scope;
@@ -29,4 +30,8 @@ Decl constraint( Decl d:function(list[Modifier] mods, Type \type, id( name ), li
 		d@message = error( "function declaration is constrained to global scope", d@location );
 	}
 	return d;
+}
+
+Expr constraint( Expr e:addrOf( lit( l ) ) ) {
+	return e@message = error( "cannot take the address of an rvalue of type \'<litToString(l)>\'", e@location );
 }
