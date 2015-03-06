@@ -20,7 +20,7 @@ bool isEmpty( Type t ) {
 	return e := t;
 }
 
-Type getType( &T <: node n ) {
+Type getType( Expr n ) {
 	if( "type" in getAnnotations( n ) ) {
 		return n@\type;
 	} else {
