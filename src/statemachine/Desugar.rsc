@@ -86,7 +86,7 @@ Module desugar_statemachine( Module m ) {
 	
 	visit( m ) {
 		case Decl d:stateMachine( _, _, _, _ ) : {
-			decls = desugar_statemachine( compile_statemachine( d ) );
+			decls = desugar_statemachine( d, compile_statemachine( d ) );
 			
 			m.decls[ indexOf( m.decls, d ) ] = decls[0];
 			m.decls += decls[1..size(decls)];
@@ -96,53 +96,60 @@ Module desugar_statemachine( Module m ) {
 	return m;
 }
 
-list[Decl] desugar_statemachine( StateMachine s ) {
-	Decl initFunction = createInitialFunction( s );
-	Decl execFunction = createExecFunction( s );
-	list[Decl] headerConstructs = createHeader( s );
+list[Decl] desugar_statemachine( Decl d:stateMachine( _, _, _, _ ), StateMachine s ) {
+	Decl initFunction = createInitialFunction( d, s );
+	Decl execFunction = createExecFunction( d, s );
+	list[Decl] headerConstructs = createHeader( d, s );
 	list[Decl] entryExitFunctions = createEntryExitFunctions( s );
 	
-	return [execFunction] + headerConstructs + [initFunction] + entryExitFunctions;
+	result = headerConstructs + entryExitFunctions + [execFunction, initFunction];
+	
+	if( exported() in d.mods ) {
+		result += function( execFunction.mods, execFunction.\type, execFunction.name, execFunction.params )[@header=true];
+		result += function( initFunction.mods, initFunction.\type, initFunction.name, initFunction.params )[@header=true];
+	}
+	
+	return result;
 }
 
-list[Decl] createHeader( StateMachine s ) {
+list[Decl] createHeader( Decl d:stateMachine(_,_,_,_), StateMachine s ) {
 	result = [];
-	result += typeDef( [], enum( id( namespace( s.name, "states" ) ) ), id( "__" + namespace( s.name, "states" ) ) );
+	result += typeDef( d.mods, enum( id( namespace( s.name, "states" ) ) ), id( "__" + namespace( s.name, "states" ) ) );
 	
 	// States Enumerable
 	enums = for( str stateName <- s.states ) {
 		append const( id( namespace_state( s.name, stateName ) ) );
 	}
-	result += enum( [], id( namespace( s.name, "states" ) ), enums );
+	result += enum( d.mods, id( namespace( s.name, "states" ) ), enums );
 	
 	// Inevents Enumerable
-	result += typeDef( [], enum( id( namespace( s.name, "inevents" ) ) ), id( "__" + namespace( s.name, "inevents" ) ) );
+	result += typeDef( d.mods, enum( id( namespace( s.name, "inevents" ) ) ), id( "__" + namespace( s.name, "inevents" ) ) );
 	enums = for( str eventName <- s.instance.entries ) {
 		append const( id( namespace_event( s.name, eventName ) ) );
 	} 
 	
-	result += enum( [], id( namespace( s.name, "inevents" ) ), enums );
+	result += enum( d.mods, id( namespace( s.name, "inevents" ) ), enums );
 	
 	// Data structs
-	result += typeDef( [], enum( id( namespace( s.name, "data_t" ) ) ), id( "__" + namespace( s.name, "data_t" ) ) );
+	result += typeDef( d.mods, enum( id( namespace( s.name, "data_t" ) ) ), id( "__" + namespace( s.name, "data_t" ) ) );
 	list[Field] fields = [ field( id( id( namespace( s.name, "state" ) ) ), currentState ) ];
 	fields += for( var( _, Type \type, Id name, Expr init ) <- s.instance.vars ) {
 		append field( \type, name ); 
 	}
 	
-	result += struct( [], id( namespace( s.name, "data" ) ), fields ); 
+	result += struct( d.mods, id( namespace( s.name, "data" ) ), fields ); 
 	
 	return result;
 }
 
-Decl createExecFunction( StateMachine s ) {
+Decl createExecFunction( Decl d:stateMachine(_,_,_,_), StateMachine s ) {
 	params = 
 	[ param( [], pointer( id( id( namespace( s.name, "data_t" ) ) ) ), id( "instance" ) ),
 	  param( [],          id( id( namespace( s.name, "inevents" ) ) ), id( "event" ) ),
 	  param( [], pointer( pointer( \void() ) ), id( "arguments" ) ) ];
 	
 	return function( 
-		[], 
+		d.mods, 
 		\void(), 
 		id( namespace( s.name, "execute" ) ), 
 		params, 
@@ -150,7 +157,7 @@ Decl createExecFunction( StateMachine s ) {
 	); 
 }
 
-Decl createInitialFunction( StateMachine s ) {
+Decl createInitialFunction( Decl d:stateMachine(_,_,_,_), StateMachine s ) {
 	list[Stat] funBody = [];
 	
 	if( !isEmpty(s.instance.currentState) ) {
@@ -163,7 +170,7 @@ Decl createInitialFunction( StateMachine s ) {
 	
 	// void init( data_t* instance ) { funBody }
 	return function( 
-		[], 
+		d.mods, 
 		\void(), 
 		id( namespace( s.name, "init" ) ), 
 		[ 
@@ -252,7 +259,7 @@ list[Decl] createEntryExitFunctions( StateMachine s ) {
 
 Decl createEntryExitFunction( StateMachine s, str name, str stateName, str actionName, list[Stat] body ) {
 	return function(
-		[static()],
+		[static(),inline()],
 		\void(),
 		id( namespace( name, "<stateName>_<actionName>"  ) ),
 		[ param( [], pointer( id( id( namespace( name, "data_t" ) ) ) ), instanceId ) ],

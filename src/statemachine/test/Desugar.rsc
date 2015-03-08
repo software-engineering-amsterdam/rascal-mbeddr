@@ -15,7 +15,7 @@ private bool PRINT = true;
 public test bool test_state_desugar() {
 	str input = 
 	" module Test;
-	' statemachine FlightAnalyzer {
+	' exported statemachine FlightAnalyzer {
 	'  state beforeFlight {
 	'   on next [ ] -\> airborne
 	'  }
@@ -28,7 +28,10 @@ public test bool test_state_desugar() {
 	ast = desugar_statemachine( ast );
 	
 	if( PRINT ) {
+		h = module2h( ast );
 		c = module2c( ast );
+		println( h );
+		println("===============================");
 		println( c );
 	}
 	
@@ -72,7 +75,10 @@ public test bool test_init_desugar() {
 	ast = desugar_statemachine( ast );
 	
 	if( PRINT ) {
+		h = module2h( ast );
 		c = module2c( ast );
+		println( h );
+		println("===============================");
 		println( c );
 	}
 	
@@ -94,7 +100,10 @@ public test bool test_var_cond() {
 	ast = desugar_statemachine( ast );
 	
 	if( PRINT ) {
+		h = module2h( ast );
 		c = module2c( ast );
+		println( h );
+		println("===============================");
 		println( c );
 	}
 	
@@ -104,7 +113,7 @@ public test bool test_var_cond() {
 public test bool test_entry_exit() {
 	str input = 
 	" module Test;
-	' statemachine FlightAnalyzer initial = beforeFlight {
+	' exported statemachine FlightAnalyzer initial = beforeFlight {
 	'  in event next( int32 x )
 	'  var int8 points = 0
 	'  state beforeFlight {
@@ -119,7 +128,10 @@ public test bool test_entry_exit() {
 	ast = desugar_statemachine( ast );
 	
 	if( PRINT ) {
+		h = module2h( ast );
 		c = module2c( ast );
+		println( h );
+		println("===============================");
 		println( c );
 	}
 	
