@@ -22,6 +22,8 @@ anno loc Modifier@location;
 anno loc Field@location;
 anno loc Enum@location;
 
+anno bool Decl@header;
+
 data Module
   = \module(QId name, list[Import] imports, list[Decl] decls);
 
@@ -43,6 +45,7 @@ data Decl
   | enum(list[Modifier] mods, Id name, list[Enum] enums)
   | variable(list[Modifier] mods, Type \type, Id name)
   | variable(list[Modifier] mods, Type \type, Id name, Expr init)
+  | preProcessor( str input )
   ;
 
 data Param
@@ -181,7 +184,7 @@ data Modifier
   | auto() 
   | register()
   | exported()
-  | static()
+  | inline()
   ;
   
 data Field

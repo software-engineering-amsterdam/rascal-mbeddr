@@ -9,10 +9,54 @@ import IO;
 // TODO: move */[] from types to names?
 // TODO: separate header & c file.
 
-str module2c(Module m) = format(toBox(m));
+str module2c(Module m) { 
+	m = moduleC( m );
+	
+	return format(toCBox(m)); 
+}
 
+str module2h( Module m ) {
+	m = moduleH( m );
+	
+	return format( toHBox( m ) );
+}
 
-Box toBox(\module(QId name, list[Import] imports, list[Decl] decls))
+private Module moduleH( Module m ) {
+	hDecls = headerDecls( m );
+	
+	QId name = toHName( m.name );
+	return \module( name, m.imports, hDecls );
+}
+
+private Module moduleC( Module m ) {
+	hDecls = headerDecls( m );
+	m.decls = m.decls - hDecls;
+	
+	return m;
+}
+
+private list[Decl] headerDecls( Module m ) {
+	result = [];
+	
+	visit( m ) {
+		case Decl d : {
+			if( "header" in getAnnotations( d ) && d@header ) {
+				result += d;
+			}
+		}
+	}
+	
+	return result;
+}
+
+Box toCBox(\module(QId name, list[Import] imports, list[Decl] decls))
+	= V(
+		H(L("#include"), L(toCName(toHName(name))), hs=1),
+		V([ toBox(i) | Import i <- imports ]),
+		V([ toBox(d) | d <- decls ], vs=2)	
+	);
+
+Box toHBox(\module(QId name, list[Import] imports, list[Decl] decls))
   = V(
      H(L("#ifndef"), L(toCName(name)), hs=1),
      H(L("#define"), L(toCName(name)), hs=1),
@@ -24,6 +68,7 @@ Box toBox(\module(QId name, list[Import] imports, list[Decl] decls))
 Box toBox(\import(n))
   = H(L("#include"), H(L("\<"), L(toPath(n)), L(".h"), L("\>")), hs=1); 
 
+QId toHName(qid(ids)) = qid( ids[0..-1] + id("<ids[-1].name>_H") );
 str toCName(qid(ids)) = intercalate("_", [ i.name | Id i <- ids ]);
 
 str toPath(qid(ids)) = intercalate("/", [ i.name | Id i <- ids ]); 
@@ -226,6 +271,8 @@ Box param2Box(param(list[Modifier] mods, Type \type, Id name))
   = hEmptyPrefix(mods, mods2Box, toBox(\type), L(name.name), hs=1);
 
 default void toBox( &T <: node n ) = println( "unkown node: <n>" ); 
+
+Box toBox(Decl::preProcessor(str input)) = L( input );
 
 Box toBox(Decl::function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats))
   = V(

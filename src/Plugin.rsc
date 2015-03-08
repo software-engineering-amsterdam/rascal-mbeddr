@@ -55,10 +55,13 @@ void convert2C(Tree tree, loc selection) {
       if( !hasErrors( ast ) ) {
 	      ast = desugarModule( ast );
 	      
-	      src = module2c(ast);
-	      out = m@\loc[extension="c"];
+	      cSrc = module2c(ast);
+	      hSrc = module2h(ast);
+	      cOut = m@\loc[extension="c"];
+	      hOut = m@\loc[extension="h"];
 	      
-	      writeFile(|project://rascal-mbeddr/<out.path>|, src);
+	      writeFile(|project://rascal-mbeddr/<cOut.path>|, cSrc);
+	      writeFile(|project://rascal-mbeddr/<hOut.path>|, hSrc);
 	      //edit(out, []);
 	  }
     }        
