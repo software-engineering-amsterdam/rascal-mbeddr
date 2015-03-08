@@ -82,9 +82,9 @@ tuple[ Stat astNode, IndexTables tables, str errorMsg ]
 indexer( Stat s:\for(list[Expr] init, list[Expr] conds, list[Expr] update, Stat body),
 		 IndexTables tables, 
 		 Scope scope ) {
-	s.init = indexWrapper( init, tables, block( scope ) );
-	s.conds = indexWrapper( conds, tables, block( scope ) );
-	s.update = indexWrapper( update, tables, block( scope ) );
+	s.init = indexer( init, tables, block( scope ) );
+	s.conds = indexer( conds, tables, block( scope ) );
+	s.update = indexer( update, tables, block( scope ) );
 	s.body = indexWrapper( body, tables, block( scope ) );
 	
 	return < s[@scope=scope], tables, "" >;
