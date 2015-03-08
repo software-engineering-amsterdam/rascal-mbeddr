@@ -14,19 +14,7 @@ data Transition = transition( list[Expr] cond, str next );
 alias Transitions = map[ str name, list[Transition] transitions ];
 alias Channels = map[ str event, list[Param] params];
 
-list[StateMachine] compileStateMachines( Module m ) {
-	result = [];
-	
-	visit( m ) {
-		case Decl d:stateMachine( _, _, _, _ ) : {
-			result += compileStateMachine( namespace_statemachine( d ) );
-		} 
-	}
-	
-	return result;
-}
-
-StateMachine compileStateMachine( Decl d:stateMachine( _, _, _, _ ) ) {
+StateMachine compile_statemachine( Decl d:stateMachine( _, _, _, _ ) ) {
 	return statemachine(
 		d.name.name,
 		compileInstance( d ),
@@ -80,8 +68,8 @@ State compileState( str name, list[StateStat] body ) {
 				transitions[ s.event.name ] = [transition( s.cond, s.next.name )];
 			} 
 		}
-		case s:entry( _ ) : { entries += s.body; }
-		case s:exit( _ ) : { exits += s.body; } 
+		case s:entry( _ ) : { entries += block(s.body); }
+		case s:exit( _ ) : { exits += block(s.body); } 
 	}
 	
 	return state( name, entries, transitions, exits ); 
@@ -94,20 +82,15 @@ Expr event = var( id( "event" ) );
 Expr arguments = var( id( "arguments" ) );
 
 Module desugar_statemachine( Module m ) {
-	list[StateMachine] stateMachines = compileStateMachines( m );
+	decls = [];
 	
-	for( s <- stateMachines ) {
-		decls = desugar_statemachine( s );
-		
-		m = visit( m ) {
-			case Decl d:stateMachine( _, _, _, _ ) : {
-				if( d.name.name == s.name ) {
-					insert decls[0];
-				}
-			} 
-		}
-		
-		m.decls += decls[1..size(decls)];
+	visit( m ) {
+		case Decl d:stateMachine( _, _, _, _ ) : {
+			decls = desugar_statemachine( compile_statemachine( d ) );
+			
+			m.decls[ indexOf( m.decls, d ) ] = decls[0];
+			m.decls += decls[1..size(decls)];
+		} 
 	}
 	
 	return m;
@@ -116,9 +99,40 @@ Module desugar_statemachine( Module m ) {
 list[Decl] desugar_statemachine( StateMachine s ) {
 	Decl initFunction = createInitialFunction( s );
 	Decl execFunction = createExecFunction( s );
+	list[Decl] headerConstructs = createHeader( s );
 	list[Decl] entryExitFunctions = createEntryExitFunctions( s );
 	
-	return [execFunction] + [initFunction] + entryExitFunctions;
+	return [execFunction] + headerConstructs + [initFunction] + entryExitFunctions;
+}
+
+list[Decl] createHeader( StateMachine s ) {
+	result = [];
+	result += typeDef( [], enum( id( namespace( s.name, "states" ) ) ), id( "__" + namespace( s.name, "states" ) ) );
+	
+	// States Enumerable
+	enums = for( str stateName <- s.states ) {
+		append const( id( namespace_state( s.name, stateName ) ) );
+	}
+	result += enum( [], id( namespace( s.name, "states" ) ), enums );
+	
+	// Inevents Enumerable
+	result += typeDef( [], enum( id( namespace( s.name, "inevents" ) ) ), id( "__" + namespace( s.name, "inevents" ) ) );
+	enums = for( str eventName <- s.instance.entries ) {
+		append const( id( namespace_event( s.name, eventName ) ) );
+	} 
+	
+	result += enum( [], id( namespace( s.name, "inevents" ) ), enums );
+	
+	// Data structs
+	result += typeDef( [], enum( id( namespace( s.name, "data_t" ) ) ), id( "__" + namespace( s.name, "data_t" ) ) );
+	list[Field] fields = [ field( id( id( namespace( s.name, "state" ) ) ), currentState ) ];
+	fields += for( var( _, Type \type, Id name, Expr init ) <- s.instance.vars ) {
+		append field( \type, name ); 
+	}
+	
+	result += struct( [], id( namespace( s.name, "data" ) ), fields ); 
+	
+	return result;
 }
 
 Decl createExecFunction( StateMachine s ) {
@@ -166,7 +180,7 @@ Decl createInitialFunction( StateMachine s ) {
 Stat createStateSwitch( StateMachine s ) {
 	states = for( str name <- s.states ) {
 		append \case(
-			var( id( name ) ),
+			var( id( namespace_state( s.name, name ) ) ),
 			\switch( event, block(
 				createStateCases( s, s.states[name] )
 			) )
@@ -208,7 +222,7 @@ list[Stat] createStateCases( StateMachine s, State state ) {
 		}
 		
 		append \case( 
-			var( id( eventName ) ), 
+			var( id( namespace_event( s.name, eventName ) ) ), 
 			block( 
 				tests
 			) 
@@ -219,30 +233,29 @@ list[Stat] createStateCases( StateMachine s, State state ) {
 list[Decl] createEntryExitFunctions( StateMachine s ) {
 	entries = exits = [];
 	for( str stateName <- s.states ) {
-		
 		i = -1;
-		entries = for( list[Stat] body <- s.states[ stateName ].entries ) {
+		
+		for( block( body ) <- s.states[ stateName ].entries ) {
 			i += 1;
-			append createEntryExitFunction( s, name, stateName, "EntryAction<i>", body ); 
+			entries += createEntryExitFunction( s, s.name, stateName, "EntryAction<i>", body );
 		}
 		
 		i = -1;
-		exits = for( list[Stat] body <- s.states[ stateName ].exits ) {
+		for( block( body ) <- s.states[ stateName ].exits ) {
 			i += 1;
-			append createEntryExitFunction( s, name, stateName, "ExitAction<i>", body ); 
+			exits += createEntryExitFunction( s, s.name, stateName, "ExitAction<i>", body ); 
 		}
 		
 	}
-	iprintln( "exits <exits>" );
 	return entries + exits;
 }
 
 Decl createEntryExitFunction( StateMachine s, str name, str stateName, str actionName, list[Stat] body ) {
 	return function(
-		[static(),inline()],
+		[static()],
 		\void(),
 		id( namespace( name, "<stateName>_<actionName>"  ) ),
-		[ param( [], pointer( id( namespace( name, "data_t" ) ) ), instanceId ) ],
+		[ param( [], pointer( id( id( namespace( name, "data_t" ) ) ) ), instanceId ) ],
 		createEntryExitBody( s, body )
 	);
 }
@@ -299,6 +312,8 @@ Decl namespace_statemachine( Decl d:stateMachine( _, id( name ), _, _ ) ) {
 }
 
 str namespace( str name, str i ) ="StateMachines_<name>__<i>";
+str namespace_state( str name, str i ) = "StateMachines_<name>__states__<name>_<i>__state";
+str namespace_event( str name, str i ) = "StateMachines_<name>__inevents__<name>_<i>__event";
 
 Decl desugar_on_conditions( Decl d:stateMachine( _, id( name ), _, _ ) ) {
 	inEvents = ();

@@ -7,6 +7,7 @@ syntax StateMachineStat
 	= state: "state" Id "{" StateStat* "}"
 	| var: Modifier* "var" Type Id "=" Expr
 	| inEvent: "in" "event" Id "(" {Param ","}* ")"
+	| outEvent: "out" "event" Id "(" {Param ","}* ")" "=\>" Id
 	;
 
 syntax StateStat
@@ -15,6 +16,14 @@ syntax StateStat
 	| exit: "exit" "{" Stat* "}"
 	;
 
+syntax Stat
+	= send: "send" Id "(" {Expr ","}* ")" ";"
+	;
+
 syntax Modifier
 	= readable: "readable"
+	;
+	
+keyword Keyword 
+	= "send"
 	;

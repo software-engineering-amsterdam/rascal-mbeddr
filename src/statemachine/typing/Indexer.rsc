@@ -53,6 +53,26 @@ indexer( StateMachineStat s:var( list[Modifier] mods, Type \type, id( name ), Ex
 }
 
 tuple[ StateMachineStat astNode, IndexTables tables, str errorMsg ]
+indexer( StateMachineStat s:inEvent( id( name ), list[Param] params ),
+		 IndexTables tables,
+		 Scope scope
+		) {
+	storeResult = store( tables, name, < inEvent( params ), scope, true > );
+	
+	return < s[@scope=scope], storeResult.tables, storeResult.errorMsg >;	
+}
+
+tuple[ StateMachineStat astNode, IndexTables tables, str errorMsg ]
+indexer( StateMachineStat s:outEvent( id( name ), list[Param] params, Id ref ),
+		 IndexTables tables,
+		 Scope scope
+		) {
+	storeResult = store( tables, name, < outEvent( parameterTypes( params ) ), scope, true > );
+	
+	return < s[@scope=scope], storeResult.tables, storeResult.errorMsg >;	
+}
+
+tuple[ StateMachineStat astNode, IndexTables tables, str errorMsg ]
 indexer( StateMachineStat s:state( id( name ), list[StateStat] body ),
 		 IndexTables tables,
 		 Scope scope
@@ -67,7 +87,12 @@ indexer( StateStat s:on( Id event, list[Expr] cond, Id next ),
 		 IndexTables tables,
 		 Scope scope
 		) {
-	s.cond = indexer( cond, tables, scope );
+	if( event.name in tables.symbols && inEvent( list[Param] params ) := tables.symbols[ event.name ].\type ) {
+		result = indexParams( params, tables, function( scope ) );
+		tables = result.tables;
+	}	
+	
+	s.cond = indexer( cond, tables, function( scope ) );
 	return < s[@scope=scope], tables, "" >;	
 }
 
@@ -86,6 +111,15 @@ indexer( StateStat s:exit( list[Stat] body ),
 		 Scope scope
 		) {
 	s.body = indexer( body, tables, scope );
+	return < s[@scope=scope], tables, "" >;	
+}
+
+tuple[ Stat astNode, IndexTables tables, str errorMsg ]
+indexer( Stat s:send( _, list[Expr] args ),
+		 IndexTables tables,
+		 Scope scope
+		) {
+	s.args = indexer( args, tables, scope );
 	return < s[@scope=scope], tables, "" >;	
 }
 

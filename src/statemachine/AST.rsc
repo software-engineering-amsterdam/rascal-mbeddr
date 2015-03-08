@@ -10,6 +10,7 @@ data StateMachineStat
 	= state( Id name, list[StateStat] body )
 	| var( list[Modifier] mods, Type \type, Id name, Expr init )
 	| inEvent( Id name, list[Param] params )
+	| outEvent( Id name, list[Param] params, Id ref )
 	;
 
 data StateStat
@@ -18,6 +19,10 @@ data StateStat
 	| exit( list[Stat] body )
 	; 
 	
+data Stat
+	= send( Id name, list[Expr] args )
+	;
+
 data Modifier
 	= readable()
 	;
@@ -25,4 +30,6 @@ data Modifier
 data Type
 	= stateMachine()
 	| state()
+	| inEvent( list[Param] params )
+	| outEvent( list[Type] args )
 	;

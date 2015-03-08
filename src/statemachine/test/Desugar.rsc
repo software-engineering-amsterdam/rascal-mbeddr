@@ -2,6 +2,7 @@ module statemachine::\test::Desugar
 
 import IO;
 import Node;
+import List;
 
 import lang::mbeddr::ToC;
 
@@ -108,9 +109,10 @@ public test bool test_entry_exit() {
 	'  var int8 points = 0
 	'  state beforeFlight {
 	'   entry { points = 0; }
-	'   on next [ x == 0 ] -\> beforeFlight
+	'   on next [ x == 0 ] -\> airborne
 	'   exit { points += 10; }
 	'  }
+	'  state airborne { }
 	' }
 	";
 	ast = createAST( input );
@@ -140,11 +142,17 @@ public test bool test_compile_statemachines() {
 	' }
 	";
 	ast = createAST( input );
-	stateMachines = compileStateMachines( ast );
 	
+	stateMachines = [];
+	visit( ast ) {
+		case Decl d:stateMachine(_,_,_,_) : {
+			stateMachines += compile_statemachine( d );
+		}
+	}
+
 	if( PRINT ) {
 		iprintln( delAnnotationsRec( stateMachines ) );
 	}
 	
-	return true;
+	return size(stateMachines) == 1;
 }
