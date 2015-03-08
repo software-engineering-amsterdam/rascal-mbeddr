@@ -31,6 +31,10 @@ Module evaluator( &T <: node n, SymbolTable symbols, TypeTable types ) {
 		case Decl d => evaluate( d )
 		
 		case Stat s => evaluate( s )
+		
+		case StateMachineStat s => evaluate( s )
+		
+		case StateStat s => evaluate( s )
 				
 	}
 
@@ -64,4 +68,31 @@ Module constraints( Module m ) {
 	return visit( m ) {
 		case &T <: node n => constraint( n )
 	}
+}
+
+public map[loc,Message] collectMessages( Module m ) {
+	result = ();
+	
+	visit( m ) {
+		case &T <: node n : {
+			if( "message" in getAnnotations( n ) ) {
+				result[n@location] = n@message;
+			}
+		}
+	}
+	
+	return result;
+}
+
+
+bool hasErrors( Module m ) {
+	visit( m ) {
+		case &T <: node n : {
+			if( "message" in getAnnotations( n ) && error(_,_) := n@message ) {
+				return true;
+			}
+		}
+	}
+	
+	return false;
 }

@@ -46,38 +46,26 @@ void printErrors( start[Module] m ) {
 	}
 }
 
-void printErrors( Module m ) {
-	visit( m ) {
-		case &T <: node n : {
-			if( "message" in getAnnotations(n) ) {
-				println( n@message );
-			}
-		}
-	}
-}
-
 void convert2C(Tree tree, loc selection) {
     println("Showing C...");
     if (start[Module] m := tree) {
       ast = createAST( m );
       ast = runTypeChecker( ast );
       
-      ast = desugar_unittest( ast );
-      ast = desugar_baseextensions( ast );
-      
-      ast = desugarModule( ast );
-      
-      src = module2c(ast);
-      out = m@\loc[extension="c"];
-      
-      writeFile(|project://rascal-mbeddr/<out.path>|, src);
-      //edit(out, []);
+      if( !hasErrors( ast ) ) {
+	      ast = desugarModule( ast );
+	      
+	      src = module2c(ast);
+	      out = m@\loc[extension="c"];
+	      
+	      writeFile(|project://rascal-mbeddr/<out.path>|, src);
+	      //edit(out, []);
+	  }
     }        
 }
 
 start[Module] typeCheckerAnnotator( start[Module] m ) {
 	ast = createAST( m );
-	
 	ast = runTypeChecker( ast );
 	
 	msgs = collectMessages( ast );
@@ -91,18 +79,4 @@ start[Module] typeCheckerAnnotator( start[Module] m ) {
 			}
 		} 
 	}
-}
-
-private map[loc,Message] collectMessages( Module m ) {
-	result = ();
-	
-	visit( m ) {
-		case &T <: node n : {
-			if( "message" in getAnnotations( n ) ) {
-				result[n@location] = n@message;
-			}
-		}
-	}
-	
-	return result;
 }
