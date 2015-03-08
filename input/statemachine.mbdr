@@ -1,0 +1,16 @@
+module StateMachine;
+
+statemachine FlightAnalyzer initial = beforeFlight {
+	in event next(int32* tp)
+	readable var int16 points = 0
+
+	state beforeFlight {
+		entry { points = 0; }
+		on next [*tp > 0] -> airborne
+		exit { points += 100; }
+	}
+	
+	state airborne {
+		entry { points = 100; }
+	}
+}
