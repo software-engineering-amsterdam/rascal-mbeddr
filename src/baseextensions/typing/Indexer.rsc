@@ -1,5 +1,5 @@
 module baseextensions::typing::Indexer
-extend typing::Evaluator;
+extend typing::Indexer;
 
 import baseextensions::AST;
 
@@ -11,7 +11,8 @@ tuple[ Expr astNode, IndexTables tables, str errorMsg ]
 indexer( Expr e:lambda(list[Param] params, list[Stat] body ), IndexTables tables, Scope scope ) {
 	scope = function(scope);
 	
-	e.params = indexParams( params, tables, scope );
+	result = indexParams( params, tables, scope );
+	e.params = result.params;
 	e.body = indexer( body, result.tables, scope); 
 
 	return < e[@scope=scope], tables, "" >;	
@@ -24,8 +25,8 @@ indexer( Expr e:lambda(list[Param] params, Expr body ), IndexTables tables, Scop
 	
 	body@symboltable=result.tables.symbols;
 	body@typetable=result.tables.types;
-	e.params = result;
-	e.body = indexWrapper( body, tables, scope );
+	e.params = result.params;
+	e.expr = indexWrapper( body, result.tables, scope );
 	
 	return < e[@scope = scope], tables, "" >;	
 }

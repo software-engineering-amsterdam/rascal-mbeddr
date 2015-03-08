@@ -8,6 +8,7 @@ import typing::IndexTable;
 
 import baseextensions::Syntax;
 import baseextensions::AST;
+import baseextensions::Desugar;
 
 import baseextensions::typing::Indexer;
 import baseextensions::typing::Constraints;
@@ -32,6 +33,17 @@ list[Message] findErrors( Module m ) {
 	
 	return msgs;
 }
+
+// DESUGAR //
+Module desugarModule( Module ast ) {
+	solve( ast ) {
+		ast = visit( ast ) {
+			case &T <: node n => desugar(n)
+		}
+	}
+	return ast;
+}
+
 
 // INDEXER //
 Module createIndexTable( m:\module( name, imports, decls ) ) {

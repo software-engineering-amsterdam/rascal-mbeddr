@@ -2,9 +2,9 @@ module baseextensions::Syntax
 
 extend lang::mbeddr::MBeddrC;
 
-syntax Type 
-	= functionRef: "(" {Type ","}* ")" "=\>" "(" Type ")"  
-	;
+//syntax Type 
+//	= functionRef: "(" {Type ","}* ")" "=\>" "(" Type ")"  
+//	;
 	
 syntax Decl 
 	= constant: "#constant" Id "=" Literal ";"
