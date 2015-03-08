@@ -12,7 +12,7 @@ indexer( Decl d:testCase(list[Modifier] mods, id( name ), list[Stat] stats),
 	storeResult = store( tables, name, < testCase(), scope, true > );
 	d.stats = indexer( stats, storeResult.tables, \test( scope ) );
 			 
-	return < d, storeResult.tables, storeResult.errorMsg >;
+	return < d[@scope=scope], storeResult.tables, storeResult.errorMsg >;
 }
 
 tuple[ Expr astNode, IndexTables tables, str errorMsg ]
@@ -22,4 +22,13 @@ indexer( Expr e:\test( list[Id] tests ),
 		) {
 	
 	return < e[@scope=scope], tables, "" >;	
+}
+
+tuple[ Stat astNode, IndexTables tables, str errorMsg ]
+indexer( Stat s:\assert( Expr \test ),
+		 IndexTables tables,
+		 Scope scope
+		) {
+	s.\test = indexWrapper( \test, tables, scope );
+	return < s[@scope=scope], tables, "" >;	
 }

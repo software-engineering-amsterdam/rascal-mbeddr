@@ -11,7 +11,6 @@ Module desugar_unittest( Module m ) {
 }
 
 Decl desugarTestCase( Decl d:\testCase(mods, id(name), stats), str ModuleName ) {
-	d.mods = exportedMods( d.mods );
 	int i = 0;
 	list[Stat] body = [
 		decl( variable( [], int8(), id("failures"), lit( \int("0") ) ) ),

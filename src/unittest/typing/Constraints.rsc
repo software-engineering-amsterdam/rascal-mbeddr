@@ -5,6 +5,7 @@ import Node;
 import IO;
 
 import unittest::AST;
+import unittest::typing::Scope;
 
 Stat constraint( Stat s:returnExpr( t:\test( list[Id] tests ) ) ) {
 	if( "message" in getAnnotations(t) && t@message.msg == "expecting return statement" ) {
