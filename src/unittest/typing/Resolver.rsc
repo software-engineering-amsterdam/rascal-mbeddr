@@ -1,9 +1,9 @@
-module unittest::typing::Evaluator
-extend typing::Evaluator;
+module unittest::typing::Resolver
+extend typing::Resolver;
 
 import unittest::AST;
 
-Stat evaluate( Stat e:\assert( Expr \test ) ) {
+Stat resolve( Stat e:\assert( Expr \test ) ) {
 	test_type = getType( \test );
 
 	if( isEmpty( test_type ) ) return e;
@@ -15,7 +15,7 @@ Stat evaluate( Stat e:\assert( Expr \test ) ) {
 	return e;
 }
 
-Expr evaluate( Expr t:\test( list[Id] tests ) ) {
+Expr resolve( Expr t:\test( list[Id] tests ) ) {
 	symbols = t@symboltable;
 	
 	t.tests = for( n:id( name ) <- tests ) {

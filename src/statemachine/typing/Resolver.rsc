@@ -1,13 +1,13 @@
-module statemachine::typing::Evaluator
-extend typing::Evaluator;
+module statemachine::typing::Resolver
+extend typing::Resolver;
 
 import statemachine::AST;
 import statemachine::typing::IndexTable;
 
-default StateStat evaluate( StateStat s ) = s;
-default StateMachineStat evaluate( StateMachineStat s ) = s;
+default StateStat resolve( StateStat s ) = s;
+default StateMachineStat resolve( StateMachineStat s ) = s;
 
-StateMachineStat evaluate( StateMachineStat s:outEvent( id( name ), list[Param] params, id( ref ) ) ) {
+StateMachineStat resolve( StateMachineStat s:outEvent( id( name ), list[Param] params, id( ref ) ) ) {
 	symbols = s@symboltable;
 	
 	if( ref in symbols ) {
@@ -29,7 +29,7 @@ StateMachineStat evaluate( StateMachineStat s:outEvent( id( name ), list[Param] 
 	return s;
 }
 
-Stat evaluate( Stat s:send( id( name ), list[Expr] args ) ) {
+Stat resolve( Stat s:send( id( name ), list[Expr] args ) ) {
 	symbols = s@symboltable;
 	
 	if( name in symbols ) {
@@ -60,7 +60,13 @@ Stat evaluate( Stat s:send( id( name ), list[Expr] args ) ) {
 	return s;
 }
 
-StateStat evaluate( StateStat s:on( id( event ), list[Expr] cond, id( next ) ) ) {
+StateStat resolve( StateStat s:on( Id event, list[Expr] cond, Id next, list[Stat] body ) ) {
+	return resolve_on( s, event, cond, next ); 
+}
+StateStat resolve( StateStat s:on( Id event, list[Expr] cond, Id next ) ) {
+	return resolve_on( s, event, cond, next ); 
+}
+private StateStat resolve_on( StateStat s, id( event ), list[Expr] cond, id( next ) ) {
 	symbols = s@symboltable;
 	
 	if( event in symbols ) {
@@ -77,7 +83,7 @@ StateStat evaluate( StateStat s:on( id( event ), list[Expr] cond, id( next ) ) )
 				}
 			}
 			
-			if( !( next in s@symboltable && s@symboltable[ next ].\type == state() ) ) {
+			if( !( next in symbols && symbols[ next ].\type == state() ) ) {
 				s.next@message = error( "unknown event \'<next>\'", s@location );
 			}
 			
@@ -92,7 +98,7 @@ StateStat evaluate( StateStat s:on( id( event ), list[Expr] cond, id( next ) ) )
 	return s;
 }
 
-Decl evaluate( Decl d:stateMachine( list[Modifier] mods, Id name, list[Id] initial, list[StateMachineStat] body ) ) {
+Decl resolve( Decl d:stateMachine( list[Modifier] mods, Id name, list[Id] initial, list[StateMachineStat] body ) ) {
 	if( size(initial) > 0 ) {
 		initialState = initial[0];
 		symbols = body[0]@symboltable;
@@ -109,7 +115,7 @@ Decl evaluate( Decl d:stateMachine( list[Modifier] mods, Id name, list[Id] initi
 	return d;
 }
 
-StateMachineStat evaluate( StateMachineStat s:var( list[Modifier] mods, Type \type, Id name, Expr init ) ) {
+StateMachineStat resolve( StateMachineStat s:var( list[Modifier] mods, Type \type, Id name, Expr init ) ) {
 	init_type = getType( init );
 	
 	if( isEmpty( init_type ) ) { return s; }
@@ -119,4 +125,12 @@ StateMachineStat evaluate( StateMachineStat s:var( list[Modifier] mods, Type \ty
 	}
 	
 	return s;
+}
+
+Expr resolve( Expr e:call( e2:dotField( Expr record, Id name ), list[Expr] args ) ) {
+	record_type = getType( record );
+	
+	iprintln( record_type );
+	
+	return e;
 }

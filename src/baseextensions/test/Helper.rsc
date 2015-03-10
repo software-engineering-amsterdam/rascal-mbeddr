@@ -12,14 +12,14 @@ import baseextensions::Desugar;
 
 import baseextensions::typing::Indexer;
 import baseextensions::typing::Constraints;
-import baseextensions::typing::Evaluator;
+import baseextensions::typing::Resolver;
 
 Module createAST( loc l ) = implode( #Module, parse( #start[Module], l ) );
 Module createAST( str i ) = implode( #Module, parse( #start[Module], i ) );
 
 list[Message] indexer( str i ) = findErrors( createIndexTable( implode( #Module, parse( #start[Module], i ) ) ) );
 list[Message] constraints( str i ) = findErrors( constraints( createIndexTable( implode( #Module, parse( #start[Module], i ) ) ) ) );
-list[Message] evaluator( str i ) = findErrors( evaluator( createIndexTable( implode( #Module, parse( #start[Module], i ) ) ) ) );
+list[Message] resolver( str i ) = findErrors( resolver( createIndexTable( implode( #Module, parse( #start[Module], i ) ) ) ) );
 
 list[Message] findErrors( Module m ) {
 	msgs = [];
@@ -52,14 +52,14 @@ Module createIndexTable( m:\module( name, imports, decls ) ) {
 
 
 // EVALUATOR //
-Module evaluator( m:\module( name, imports, decls ) ) = evaluator( m, (), () );
-Module evaluator( &T <: node n, SymbolTable symbols, TypeTable types ) {
+Module resolver( m:\module( name, imports, decls ) ) = resolver( m, (), () );
+Module resolver( &T <: node n, SymbolTable symbols, TypeTable types ) {
 	n = copyDownIndexTables( n, symbols, types );
 
 	n = visit( n ) {
-		case Expr e => evaluate( e )
-		case Decl d => evaluate( d )
-		case Stat s => evaluate( s )
+		case Expr e => resolve( e )
+		case Decl d => resolve( d )
+		case Stat s => resolve( s )
 	}
 
 	return n;	

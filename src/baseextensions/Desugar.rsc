@@ -100,6 +100,22 @@ Module headerFunctions( Module m ) {
 	return m;
 }
 
+list[Decl] desugarToList(  Decl d:function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats) ) {
+	if( exported() in d.mods ) {
+		return [ d, function(d.mods, d.\type, d.name, d.params)[@header=true] ];
+	}
+	
+	return [ d ];
+}
+
+Decl desugar( Decl d:function(list[Modifier] mods, Type \type, Id name, list[Param] params) ) {
+	if( exported() in d.mods ) {
+		return d[@header=true];
+	}
+	
+	return d;
+}
+
 default Decl desugar_mods( Decl d ) = d;
 
 Decl desugar_mods( Decl f:function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats) ) {

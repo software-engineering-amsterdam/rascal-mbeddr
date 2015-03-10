@@ -15,6 +15,7 @@ data StateMachineStat
 
 data StateStat
 	= on( Id event, list[Expr] cond, Id next )
+	| on( Id event, list[Expr] cond, Id next, list[Stat] body )
 	| entry( list[Stat] body )
 	| exit( list[Stat] body )
 	; 
@@ -28,7 +29,7 @@ data Modifier
 	;
 	
 data Type
-	= stateMachine()
+	= stateMachine( map[ str, Type ] elements )
 	| state()
 	| inEvent( list[Param] params )
 	| outEvent( list[Type] args )

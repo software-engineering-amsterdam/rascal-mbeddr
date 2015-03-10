@@ -1,6 +1,8 @@
 module statemachine::typing::Constraints
 extend typing::Constraints;
 
+import Node;
+
 import statemachine::AST;
 
 StateStat constraint( StateStat s:entry(_) ) {

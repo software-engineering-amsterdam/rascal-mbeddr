@@ -1,7 +1,8 @@
-module baseextensions::\test::Evaluator
+module baseextensions::\test::Resolver
+extend \test::TestBase;
 
 import Message;
-import Node;
+import ext::Node;
 
 import baseextensions::\test::Helper;
 
@@ -16,7 +17,7 @@ public test bool test_multiple_lambdas() {
 	'	
 	'	return x + y;
 	'];";
-	msgs = evaluator( input );
+	msgs = resolver( input );
 	
 	return msgs == [];
 }
@@ -36,7 +37,7 @@ public test bool test_multiple_lambdas() {
 	'	
 	'	return x + y; 
 	'}";
-	msgs = evaluator( input );
+	msgs = resolver( input );
 	
 	return msgs == [];
 }

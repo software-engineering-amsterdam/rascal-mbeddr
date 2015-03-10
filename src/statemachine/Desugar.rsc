@@ -2,15 +2,17 @@ module statemachine::Desugar
 extend DesugarBase;
 
 import IO;
-import List;
 import String;
 
+import util::List;
+import util::Util;
 import statemachine::AST;
+import statemachine::typing::IndexTable;
 
 data StateMachine = statemachine( str name, Instance instance, map[ str, list[Param] ] inEvents, map[ str, State ] states );
 data Instance = instance( Channels entries, Channels exits, list[StateMachineStat] vars, str currentState );
 data State = state( str name, list[ Stat ] entries, Transitions transitions, list[ Stat ] exits );
-data Transition = transition( list[Expr] cond, str next ); 
+data Transition = transition( list[Expr] cond, str next, list[Stat] body ); 
 alias Transitions = map[ str name, list[Transition] transitions ];
 alias Channels = map[ str event, list[Param] params];
 
@@ -61,13 +63,8 @@ State compileState( str name, list[StateStat] body ) {
 	transitions = ();
 	entries = exits = [];
 	visit( body ) {
-		case s:on( _, _, _ ) : { 
-			if( s.event.name in transitions ) {
-				transitions[ s.event.name ] += transition( s.cond, s.next.name ); 
-			} else {
-				transitions[ s.event.name ] = [transition( s.cond, s.next.name )];
-			} 
-		}
+		case s:on( _, _, _ ) : { transitions = putInMap( transitions, s.event.name, transition( s.cond, s.next.name, [] ) ); }
+		case s:on( _, _, _, _ ) : { transitions = putInMap( transitions, s.event.name, transition( s.cond, s.next.name, s.body ) ); }
 		case s:entry( _ ) : { entries += block(s.body); }
 		case s:exit( _ ) : { exits += block(s.body); } 
 	}
@@ -88,8 +85,7 @@ Module desugar_statemachine( Module m ) {
 		case Decl d:stateMachine( _, _, _, _ ) : {
 			decls = desugar_statemachine( d, compile_statemachine( d ) );
 			
-			m.decls[ indexOf( m.decls, d ) ] = decls[0];
-			m.decls += decls[1..size(decls)];
+			m.decls = insertListFor( m.decls, indexOf( m.decls, d ), decls );
 		} 
 	}
 	
@@ -218,8 +214,9 @@ list[Stat] createStateCases( StateMachine s, State state ) {
 			
 			tests +=
 				ifThen( 
-					size(t.cond) > 0 ? createCondition( t.cond[0], s.inEvents[ eventName ], s.instance.vars ) : lit( boolean( "true" ) ), 
+					size(t.cond) > 0 ? createParamVarReference( t.cond[0], s.inEvents[ eventName ], s.instance.vars ) : lit( boolean( "true" ) ), 
 					block(
+						[ createParamVarReference( block( t.body ), s.inEvents[ eventName ], s.instance.vars ) ] +
 						exits +
 						[expr( assign( ptrField( instanceVar, currentState ), var( id( t.next ) ) ) )] +
 						entries +
@@ -277,8 +274,8 @@ list[Stat] createEntryExitBody( StateMachine s, list[Stat] body ) {
 	}
 }
 
-Expr createCondition( Expr cond, list[Param] params, list[StateMachineStat] vars ) {
-	return visit( cond ) {
+&T <: node createParamVarReference( &T <: node n, list[Param] params, list[StateMachineStat] vars ) {
+	return visit( n ) {
 		case var( id( varName ) ) : {
 			i = 0;
 			for( param( _, Type \type, id( paramName ) ) <- params ) {
@@ -339,4 +336,12 @@ Decl desugar_on_conditions( Decl d:stateMachine( _, id( name ), _, _ ) ) {
 			}
 		}
 	}
+}
+
+Decl desugar( Decl d:variable(list[Modifier] mods, id( id( typeName ) ), Id name) ) {
+	if( typeName in d@symboltable && d@symboltable[ typeName ].\type == stateMachine() ) {
+		return variable( mods, id( id( namespace( typeName, "data_t" ) ) ), name );
+	}
+	
+	return d; 
 }

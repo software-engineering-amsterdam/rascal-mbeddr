@@ -1,19 +1,17 @@
-module statemachine::\test::Helper
+module unittest::\test::Helper
 
 import Message;
 import ParseTree;
 import Node;
-import IO;
 
-import statemachine::Syntax;
-import statemachine::AST;
-import statemachine::Desugar;
+import unittest::Syntax;
+import unittest::AST;
 
-import statemachine::typing::Indexer;
-import statemachine::typing::Constraints;
-import statemachine::typing::Resolver;
-import statemachine::typing::IndexTable;
-import statemachine::typing::Scope;
+import unittest::typing::Indexer;
+import unittest::typing::Constraints;
+import unittest::typing::Resolver;
+import unittest::typing::Scope;
+import typing::IndexTable; 
 
 Module createAST( loc l ) = implode( #Module, parse( #start[Module], l ) );
 Module createAST( str i ) = implode( #Module, parse( #start[Module], i ) );
@@ -21,16 +19,6 @@ Module createAST( str i ) = implode( #Module, parse( #start[Module], i ) );
 list[Message] indexer( str i ) = findErrors( createIndexTable( implode( #Module, parse( #start[Module], i ) ) ) );
 list[Message] constraints( str i ) = findErrors( constraints( createIndexTable( implode( #Module, parse( #start[Module], i ) ) ) ) );
 list[Message] resolver( str i ) = findErrors( resolver( createIndexTable( implode( #Module, parse( #start[Module], i ) ) ) ) );
-
-Module desugarModule( Module m ) {
-	solve( m ) {
-		m = visit( m ) {
-			case Decl d => desugar( d )
-		}
-	}
-	
-	return m;
-}
 
 list[Message] findErrors( Module m ) {
 	msgs = [];
@@ -52,7 +40,7 @@ Module createIndexTable( m:\module( name, imports, decls ) ) {
 
 
 // EVALUATOR //
-Module resolver( m:\module( name, imports, decls ) ) = resolver( m, (), () );
+Module resolver( Module m ) = resolver( m, (), () );
 Module resolver( &T <: node n, SymbolTable symbols, TypeTable types ) {
 	n = copyDownIndexTables( n, symbols, types );
 
@@ -60,8 +48,6 @@ Module resolver( &T <: node n, SymbolTable symbols, TypeTable types ) {
 		case Expr e => resolve( e )
 		case Decl d => resolve( d )
 		case Stat s => resolve( s )
-		case StateMachineStat s => resolve( s )
-		case StateStat s => resolve( s ) 
 	}
 
 	return n;	

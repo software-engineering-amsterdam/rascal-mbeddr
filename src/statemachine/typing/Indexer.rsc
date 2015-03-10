@@ -6,15 +6,28 @@ import statemachine::AST;
 import statemachine::typing::IndexTable;
 import statemachine::typing::Scope;
 
+// map[ str, Type ] stateMachineFunctions = ( "init" : function( \void(), [] ) );
+
 tuple[ Decl astNode, IndexTables tables, str errorMsg ]
 indexer( Decl d:stateMachine( list[Modifier] mods, id( name ), list[Id] initial, list[StateMachineStat] body ),
 	   	 IndexTables tables, 
 	   	 Scope scope
 	   ) {
-
-	storeResult = store( tables, name, < stateMachine(), scope, true > );
+	storeResult = store( tables, <name,typedef()>, < stateMachine( stateMachineFunctions ), scope, true > );
+	
+	if( storeResult.errorMsg != "" ) {
+		d.name = id( name )[@message = error( storeResult.errorMsg, d.name@location )]; 
+	}
+	
+	storeResult = store( storeResult.tables, name, < stateMachine( stateMachineFunctions ), scope, true > );
 	d.body = indexer( body, storeResult.tables, stateMachine( scope ) );
 	
+	d = hoistStateMachineIndexTables( d );
+	
+	return < d[@scope=scope], storeResult.tables, storeResult.errorMsg >;
+}
+
+Decl hoistStateMachineIndexTables( Decl d:stateMachine( _, _, _, _ ) ) {
 	if( size( d.body ) > 0 ) {
 		symbols = d.body[-1]@symboltable;
 		types = d.body[-1]@typetable;
@@ -39,7 +52,7 @@ indexer( Decl d:stateMachine( list[Modifier] mods, id( name ), list[Id] initial,
 		} 
 	}
 	
-	return < d[@scope=scope], storeResult.tables, storeResult.errorMsg >;
+	return d;
 }
 
 tuple[ StateMachineStat astNode, IndexTables tables, str errorMsg ]
@@ -93,6 +106,21 @@ indexer( StateStat s:on( Id event, list[Expr] cond, Id next ),
 	}	
 	
 	s.cond = indexer( cond, tables, function( scope ) );
+	return < s[@scope=scope], tables, "" >;	
+}
+
+tuple[ StateStat astNode, IndexTables tables, str errorMsg ]
+indexer( StateStat s:on( Id event, list[Expr] cond, Id next, list[Stat] body ),
+		 IndexTables tables,
+		 Scope scope
+		) {
+	if( event.name in tables.symbols && inEvent( list[Param] params ) := tables.symbols[ event.name ].\type ) {
+		result = indexParams( params, tables, function( scope ) );
+		tables = result.tables;
+	}	
+	
+	s.cond = indexer( cond, tables, function( scope ) );
+	s.body = indexer( body, tables, function( scope ) );
 	return < s[@scope=scope], tables, "" >;	
 }
 

@@ -1,12 +1,9 @@
 module baseextensions::\test::Desugar
-
-import IO;
+extend \test::TestBase;
 
 import lang::mbeddr::ToC;
 
 import baseextensions::\test::Helper;
-
-bool PRINT = true;
 
 public test bool test_constant() {
 	str input =

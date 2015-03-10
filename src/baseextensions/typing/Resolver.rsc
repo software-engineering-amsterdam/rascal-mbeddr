@@ -1,5 +1,5 @@
-module baseextensions::typing::Evaluator
-extend typing::Evaluator;
+module baseextensions::typing::Resolver
+extend typing::Resolver;
 
 import baseextensions::AST;
 
@@ -7,7 +7,7 @@ import baseextensions::AST;
 // EVALUATOR //
 // ========= //
 
-Expr evaluate( Expr e:lambda(list[Param] params, list[Stat] stats ) ) {
+Expr resolve( Expr e:lambda(list[Param] params, list[Stat] stats ) ) {
 	int returns = 0;
 	Type return_type = \void();
 	
@@ -47,7 +47,7 @@ Expr evaluate( Expr e:lambda(list[Param] params, list[Stat] stats ) ) {
 	return e@\type = function( return_type, [ t | param(_,t,_) <- params ] );
 }
 
-Expr evaluate( Expr e:lambda(list[Param] params, Expr \return) ) {
+Expr resolve( Expr e:lambda(list[Param] params, Expr \return) ) {
 	return_type = getType( \return );
 	
 	if( isEmpty( return_type ) ) { return e; }
@@ -57,7 +57,7 @@ Expr evaluate( Expr e:lambda(list[Param] params, Expr \return) ) {
 	return e;
 }
 
-Expr evaluate( Expr e:call( l:lambda( list[Param] params, body ), list[Expr] args ) ) {
+Expr resolve( Expr e:call( l:lambda( list[Param] params, body ), list[Expr] args ) ) {
 	l_type = getType( l );
 	
 	if( function( return_type, args ) := l_type ) {

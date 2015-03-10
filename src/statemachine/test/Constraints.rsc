@@ -1,7 +1,5 @@
 module statemachine::\test::Constraints
-
-import IO;
-import List;
+extend \test::TestBase;
 
 import statemachine::\test::Helper;
 

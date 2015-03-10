@@ -1,16 +1,13 @@
 module statemachine::\test::Desugar
+extend \test::TestBase;
 
-import IO;
 import Node;
-import List;
 
 import lang::mbeddr::ToC;
 
 import statemachine::AST;
 import statemachine::Desugar;
 import statemachine::\test::Helper;
-
-private bool PRINT = true;
 
 public test bool test_state_desugar() {
 	str input = 
@@ -118,14 +115,16 @@ public test bool test_entry_exit() {
 	'  var int8 points = 0
 	'  state beforeFlight {
 	'   entry { points = 0; }
-	'   on next [ x == 0 ] -\> airborne
+	'   on next [ x == 0 ] -\> airborne { points = 100; }
 	'   exit { points += 10; }
 	'  }
 	'  state airborne { }
 	' }
+	'
 	";
-	ast = createAST( input );
+	ast = evaluator( createAST( input ) );
 	ast = desugar_statemachine( ast );
+	ast = desugarModule( ast );
 	
 	if( PRINT ) {
 		h = module2h( ast );
@@ -146,7 +145,7 @@ public test bool test_compile_statemachines() {
 	'
 	'  var int8 points = 0
 	'  state beforeFlight {
-	'   on next [ x == 0 ] -\> airborne
+	'   on next [ x == 0 ] -\> airborne { points = 0; }
 	'  }
 	'  state airborne {
 	'   on next [ ] -\> beforeFlight

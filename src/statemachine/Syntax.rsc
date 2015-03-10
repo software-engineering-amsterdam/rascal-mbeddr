@@ -12,6 +12,7 @@ syntax StateMachineStat
 
 syntax StateStat
 	= on: "on" Id "[" Expr? "]" "-\>" Id
+	| on: "on" Id "[" Expr? "]" "-\>" Id "{" Stat* "}"
 	| entry: "entry" "{" Stat* "}"
 	| exit: "exit" "{" Stat* "}"
 	;
