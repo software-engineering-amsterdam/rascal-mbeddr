@@ -12,53 +12,6 @@ public &T <: node copyAnnotations( &T <: node n, &T <: node m ) {
 	return setAnnotations( n, getAnnotations( n ) + getAnnotations( m ) );
 }
 
-public str typeToString( Type t ) {
-	switch( t ) {
-		case id(id(name)) : return "<name>";
-		case \void() : return "void";
-		case int8() : return "int8";
-		case int16() : return "int16";
-		case int32() : return "int32";
-		case int64() : return "int64";
-		case uint8() : return "uint8";
-		case uint16() : return "uint16";
-		case uint32() : return "uint32";
-		case uint64() : return "uint64";
-		case \char() : return "char";
-		case \boolean() : return "boolean";
-		case \float() : return "float";
-		case \double() : return "double";
-		case struct(id(name)) : return "struct <name>";
-		case struct(id(name), _) : return "struct <name>";
-		case struct(_) : return "struct";
-		case union(id(name)) : return "union <name>";
-		case union(id(name), _) : return "union <name>";
-		case union(list[Field] fields) : return "";
-		case enum(id(name)) : return "enum <name>";
-		case enum(id(name), _) : return "enum <name>";
-		case enum(_) : return "enum";
-		case array(Type \type) : return "array <typeToString(\type)>";
-		case array(Type \type, int dim) : return "array[<dim>] <typeToString(\type)>";
-		case pointer(Type \type) : return "pointer <typeToString(\type)>";
-		case function(Type returnType, list[Type] args) : return "(<("" | it + "," + typeToString(arg) | arg <- args )>)=\>(<typeToString(returnType)>)";
-  }
-  
-  return "";
-}
-
-public str litToString( Literal l ) {
-	switch( l ) {
-  		case hex(str val) : return "hex";
-  		case \int(str val) : return "int";
-  		case char(str val) : return "char";
-  		case float(str val) : return "float";
-  		case string(str val) : return "string";
-  		case boolean(str val) : return "boolean";
-	}
-	
-	return "";
-}
-
 &T <: node delAnnotationRec( &T <: node root, list[str] annoKeys ) {
 	for( annoKey <- annoKeys ) {
 		root = delAnnotationRec( root, annoKey );
@@ -73,4 +26,12 @@ public str litToString( Literal l ) {
 	}
 }
 
-//int bitsToEncodeInt( int n ) = 
+map[ &Y, list[&T] ] putInMap( map[ &Y, list[&T] ] m, &Y key, &T val ) {
+	if( key in m ) {
+		m[ key ] += val;
+	} else {
+		m[ key ] = [val];
+	}
+	
+	return m;
+} 
