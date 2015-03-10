@@ -1,9 +1,7 @@
 module typing::\test::Indexer
+extend \test::TestBase;
 
 import typing::\test::Helper;
-
-import IO;
-import List;
 
 public test bool test_redefenition_1() {
 	str input = "module Test;

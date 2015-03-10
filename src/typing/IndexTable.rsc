@@ -6,6 +6,7 @@ import Message;
 
 import util::Util;
 import lang::mbeddr::AST;
+import typing::Util;
 
 data DeclType 
 	= enum() 
@@ -121,7 +122,7 @@ SymbolTableRow lookup( SymbolTable table, str name ) {
 
 tuple[ IndexTables tables, str errorMsg ]
 store( IndexTables tables, 
-       tuple[str,DeclType] key, 
+       tuple[str name,DeclType declType] key, 
        TypeTableRow row
       ) {
     errorMsg = "";  
@@ -130,7 +131,7 @@ store( IndexTables tables,
 		tables.types[key].scope == row.scope && 
 		tables.types[key].initialized
 		) {
-		errorMsg = "redefinition of \'<key>\'";
+		errorMsg = "redefinition of \'<key.name>\'";
 	} else {
 		tables.types[key] = row;
 	}

@@ -8,6 +8,7 @@ import util::Util;
 
 import typing::IndexTable;
 import typing::Scope;
+import typing::Util;
 
 default &T <: node constraint( &T <: node n ) = n;
 

@@ -1,9 +1,7 @@
 module typing::\test::Constraints
+extend \test::TestBase;
 
 import typing::\test::Helper;
-
-import List;
-import IO;
 
 public test bool test_case_constraint_1() {
 	str input = "module Test;
