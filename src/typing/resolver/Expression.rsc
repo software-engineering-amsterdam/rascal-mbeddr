@@ -55,51 +55,19 @@ Expr resolve( Expr e:subscript( Expr array, Expr sub )  ) {
 	
 	if( isEmpty(array_type ) || isEmpty(sub_type ) ) return e;
 	
-	if( array( \type ) := array_type || array( \type, _ ) := array_type || pointer( \type ) := array_type ) {
-	
-		if( sub_type in CIntegerTypeTree[ int8() ] ) {
-			e@\type = \type;
-		} else {
-			e@message = error(  "array subscript is not an integer", sub@location );
-		}
-		
-	} else {
-		e@message = error( "subscripted value is not an array, pointer, or vector", array@location );
-	}	
-	
-	return e;
+	return resolveSubScript( e, array_type, sub_type );
 }
 
 Expr resolve( Expr e:call( v:var( id( func ) ), list[Expr] args ) ) {
-	table = e@symboltable;
-	
 	// Remove error messages from the var id subnode
 	v = delAnnotation( v, "message" );
 	e.func = v;
 	e.args = args;
 	
-	if( func in table && function(Type returnType, list[Type] argsTypes) := table[ func ].\type ) {
-		
-		if( size( argsTypes ) != size( args ) ) {
-			return e[@message = error(  "too many arguments to function call, expected <size(argsTypes)>, have <size(args)>", e@location )];
-		} 
-		
-		for( int i <- [0..size(args)] ) {
-			if( ! ( argsTypes[i] in CTypeTree[ getType( args[ i ] ) ] ) ) {
-				e@message = error(  "wrong argument type(s)", e@location );
-			}
-		}
-		
-		e@\type = returnType;
-		
-	} else {
-		e@message = error(  "calling undefined function \'<func>\'", e@location );
-	}
-	
-	return e;
+	return resolveCall( e, e@symboltable );
 }
 
-Expr resolve( Expr e:sizeof( Type \type ) ) { return e@\type = int8(); }
+Expr resolve( Expr e:sizeof( Type \type ) ) { return e@\type = uint8(); }
 
 Expr resolve( Expr e:struct( list[Expr] records ) ) {
 	// TODO: support C99 syntax for struct initialization ({.id=expr})

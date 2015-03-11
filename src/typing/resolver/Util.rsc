@@ -149,3 +149,71 @@ Expr resolveAssignment(  Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type cat
 	
 	return e;
 }
+
+
+Decl resolveVariableAssignment( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr init), Type init_type ) {
+	if( function( Type return_type, list[Type] args ) := \type ) {
+		return resolveVariableFunctionAssignment( v, init_type );
+	} elseif( pointer(_) := \type && pointer(_) := init_type ) {
+		return resolvePointerAssignment( v, \type, init_type );
+	} elseif( !( \type in CTypeTree[ init_type ] ) ) {
+		return v@message = error(  "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
+	}
+	
+	return v;
+}
+
+Decl resolveVariableFunctionAssignment( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr init), Type init_type ) {
+	if( function( Type init_return_type, list[Type] init_args ) := init_type ) {
+		
+		if( !(return_type in CTypeTree[init_return_type]) ) {
+			v@message = error( "expected function with return type \'<typeToString(return_type)>\' but got \'<typeToString(init_return_type)>\'", v@location );
+		} else if( args != init_args ) {
+			v@message = error( "expected function with argument types \'<for( arg <- args ){><typeToString(arg)>,<}>\' but got \'<for( init_arg <- init_args ){><typeToString(init_arg)>,<}>\'", v@location );
+		}
+		
+	} else {
+		return v@message = error( "expected function but got \'<typeToString(init_type)>\'", v@location );
+	}
+	
+	return v;
+}
+
+Expr resolveCall( Expr e:call( v:var( id( func ) ), list[Expr] args ), IndexTable symbols ) {
+	if( func in symbols && function(Type returnType, list[Type] argsTypes) := symbols[ func ].\type ) {
+		
+		if( size( argsTypes ) != size( args ) ) {
+			return e[@message = error(  "too many arguments to function call, expected <size(argsTypes)>, have <size(args)>", e@location )];
+		} 
+		
+		for( int i <- [0..size(args)] ) {
+			if( ! ( argsTypes[i] in CTypeTree[ getType( args[ i ] ) ] ) ) {
+				e@message = error(  "wrong argument type(s)", e@location );
+			}
+		}
+		
+		e@\type = returnType;
+		
+	} else {
+		e@message = error(  "calling undefined function \'<func>\'", e@location );
+	}
+	
+	return e;
+}
+
+Expr resolveSubScript( Expr e, Type array_type, Type sub_type ) {
+	if( array( \type ) := array_type || array( \type, _ ) := array_type || pointer( \type ) := array_type ) {
+	
+		if( sub_type in CIntegerTypeTree[ int8() ] ) {
+			e@\type = \type;
+		} else {
+			e@message = error(  "array subscript is not an integer", sub@location );
+		}
+		
+	} else {
+		e@message = error( "subscripted value is not an array, pointer, or vector", array@location );
+	}	
+	
+	return e;
+}
+
