@@ -21,7 +21,7 @@ data Scope
 	| block( Scope scope )
 	| \switch( Scope scope )
 	;
-
+	
 alias SymbolTableRow = tuple[ Type \type, Scope scope, bool initialized ];
 alias SymbolTable = map[ str, SymbolTableRow ];
 
@@ -113,6 +113,14 @@ store( IndexTables tables,
 	return < < table, types >, errorMsg >;
 	 
 }
+
+SymbolTable update( SymbolTable symbols, str name, SymbolTableRow row ) {
+	if( name in symbols ) {
+		symbols[ name ] = symbol;
+	}
+	
+	return symbols;
+} 
 
 SymbolTableRow lookup( SymbolTable table, str name ) {
 	if( name in table ) {

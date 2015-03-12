@@ -22,7 +22,7 @@ public test bool test_implicit_type_conversion_1() {
 				'	return x + y;
 				'}";
 	msgs = resolver( input );
-
+	iprintln(msgs);
 	return size( msgs ) == 0;
 }
 
@@ -257,7 +257,7 @@ public test bool test_pointer_arithmetic_1() {
 				'char* j = i + 1;
 				'char* k = i - 1;";
 	msgs = resolver( input );
-	
+	iprintln(msgs);
 	return size( msgs ) == 0;
 }
 
@@ -269,6 +269,42 @@ public test bool test_pointer_arithmetic_2() {
 					'i -= 1;
 				'}";
 	msgs = resolver( input );
+	iprintln(msgs);	
+	return size( msgs ) == 0;
+}
+
+public test bool test_pointer_assignment() {
+	str input = "module Test;
+				'void fun() {
+				' int8* x = 10;
+				'}";
+	msgs = resolver( input );
+	return size( msgs ) == 1 &&
+		   error( "\'int8\' not a subtype of \'pointer int8\'", _ ) := msgs[0];
+}
+public test bool test_pointer_addition() {
+	str input = "module Test;
+				'void fun() {
+				' int8* x = &10;
+				' int8* y = &10;
+				' int8* z = x + y;
+				'}";
+	msgs = resolver( input );
+	
+	return size( msgs ) == 1 &&
+		   error( "operator can not be applied to \'pointer int8\' and \'pointer int8\'", _ ) := msgs[0];
+}
+
+public test bool test_typedef_var() {
+	str input = "module Test;
+				'typedef int8 as test_type;
+				'test_type x;
+				";
+	msgs = resolver( input );
+	
+	if( PRINT ) {
+		iprintln( msgs );
+	}
 	
 	return size( msgs ) == 0;
 }

@@ -16,6 +16,8 @@ anno Type Expr @ \type;
 
 data Type = empty();
 
+bool isNotEligbleForResolvment( Expr e ) = isEmpty( getType( e ) ); 
+
 bool isEmpty( Type t ) {
 	e = empty();
 	return e := t;
