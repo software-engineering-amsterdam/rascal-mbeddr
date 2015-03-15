@@ -1,6 +1,8 @@
 module statemachine::AST
 extend lang::mbeddr::AST;
 
+import statemachine::typing::IndexTable;
+
 anno loc StateMachineStat@location;
 anno loc StateStat@location;
 
@@ -29,7 +31,7 @@ data Modifier
 	;
 	
 data Type
-	= stateMachine( map[ str, Type ] elements )
+	= stateMachine( str stateMachineName )
 	| state()
 	| inEvent( list[Param] params )
 	| outEvent( list[Type] args )

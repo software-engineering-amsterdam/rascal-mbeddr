@@ -61,12 +61,12 @@ Stat resolve( Stat s:send( id( name ), list[Expr] args ) ) {
 }
 
 StateStat resolve( StateStat s:on( Id event, list[Expr] cond, Id next, list[Stat] body ) ) {
-	return resolve_on( s, event, cond, next ); 
+	return resolveOn( s, event, cond, next ); 
 }
 StateStat resolve( StateStat s:on( Id event, list[Expr] cond, Id next ) ) {
-	return resolve_on( s, event, cond, next ); 
+	return resolveOn( s, event, cond, next ); 
 }
-private StateStat resolve_on( StateStat s, id( event ), list[Expr] cond, id( next ) ) {
+private StateStat resolveOn( StateStat s, id( event ), list[Expr] cond, id( next ) ) {
 	symbols = s@symboltable;
 	
 	if( event in symbols ) {
@@ -127,10 +127,37 @@ StateMachineStat resolve( StateMachineStat s:var( list[Modifier] mods, Type \typ
 	return s;
 }
 
-Expr resolve( Expr e:call( e2:dotField( Expr record, Id name ), list[Expr] args ) ) {
+SymbolTable convertInEventToFunction( SymbolTable symbols, str name ) {
+	if( name in symbols && inEvent( params ) := symbols[ name ].\type ) {
+		symbols[ name ].\type = function( \void(), [ t | param(_,t,_) <- params ] );
+	}
+	
+	return symbols;
+}
+Expr resolve( Expr e:call( e2:dotField( Expr record, id( name ) ), list[Expr] args ) ) {
 	record_type = getType( record );
+	e.func = var( id( name ) );
+
+	if( stateMachine( str stateMachineName ) := record_type ) {
+		symbols = e@symboltable[ stateMachineName ].symbols;
+		symbols = convertInEventToFunction( symbols, name );
+		
+		e2 = delAnnotation( e2, "message" );
+		e = resolveCall( e, symbols );
+	}
 	
-	iprintln( record_type );
-	
+	e.func = e2;
 	return e;
+}
+
+public Expr resolveField( Expr e, stateMachine( str stateMachineName ), str name ) {
+	symbols = e@symboltable[ stateMachineName ].symbols;
+
+    if( name in symbols ) {
+    
+        e@\type = symbols[ name ].\type;
+    } else {
+        e@message = error( "unkown statemachine property \'<name>\' for statemachine \'<stateMachineName>\'", e@location );
+    } 
+    return e;
 }

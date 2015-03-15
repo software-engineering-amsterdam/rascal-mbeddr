@@ -6,23 +6,30 @@ import statemachine::AST;
 import statemachine::typing::IndexTable;
 import statemachine::typing::Scope;
 
-// map[ str, Type ] stateMachineFunctions = ( "init" : function( \void(), [] ) );
+map[ str, Type ] stateMachineFunctions = ( "init" : \function( \void(), [] ) );
 
 tuple[ Decl astNode, IndexTables tables, str errorMsg ]
 indexer( Decl d:stateMachine( list[Modifier] mods, id( name ), list[Id] initial, list[StateMachineStat] body ),
 	   	 IndexTables tables, 
 	   	 Scope scope
 	   ) {
-	storeResult = store( tables, <name,typedef()>, < stateMachine( stateMachineFunctions ), scope, true > );
+	storeResult = store( tables, <name,typedef()>, < stateMachine( name ), scope, true > );
 	
 	if( storeResult.errorMsg != "" ) {
 		d.name = id( name )[@message = error( storeResult.errorMsg, d.name@location )]; 
 	}
 	
-	storeResult = store( storeResult.tables, name, < stateMachine( stateMachineFunctions ), scope, true > );
+	storeResult = store( storeResult.tables, name, < stateMachine( name ), scope, true > );
 	d.body = indexer( body, storeResult.tables, stateMachine( scope ) );
 	
 	d = hoistStateMachineIndexTables( d );
+	
+	symbols = size( d.body ) > 0 ? d.body[0]@symboltable : ();
+    symbols["init"] = symbolRow( \function( \void(), [] ), scope, true );
+	symbols["isInState"] = symbolRow( \function( \boolean(), [ state() ] ), scope, true );
+	symbols["setState"] = symbolRow( \function( \void(), [ state() ] ), scope, true );
+		
+	storeResult.tables.symbols = update( storeResult.tables.symbols, name, symbolRow( symbols, stateMachine( name ), scope, true ) );
 	
 	return < d[@scope=scope], storeResult.tables, storeResult.errorMsg >;
 }

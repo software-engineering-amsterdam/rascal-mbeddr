@@ -3,11 +3,13 @@ extend DesugarBase;
 
 import IO;
 import String;
+import ext::List;
+import ext::Node;
 
-import util::List;
 import util::Util;
 import statemachine::AST;
 import statemachine::typing::IndexTable;
+import statemachine::typing::Resolver;
 
 data StateMachine = statemachine( str name, Instance instance, map[ str, list[Param] ] inEvents, map[ str, State ] states );
 data Instance = instance( Channels entries, Channels exits, list[StateMachineStat] vars, str currentState );
@@ -339,9 +341,53 @@ Decl desugar_on_conditions( Decl d:stateMachine( _, id( name ), _, _ ) ) {
 }
 
 Decl desugar( Decl d:variable(list[Modifier] mods, id( id( typeName ) ), Id name) ) {
-	if( typeName in d@symboltable && d@symboltable[ typeName ].\type == stateMachine() ) {
-		return variable( mods, id( id( namespace( typeName, "data_t" ) ) ), name );
+	if( typeName in d@symboltable && stateMachine(_) := d@symboltable[ typeName ].\type ) {
+		d.\type =  id( id( namespace( typeName, "data_t" ) ) );
+		d.name = name;
 	}
 	
 	return d; 
+}
+
+Expr desugar( Expr e:dotField( Expr record, id( str name ) ) ) {
+	e_type = getType( e );
+	record_type = getType( record );
+	
+	if( stateMachine( str stateMachineName ) := record_type && state() := e_type ) {
+		e = var( id( namespace_state( stateMachineName, name ) ) );
+	}
+	
+	return e;
+}
+
+Stat desugarTrigger( Expr record, str stateMachineName, str eventName, list[Expr] args ) {
+	list[Stat] bl = [];
+	i = 1;
+	for( arg <- args ) {
+		bl += expr( assign( refOf( subscript( var( id( "___args" ) ), lit( \int( "<i>" ) ) ) ), addrOf( arg ) ) );
+		i += 1;
+	}
+	Expr callFun = var( id( namespace( stateMachineName, "execute" ) ) );
+	list[Expr] callArgs = [ addrOf( record ), var( id( namespace_event( stateMachineName, eventName ) ) ), var( id( "___args" ) ) ];
+	bl += expr( call( callFun, callArgs ) );
+	return block( bl );
+}
+
+default Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr record, str eventName, list[Expr] args ) {
+	return desugarTrigger( record, stateMachineName, eventName, args );
+}
+
+Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr record, "init", [] ) {
+	e = call( var( id( namespace( stateMachineName, "init" ) ) ), [ addrOf(record) ] );
+	return expr( e );
+}
+
+Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr record, "setState", [ dotField( Expr record, id( stateName ) ) ] ) {
+	e =  assign( dotField( record, currentState ), var( id( namespace_state( stateMachineName, stateName ) ) ) );
+	return expr( e );
+}
+
+Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr record, "isInState", [ dotField( Expr record, id( stateName ) ) ]  ) {
+	e = eq( dotField( record, currentState ), var( id( namespace_state( stateMachineName, stateName ) ) ) );
+	return expr( e );
 }
