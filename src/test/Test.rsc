@@ -1,6 +1,6 @@
 module \test::Test
 
-extend typgin::\test::Test;
-extend baseextensions::\test::Test;
-extend statemachine::\test::Test;
-extend unittest::\test::Test;
+import typing::\test::Test;
+import baseextensions::\test::Test;
+import statemachine::\test::Test;
+import unittest::\test::Test;

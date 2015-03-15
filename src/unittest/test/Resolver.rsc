@@ -4,6 +4,9 @@ extend \test::TestBase;
 import unittest::\test::Helper;
 
 public test bool test_assert_boolean() {
+	str testCaseName = "test_assert_boolean";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	"module Test;
 	' 
@@ -12,16 +15,18 @@ public test bool test_assert_boolean() {
 	' }
 	";
 	msgs = resolver( input );
+
+	expectedMsgs = ["an assert expression should be of the type boolean"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	if( PRINT ) {
-		iprintln(msgs);	
-	}
-	
-	return size(msgs) > 0 &&
-		   error( "an assert expression should be of the type boolean", _ ) := msgs[0];
+	return passed;
 }
 
 public test bool test_unkown_testcase_test() {
+	str testCaseName = "test_unkown_testcase_test";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	"module Test;
 	'
@@ -31,14 +36,16 @@ public test bool test_unkown_testcase_test() {
 	";
 	msgs = resolver( input );
 	
-	if( PRINT ) {
-		iprintln(msgs);	
-	}
+	expectedMsgs = ["unkown testcase \'HelloWorld\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	return size(msgs) > 0 &&
-		   error( "unkown testcase \'HelloWorld\'", _ ) := msgs[0];
+	return passed;
 }
 public test bool test_wrong_testcase_test() {
+	str testCaseName = "test_wrong_testcase_test";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	"module Test;
 	' void HelloWorld();
@@ -48,10 +55,9 @@ public test bool test_wrong_testcase_test() {
 	";
 	msgs = resolver( input );
 	
-	if( PRINT ) {
-		iprintln(msgs);	
-	}
+	expectedMsgs = ["referenced test \'HelloWorld\' is not a testcase"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	return size(msgs) > 0 &&
-		   error( "referenced test \'HelloWorld\' is not a testcase", _ ) := msgs[0];
+	return passed;
 }

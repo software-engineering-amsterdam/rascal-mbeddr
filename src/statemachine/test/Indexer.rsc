@@ -3,6 +3,15 @@ extend \test::TestBase;
 
 import statemachine::\test::Helper;
 
+public test bool test_empty_statemachine() {
+	str input = 
+	"module Test;
+	'statemachine FlightAnalyzer {
+	'}";
+	msgs = indexer( input );
+	
+	return size(msgs) == 0;
+}
 public test bool test_state_redefinition() {
 	str input = 
 	"module Test;

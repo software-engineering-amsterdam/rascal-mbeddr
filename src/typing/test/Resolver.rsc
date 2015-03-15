@@ -4,6 +4,9 @@ extend \test::TestBase;
 import typing::\test::Helper;
 
 public test bool test_no_return() {
+	str testCaseName = "test_no_return";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// No return value for non-void function
 				'int32 add( int32 x, int32 y ) {
@@ -11,22 +14,35 @@ public test bool test_no_return() {
 				'}";
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( "control reaches end of non-void function", _ ) := msgs[0];
+	expectedMsgs = ["control reaches end of non-void function"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_implicit_type_conversion_1() {
+	str testCaseName = "test_implicit_type_conversion_1";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// Char converts to int8
 				'int8 add( char x, char y ) {
 				'	return x + y;
 				'}";
 	msgs = resolver( input );
-	iprintln(msgs);
-	return size( msgs ) == 0;
+
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_implicit_type_conversion_2() {
+	str testCaseName = "test_implicit_type_conversion_2";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// Bigger ints do not convert to smaller ints
 				'int8 fun( int16 x ) {
@@ -34,11 +50,17 @@ public test bool test_implicit_type_conversion_2() {
 				'}";
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( "return type \'int16\' not a subtype of expected type \'int8\'", _ ) := msgs[0];
+	expectedMsgs = ["return type \'int16\' not a subtype of expected type \'int8\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_implicit_type_conversion_3() {
+	str testCaseName = "test_implicit_type_conversion_3";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// doubles do not convert to floats
 				'float fun( double x ) {
@@ -46,11 +68,17 @@ public test bool test_implicit_type_conversion_3() {
 				'}";
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( "return type \'double\' not a subtype of expected type \'float\'", _ ) := msgs[0];
+	expectedMsgs = ["return type \'double\' not a subtype of expected type \'float\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_struct_initialization() {
+	str testCaseName = "test_struct_initialization";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// Struct initialization is type checked
 				'struct point {
@@ -62,11 +90,17 @@ public test bool test_struct_initialization() {
 				'struct point p = { x, 1 };";
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( "\'int64\' not a subtype of \'int32\'", _ ) := msgs[0];
+	expectedMsgs = ["\'int64\' not a subtype of \'int32\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_struct_field_selection_1() {
+	str testCaseName = "test_struct_field_selection_1";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// Struct field selection is type checked
 				'struct point {
@@ -78,11 +112,17 @@ public test bool test_struct_field_selection_1() {
 				'int8 x = p.x;";
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( "\'int32\' not a subtype of \'int8\'", _ ) := msgs[0];
+	expectedMsgs = ["\'int32\' not a subtype of \'int8\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_struct_field_selection_2() {
+	str testCaseName = "test_struct_field_selection_2";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// Struct field selection is type checked
 				'struct point {
@@ -94,11 +134,17 @@ public test bool test_struct_field_selection_2() {
 				'int32 z = p.z;";
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( "no member named \'z\' in \'struct point\'", _ ) := msgs[0];
+	expectedMsgs = ["no member named \'z\' in \'struct point\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_function_call_1() {
+	str testCaseName = "test_function_call_1";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'
 				'int32 add( int8 x, int8 y ) {
@@ -108,21 +154,33 @@ public test bool test_function_call_1() {
 				'int32 r = add( 1, 2, 3);";
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( "too many arguments to function call, expected 2, have 3", _ ) := msgs[0];
+	expectedMsgs = ["too many arguments to function call, expected 2, have 3"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_function_call_2() {
+	str testCaseName = "test_function_call_2";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'
 				'int32 r = add( 1, 2, 3);";
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( "calling undefined function \'add\'", _ ) := msgs[0];
+	expectedMsgs = ["calling undefined function \'add\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_function_call_3() {
+	str testCaseName = "test_function_call_3";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'
 				'int32 add( int8 x, int8 y ) {
@@ -133,11 +191,17 @@ public test bool test_function_call_3() {
 				'int32 r = add( x, 2 );";
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( "wrong argument type(s)", _ ) := msgs[0];
+	expectedMsgs = ["wrong argument type(s)"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_if_condition() {
+	str testCaseName = "test_if_condition";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// If condition should be a boolean
 				'void switchBool() {
@@ -147,11 +211,17 @@ public test bool test_if_condition() {
 				'}";				
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( str msg, _ ) := msgs[0];
+	expectedMsgs = ["if condition should be a \'boolean\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_while_condition() {
+	str testCaseName = "test_while_condition";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// While condition should be a boolean
 				'void switchBool() {
@@ -161,11 +231,17 @@ public test bool test_while_condition() {
 				'}";				
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( str msg, _ ) := msgs[0];
+	expectedMsgs = ["while condition should be a \'boolean\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_do_while_condition() {
+	str testCaseName = "test_do_while_condition";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// While condition should be a boolean
 				'void switchBool() {
@@ -175,11 +251,17 @@ public test bool test_do_while_condition() {
 				'}";				
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( str msg, _ ) := msgs[0];
+	expectedMsgs = ["do while condition should be a \'boolean\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_while_condition() {
+	str testCaseName = "test_while_condition";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// While condition should be a boolean
 				'void switchBool() {
@@ -189,79 +271,148 @@ public test bool test_while_condition() {
 				'}";				
 	msgs = resolver( input );
 
+	if( PRINT ) {
+		iprintln( msgs );
+	}
 	return size( msgs ) == 1 &&
 		   error( str msg, _ ) := msgs[0];
 }
 
 public test bool test_wrong_assignment_1() {
+	str testCaseName = "test_wrong_assignment_1";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'int32 x = \"str\";";
 	msgs = resolver( input );
 	
-	return size( msgs ) == 1 &&
-		   error( "\'pointer char\' not a subtype of \'int32\'", _ ) := msgs[0];
+	expectedMsgs = ["\'pointer char\' not a subtype of \'int32\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_wrong_assignment_2() {
+	str testCaseName = "test_wrong_assignment_2";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// Cannot assign boolean to integer
 				'int8 z = true;";
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( "\'boolean\' not a subtype of \'int8\'", _ ) := msgs[0];
+	expectedMsgs = ["\'boolean\' not a subtype of \'int8\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_wrong_assignment_3() {
+	str testCaseName = "test_wrong_assignment_3";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// Cannot assign integer to array of integers
 				'int8[10] xs = 1;";
 	msgs = resolver( input );
 
-	return size( msgs ) == 1 &&
-		   error( "\'int8\' not a subtype of \'array[10] int8\'", _ ) := msgs[0];
+	expectedMsgs = ["\'int8\' not a subtype of \'array[10] int8\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_wrong_implicit_assignment_1() {
+	str testCaseName = "test_wrong_implicit_assignment_1";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// Can not assign uint16 or int16 to int8 (inferred type from literal)
 				'int8 y = 256;";
 	msgs = resolver( input );
 	
-	return size( msgs ) == 1 &&
-		   error( str s, _ ) := msgs[0];
+	expectedMsgs = [""];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_wrong_implicit_assignment_2() {
+	str testCaseName = "test_wrong_implicit_assignment_2";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'// Can not assign uint16 or int16 to int8 (inferred type from literal)
 				'int8 y = -10;";
 	msgs = resolver( input );
 	
-	return size( msgs ) == 1 &&
-		   error( str s, _ ) := msgs[0];
+	expectedMsgs = [""];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_pointer_assignment() {
+	str testCaseName = "test_pointer_assignment";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'int8** i = &8;";
 	msgs = resolver( input );
 	
-	return size( msgs ) == 1 &&
-		   error( "type \'int8\' is not a subtype of type \'pointer int8\'", _ ) := msgs[0];
+	expectedMsgs = ["type \'int8\' is not a subtype of type \'pointer int8\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}
+
+public test bool test_pointer_assignment_expression() {
+	str testCaseName = "test_pointer_assignment_expression";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = "module Test;
+				'int8** i;
+				'
+				'void main() {
+				'	i = &8;
+				'}
+				"; 
+	msgs = resolver( input );
+	
+	expectedMsgs = ["type \'int8\' is not a subtype of type \'pointer int8\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_pointer_arithmetic_1() {
+	str testCaseName = "test_pointer_arithmetic_1";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'char* i = &\'c\';
 				'char* j = i + 1;
 				'char* k = i - 1;";
 	msgs = resolver( input );
-	iprintln(msgs);
-	return size( msgs ) == 0;
+	
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_pointer_arithmetic_2() {
+	str testCaseName = "test_pointer_arithmetic_2";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'void fun() {
 					'char* i = &\'c\';
@@ -269,20 +420,34 @@ public test bool test_pointer_arithmetic_2() {
 					'i -= 1;
 				'}";
 	msgs = resolver( input );
-	iprintln(msgs);	
-	return size( msgs ) == 0;
+	
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_pointer_assignment() {
+	str testCaseName = "test_pointer_assignment";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'void fun() {
 				' int8* x = 10;
 				'}";
 	msgs = resolver( input );
-	return size( msgs ) == 1 &&
-		   error( "\'int8\' not a subtype of \'pointer int8\'", _ ) := msgs[0];
+	
+	expectedMsgs = ["\'int8\' not a subtype of \'pointer int8\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 public test bool test_pointer_addition() {
+	str testCaseName = "test_pointer_addition";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'void fun() {
 				' int8* x = &10;
@@ -291,20 +456,44 @@ public test bool test_pointer_addition() {
 				'}";
 	msgs = resolver( input );
 	
-	return size( msgs ) == 1 &&
-		   error( "operator can not be applied to \'pointer int8\' and \'pointer int8\'", _ ) := msgs[0];
+	expectedMsgs = ["operator can not be applied to \'pointer int8\' and \'pointer int8\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_typedef_var() {
+	str testCaseName = "test_typedef_var";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'typedef int8 as test_type;
 				'test_type x;
 				";
 	msgs = resolver( input );
 	
-	if( PRINT ) {
-		iprintln( msgs );
-	}
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	return size( msgs ) == 0;
+	return passed;
+}
+
+public test bool test_assignment() {
+	str testCaseName = "test_assignment";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = "module Test;
+				'void main() {
+				'	x = 10;
+				'}
+				";
+	msgs = resolver( input );
+	
+	expectedMsgs = ["use of undeclared variable \'x\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }

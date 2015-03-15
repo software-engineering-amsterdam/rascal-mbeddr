@@ -7,6 +7,9 @@ import ext::Node;
 import baseextensions::\test::Helper;
 
 public test bool test_multiple_lambdas() {
+	str testCaseName = "test_multiple_lambdas";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input =
 	"module MultipleLambda;
 	'
@@ -19,10 +22,17 @@ public test bool test_multiple_lambdas() {
 	'];";
 	msgs = resolver( input );
 	
-	return msgs == [];
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_multiple_lambdas() {
+	str testCaseName = "test_multiple_lambdas";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input =
 	"module NestedReturns; 
 	'
@@ -39,5 +49,9 @@ public test bool test_multiple_lambdas() {
 	'}";
 	msgs = resolver( input );
 	
-	return msgs == [];
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }

@@ -1,18 +1,21 @@
 module statemachine::\test::Desugar
 extend \test::TestBase;
 
-import Node;
-
-import lang::mbeddr::ToC;
+import ext::Node;
 
 import statemachine::AST;
 import statemachine::Desugar;
 import statemachine::\test::Helper;
 
 public test bool test_state_desugar() {
+	str testCaseName = "test_state_desugar";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	" module Test;
 	' exported statemachine FlightAnalyzer {
+	'  in event next()
+	'  in event reset()
 	'  state beforeFlight {
 	'   on next [ ] -\> airborne
 	'  }
@@ -21,21 +24,20 @@ public test bool test_state_desugar() {
 	'  }
 	' }
 	";
-	ast = createAST( input );
-	ast = desugar_statemachine( ast );
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
 	
-	if( PRINT ) {
-		h = module2h( ast );
-		c = module2c( ast );
-		println( h );
-		println("===============================");
-		println( c );
+	if( passed ) {
+		ast = desugar_statemachine( ast );
+		printC( ast );
 	}
-	
-	return true;
+	return passed;
 }
 
 public test bool test_in_event_desugar() {
+    str testCaseName = "test_in_event_desugar";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	" module Test;
 	' statemachine FlightAnalyzer {
@@ -45,18 +47,21 @@ public test bool test_in_event_desugar() {
 	'  }
 	' }
 	";
-	ast = createAST( input );
-	ast = desugar_statemachine( ast );
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
 	
-	if( PRINT ) {
-		c = module2c( ast );
-		println( c );
+	if( passed ) {
+		ast = desugar_statemachine( ast );
+		printC( ast );
 	}
 	
-	return true;
+	return passed;
 }
 
 public test bool test_init_desugar() {
+    str testCaseName = "test_init_desugar";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	" module Test;
 	' statemachine FlightAnalyzer initial = beforeFlight {
@@ -68,21 +73,21 @@ public test bool test_init_desugar() {
 	'  }
 	' }
 	";
-	ast = createAST( input );
-	ast = desugar_statemachine( ast );
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
 	
-	if( PRINT ) {
-		h = module2h( ast );
-		c = module2c( ast );
-		println( h );
-		println("===============================");
-		println( c );
+	if( passed ) {
+		ast = desugar_statemachine( ast );
+		printC( ast );
 	}
 	
-	return true;
+	return passed;
 }
 
 public test bool test_var_cond() {
+    str testCaseName = "test_var_cond";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	" module Test;
 	' statemachine FlightAnalyzer initial = beforeFlight {
@@ -93,21 +98,20 @@ public test bool test_var_cond() {
 	'  }
 	' }
 	";
-	ast = createAST( input );
-	ast = desugar_statemachine( ast );
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
 	
-	if( PRINT ) {
-		h = module2h( ast );
-		c = module2c( ast );
-		println( h );
-		println("===============================");
-		println( c );
+	if( passed ) {
+		ast = desugar_statemachine( ast );
+		printC( ast );
 	}
-	
-	return true;
+	return passed;
 }
 
 public test bool test_entry_exit() {
+    str testCaseName = "test_entry_exit";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	" module Test;
 	' exported statemachine FlightAnalyzer initial = beforeFlight {
@@ -122,22 +126,125 @@ public test bool test_entry_exit() {
 	' }
 	'
 	";
-	ast = evaluator( createAST( input ) );
-	ast = desugar_statemachine( ast );
-	ast = desugarModule( ast );
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
 	
-	if( PRINT ) {
-		h = module2h( ast );
-		c = module2c( ast );
-		println( h );
-		println("===============================");
-		println( c );
+	if( passed ) {
+		ast = desugar_statemachine( ast );
+		printC( ast );
 	}
 	
-	return true;
+	return passed;
+}
+
+public test bool test_initialization() {
+    str testCaseName = "test_initialization";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = 
+	" module Test;
+	' exported statemachine FlightAnalyzer {
+	'  state airborne { }
+	' }
+	'
+	'void main() {
+	' FlightAnalyzer f;
+	' f.init();
+	'}
+	";
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
+	
+	if( passed ) {
+		ast = desugar_statemachine( ast );
+		printC( ast );
+	}
+	return passed;
+}
+
+public test bool test_setState() {
+    str testCaseName = "test_setState";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = 
+	" module Test;
+	' exported statemachine FlightAnalyzer {
+	'  state airborne { }
+	' }
+	'
+	'void main() {
+	' FlightAnalyzer f;
+	' f.init();
+	' f.setState( f.airborne );
+	'}
+	";
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
+	
+	if( passed ) {
+		ast = desugar_statemachine( ast );
+		printC( ast );
+	}
+	return passed;
+}
+
+public test bool test_isInState() {
+    str testCaseName = "test_isInState";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = 
+	" module Test;
+	' exported statemachine FlightAnalyzer {
+	'  state airborne { }
+	' }
+	'
+	'void main() {
+	' FlightAnalyzer f;
+	' f.init();
+	' f.isInState( f.airborne );
+	'}
+	";
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
+	
+	if( passed ) {
+		ast = desugar_statemachine( ast );
+		printC( ast );
+	}
+	return passed;
+}
+
+public test bool test_trigger() {
+    str testCaseName = "test_trigger";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = 
+	" module Test;
+	' exported statemachine FlightAnalyzer {
+	'   in event next( int32 x )
+	'   state airborne { }
+	' }
+	'
+	'void main() {
+	' FlightAnalyzer f;
+	' f.init();
+	' f.next( 30 );
+	'}
+	";
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
+	
+	if( passed ) {
+		ast = desugar_statemachine( ast );
+		printC( ast );
+	}
+	return passed;
 }
 
 public test bool test_compile_statemachines() {
+    str testCaseName = "test_compile_statemachines";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	" module Test;
 	' statemachine FlightAnalyzer initial = beforeFlight {
@@ -161,7 +268,7 @@ public test bool test_compile_statemachines() {
 		}
 	}
 
-	if( PRINT ) {
+	if( DEBUG ) {
 		iprintln( delAnnotationsRec( stateMachines ) );
 	}
 	

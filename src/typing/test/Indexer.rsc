@@ -4,62 +4,102 @@ extend \test::TestBase;
 import typing::\test::Helper;
 
 public test bool test_redefenition_1() {
+	str testCaseName = "test_redefenition_1";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'char c = \'x\';
 				'char c = \'y\';";
 	msgs = indexer( input );
 	
-	return size( msgs ) == 1 &&
-		   error( "redefinition of \'c\'", _ ) := msgs[0];
+	expectedMsgs = ["redefinition of \'c\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_redefenition_2() {
+	str testCaseName = "test_redefenition_2";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'char c;
 				'char c = \'y\';";
 	msgs = indexer( input );
 	
-	return size( msgs ) == 0;
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_redefenition_3() {
+	str testCaseName = "test_redefenition_3";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'char c;
 				'int8 c = 1;";
 	msgs = indexer( input );
 	
-	return size( msgs ) == 1 &&
-		   error( "redefinition of \'c\' with a different type \'int8\' vs \'char\'", _ ) := msgs[0];
+	expectedMsgs = ["redefinition of \'c\' with a different type \'int8\' vs \'char\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_custom_type() {
+	str testCaseName = "test_custom_type";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'point c;";
 	msgs = indexer( input );
 	
-	return size( msgs ) == 1 &&
-		   error( "unknown type name \'point\'", _ ) := msgs[0];
+	expectedMsgs = ["unknown type name \'point\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_struct() {
+	str testCaseName = "test_struct";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'struct point c;";
 	msgs = indexer( input );
 	
-	return size( msgs ) == 1 &&
-		   error( "unkown struct \'point\'", _ ) := msgs[0];
+	expectedMsgs = ["unkown struct \'point\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_enum() {
+	str testCaseName = "test_enum";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'enum color c;";
 	msgs = indexer( input );
 	
-	return size( msgs ) == 1 &&
-		   error( "unkown enum \'color\'", _ ) := msgs[0];
+	expectedMsgs = ["unkown enum \'color\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_scope() {
+	str testCaseName = "test_scope";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = "module Test;
 				'int8 x = 9;
 				'void fun() {
@@ -70,5 +110,9 @@ public test bool test_scope() {
 				'}";
 	msgs = indexer( input );
 	
-	return size( msgs ) == 0;
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }

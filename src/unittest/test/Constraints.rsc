@@ -4,6 +4,9 @@ extend \test::TestBase;
 import unittest::\test::Helper;
 
 public test bool test_assert_constraint() {
+	str testCaseName = "test_assert_constraint";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	" module Test;
 	' 
@@ -13,15 +16,17 @@ public test bool test_assert_constraint() {
 	";
 	msgs = constraints( input );
 	
-	if( PRINT ) {
-		iprintln(msgs);	
-	}
+	expectedMsgs = ["assert statement is constrained to test case bodies"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	return size(msgs) > 0 &&
-		   error( "assert statement is constrained to test case bodies", _ ) := msgs[0];
+	return passed;
 }
 
 public test bool test_testcase_constraint() {
+	str testCaseName = "test_testcase_constraint";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	"module Test;
 	' 
@@ -30,16 +35,18 @@ public test bool test_testcase_constraint() {
 	' }
 	";
 	msgs = constraints( input );
+
+	expectedMsgs = ["testcase declaration is constrained to the global scope"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	if( PRINT ) {
-		iprintln(msgs);	
-	}
-	
-	return size(msgs) > 0 &&
-		   error( "testcase declaration is constrained to the global scope", _ ) := msgs[0];
+	return passed;
 }
 
 public test bool test_test_return() {
+	str testCaseName = "test_test_return";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
 	str input = 
 	"module Test;
 	' 
@@ -51,10 +58,9 @@ public test bool test_test_return() {
 	";
 	msgs = constraints( input );
 	
-	if( PRINT ) {
-		iprintln(msgs);	
-	}
+	expectedMsgs = ["expecting return statement"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	return size(msgs) > 0 &&
-		   error( "expecting return statement", _ ) := msgs[0];
+	return passed;
 }

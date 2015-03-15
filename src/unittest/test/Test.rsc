@@ -1,3 +1,3 @@
 module unittest::\test::Test
 extend unittest::\test::Constraints;
-extend unittest::\test::Evaluator;
+extend unittest::\test::Resolver;

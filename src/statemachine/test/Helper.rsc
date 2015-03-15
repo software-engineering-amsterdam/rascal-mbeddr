@@ -24,8 +24,8 @@ list[Message] resolver( str i ) = findErrors( resolver( createIndexTable( implod
 
 Module desugarModule( Module m ) {
 	solve( m ) {
-		m = visit( m ) {
-			case Decl d => desugar( d )
+		m = top-down visit( m ) {
+			case &T <: node n => desugar( n )
 		}
 	}
 	
