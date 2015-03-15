@@ -2,8 +2,8 @@ module baseextensions::Desugar
 extend DesugarBase;
 
 // LIBRARY IMPORTS
-import List;
-import Node;
+import ext::List;
+import ext::Node;
 
 // LOCAL IMPORTS
 import typing::IndexTable;
