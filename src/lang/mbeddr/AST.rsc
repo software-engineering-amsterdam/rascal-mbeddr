@@ -195,3 +195,5 @@ data Enum
   = const(Id name)
   | const(Id name, Expr init)
   ;
+
+public list[Type] parameterTypes( list[Param] params ) = [ paramType | param( _, paramType, _ ) <- params ];
