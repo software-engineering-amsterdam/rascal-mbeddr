@@ -1,8 +1,6 @@
 module typing::resolver::Expression
 extend typing::resolver::ResolverBase;
 
-import typing::resolver::Util;
-
 // EXPRESSION EVALUATORS
 
 default Expr resolve( Expr e ) {
@@ -78,7 +76,6 @@ Expr resolve( Expr e:dotField( Expr record, id( name ) ) ) {
 	record_type = getType( record );
 	
 	if( isEmpty(record_type ) ) return e;
-	
 	return resolveField( e, record_type, name );
 }
 

@@ -22,7 +22,12 @@ data Scope
 	| \switch( Scope scope )
 	;
 	
-alias SymbolTableRow = tuple[ Type \type, Scope scope, bool initialized ];
+data SymbolTableRow 
+	= symbolRow( Type \type, Scope scope, bool initialized )
+	| symbolRow( SymbolTable symbols, Type \type, Scope scope, bool initialized )
+	;
+
+//alias SymbolTableRow = tuple[ Type \type, Scope scope, bool initialized ];
 alias SymbolTable = map[ str, SymbolTableRow ];
 
 alias TypeTableRow = tuple[Type \type, Scope scope, bool initialized ];
@@ -66,7 +71,7 @@ anno Scope Enum@scope;
 tuple[ IndexTables tables, str errorMsg ]
 store( IndexTables tables, 
 	   str name, 
-	   SymbolTableRow row
+	   tuple[ Type \type, Scope scope, bool initialized ] row
 	  ) {
 	
 	table = tables.symbols;
@@ -106,7 +111,7 @@ store( IndexTables tables,
 			errorMsg = "unkown enum \'<enumName>\'";
 		}
 		
-		table[ name ] = row;
+		table[ name ] = symbolRow( row.\type, row.scope, row.initialized );
 	
 	}
 	
@@ -116,7 +121,7 @@ store( IndexTables tables,
 
 SymbolTable update( SymbolTable symbols, str name, SymbolTableRow row ) {
 	if( name in symbols ) {
-		symbols[ name ] = symbol;
+		symbols[ name ] = row;
 	}
 	
 	return symbols;

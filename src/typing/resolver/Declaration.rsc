@@ -1,8 +1,6 @@
 module typing::resolver::Declaration
 extend typing::resolver::ResolverBase;
 
-import typing::resolver::Util;
-
 // DECLARATION EVALUATORS
 
 default Decl resolve( Decl d ) = d;

@@ -1,8 +1,6 @@
 module typing::resolver::Statement
 extend typing::resolver::ResolverBase;
 
-import typing::resolver::Util;
-
 // STATEMENT EVALUATORS
 
 default Stat resolve( Stat s ) = s;
