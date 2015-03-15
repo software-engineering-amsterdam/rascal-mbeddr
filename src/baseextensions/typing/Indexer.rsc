@@ -39,6 +39,7 @@ indexer( Decl d:constant( id( name ), Literal \value), IndexTables tables, Scope
 	return < d, storeResult.tables, storeResult.errorMsg >;	
 }
 
+private Type getLiteralType( boolean(_) ) = \boolean();
 private Type getLiteralType( hex(_) ) = int32();
 private Type getLiteralType( \int(_) ) = int32();
 private Type getLiteralType( char(_) ) = char();
