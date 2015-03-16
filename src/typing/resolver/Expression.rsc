@@ -3,6 +3,8 @@ extend typing::resolver::Base;
 
 import String;
 
+import typing::Util;
+
 default Expr resolve( Expr e ) {
 	return e@message = warning( "unkown expression to typechecker <delAnnotationsRec(e)>", e@location );
 } 
@@ -18,7 +20,7 @@ Expr resolve( Expr e:var( id( name ) ) ) {
 		
 		\type = resolveTypeDefs( typetable, \type );
 		
-		if( isEmpty(\type) ) { e@message = error( "unkown type \'<typeDefName>\'", t@location ); }
+		if( isEmpty(\type) ) { println(table[name]); e@message = error( "unkown type \'<name>\'", e@location ); }
 		
 		return e@\type = \type;
 	} else {

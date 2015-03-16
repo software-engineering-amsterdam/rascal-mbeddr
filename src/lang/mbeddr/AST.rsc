@@ -45,6 +45,7 @@ data Decl
   | enum(list[Modifier] mods, Id name, list[Enum] enums)
   | variable(list[Modifier] mods, Type \type, Id name)
   | variable(list[Modifier] mods, Type \type, Id name, Expr init)
+  | constant(Id name, Expr init)
   | preProcessor( str input )
   ;
 
@@ -174,6 +175,11 @@ data Type
   | array(Type \type, int dim)
   | pointer(Type \type)
   | function(Type returnType, list[Type] args)
+// Either unsigned or signed integer types
+  | usint8()
+  | usint16()
+  | usint32()
+  | usint64()
   ; 
 
 data Modifier

@@ -98,8 +98,8 @@ list[Decl] desugarToList(  Decl d:function(list[Modifier] mods, Type \type, Id n
 	return [ d ];
 }
 
-list[Decl] desugarSingle( Decl d:function(list[Modifier] mods, Type \type, Id name, list[Param] params) ) {
-	return desugerMods( d );
+Decl desugarSingle( Decl d:function(list[Modifier] mods, Type \type, Id name, list[Param] params) ) {
+	return desugarDeclMods( d );
 }
 
 Decl desugarSingle( Decl d:typeDef(list[Modifier] mods, Type \type, Id name) ) = desugarDeclMods( d );
@@ -138,6 +138,6 @@ list[Decl] desugarToList( Decl d:variable(list[Modifier] mods, Type \type, Id na
 
 // DESUGAR //
 
-Decl desugar( Decl c:constant( Id name, Literal \value ) ) = preProcessor( "#define <name.name> (<getChildren(\value)[0]>)" )[@header=true];
+Decl desugar( Decl c:constant( Id name, Expr init ) ) = c[@header=true]; 
 
 Literal desugar( Literal l:boolean(str val) ) = val == "true" ? \int("1") : \int("0");

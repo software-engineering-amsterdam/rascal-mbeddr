@@ -11,7 +11,7 @@ public test bool test_constant() {
 	passed = true;
 	str input =
 	"module Test;
-	'#constant TAKEOFF = 100;
+	'#constant TAKEOFF = 100 + 1;
 	'#constant HIGH_SPEED = true;
 	";
 	ast = resolver( createIndexTable( createAST( input ) ) );

@@ -6,10 +6,6 @@ extend lang::mbeddr::MBeddrC;
 //	= functionRef: "(" {Type ","}* ")" "=\>" "(" Type ")"  
 //	;
 	
-syntax Decl 
-	= constant: "#constant" Id "=" Literal ";"
-	;
-	
 syntax Expr
  	= lambda: "[" {Param ","}* "|" Stat* "]"
  	| lambda: "[" {Param ","}* "|" Expr "]"

@@ -318,7 +318,7 @@ public test bool test_wrong_assignment_3() {
 				'int8[10] xs = 1;";
 	msgs = resolver( input );
 
-	expectedMsgs = ["\'uint8\' not a subtype of \'array[10] int8\'"];
+	expectedMsgs = ["\'uint8 || int8\' not a subtype of \'array[10] int8\'"];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -334,7 +334,7 @@ public test bool test_wrong_implicit_assignment_1() {
 				'int8 y = 256;";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["\'uint16\' not a subtype of \'int8\'"];
+	expectedMsgs = ["\'uint16 || int16\' not a subtype of \'int8\'"];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -365,7 +365,7 @@ public test bool test_pointer_assignment() {
 				'int8** i = &8;";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["type \'uint8\' is not a subtype of type \'pointer int8\'"];
+	expectedMsgs = ["type \'uint8 || int8\' is not a subtype of type \'pointer int8\'"];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -385,7 +385,7 @@ public test bool test_pointer_assignment_expression() {
 				"; 
 	msgs = resolver( input );
 	
-	expectedMsgs = ["type \'uint8\' is not a subtype of type \'pointer int8\'"];
+	expectedMsgs = ["type \'uint8 || int8\' is not a subtype of type \'pointer int8\'"];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -515,6 +515,26 @@ public test bool test_assignment() {
 	return passed;
 }
 
+public test bool test_binary_operator_1() {
+	str testCaseName = "test_binary_operator_1";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = "module Test;
+				'int32 main(int32 x) {
+				'	if( x == 10 ) {
+				'		return x;
+				'	}
+				'}
+				";
+	msgs = resolver( input );
+	
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}
+
 public test bool test_struct_field_reference() {
 	str testCaseName = "test_struct_field_reference";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
@@ -522,7 +542,7 @@ public test bool test_struct_field_reference() {
 	str input = "
 	module Test;
 	
-	//typedef struct TrackPoint as TrackPoint;
+	typedef struct TrackPoint as TrackPoint;
 	struct TrackPoint {
 		int32 alt;
 		int32 speed;
@@ -531,6 +551,23 @@ public test bool test_struct_field_reference() {
 	int32 main( TrackPoint* tp ) {
 		return tp-\>alt;
 	}
+	";
+	msgs = resolver( input );
+	
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}
+	
+public test bool test_constant() {
+	str testCaseName = "test_constant";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = "module Test;
+	'#constant TAKEOFF = 100 + 1;
+	'#constant HIGH_SPEED = true;
 	";
 	msgs = resolver( input );
 	

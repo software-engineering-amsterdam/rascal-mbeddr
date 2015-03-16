@@ -32,6 +32,7 @@ syntax Decl
     | enum: Modifier* "enum" Id "{" {Enum ","}+ "}" ";"
     | variable: Modifier* Type Id ";"
     | variable: Modifier* Type Id "=" Expr ";"
+    | constant: "#constant" Id "=" Expr ";"
     ;
 
 syntax Param
@@ -109,7 +110,7 @@ syntax Expr
     > left ( eq: Expr "==" Expr 
            | neq: Expr "!=" Expr
            )
-    > left bitAnd: Expr "&" Expr 
+    > left bitAnd: Expr "&" !>> "&" Expr 
     > left bitXor: Expr "^" Expr 
     > left bitOr: Expr "|" Expr 
     > left and: Expr "&&" Expr 

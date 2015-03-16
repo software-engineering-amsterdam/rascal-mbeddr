@@ -241,6 +241,33 @@ public test bool test_trigger() {
 	return passed;
 }
 
+	
+
+public test bool test_send_notification() {
+    str testCaseName = "test_send_notification";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = 
+	" module Test;
+	  void raiseAlarm() { }
+	
+	' exported statemachine FlightAnalyzer {
+	'   out event crashNotification =\> raiseAlarm
+	'   state crashed {
+			entry { send crashNotification(); }
+		}
+	' }
+	";
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
+	
+	if( passed ) {
+		ast = desugarModule( ast );
+		printC( ast );
+	}
+	return passed;
+}
+
 public test bool test_compile_statemachines() {
     str testCaseName = "test_compile_statemachines";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }

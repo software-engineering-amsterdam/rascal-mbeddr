@@ -15,17 +15,24 @@ private  TypeTree typeTree = [
     <\double(),   \double()>
 ];
 
-// TODO: fix type checker so it support multiple detection types for int literals,
-//		this way the type conversion from intX to uintX can be removed from typetree (this shouldn't be allowed)
 private TypeTree Integers = [
-	<int8(),    uint8()>,
-	<int16(),   uint16()>,
-    <int32(),   uint32()>,
-    <int64(),   uint64()>,
+	<int8(),    int16()>,
+	<int16(),   int32()>,
+    <int32(),   int64()>,
+    
     <uint8(),   int16()>,
     <uint16(),  int32()>,
     <uint32(),  int64()>,
-    
+   
+   	<usint8(),  uint8()>,
+   	<usint8(),  int8()>,
+   	<usint16(),  uint16()>,
+   	<usint16(),  int16()>,
+   	<usint32(),  uint32()>,
+   	<usint32(),  int32()>,
+   	<usint64(),  uint64()>,
+   	<usint64(),  int64()>,
+   	
 	<int8(),    int8()>,
 	<int16(),   int16()>,
     <int32(),   int32()>,
@@ -33,7 +40,12 @@ private TypeTree Integers = [
     <uint8(),   uint8()>,
     <uint16(),  uint16()>,
     <uint32(),  uint32()>,
-    <uint64(),  uint64()>
+    <uint64(),  uint64()>,
+    <usint8(),  usint8()>,
+    <usint16(),  usint16()>,
+    <usint32(),  usint32()>,
+    <usint64(),  usint64()>
+    
 ];
 
 private TypeTree Equality = [
@@ -42,7 +54,7 @@ private TypeTree Equality = [
 ];
 
 private lrel[ Type \type, list[Type] children ] Numbers = [
-	< number(), [int8(), float(), double(), \char()] >
+	< number(), [usint8(), float(), double(), \char()] >
 ];
 
 private TypeTree Char2Int = [

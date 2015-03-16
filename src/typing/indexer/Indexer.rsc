@@ -9,6 +9,7 @@ import ParseTree;
 import util::Util;
 import typing::IndexTable;
 import typing::Scope;
+import typing::resolver::Expression;
 import lang::mbeddr::AST;
 
 list[&T <: node] indexer( list[&T <: node] nodeList, IndexTables tables, Scope scope ) {
@@ -349,6 +350,27 @@ indexer( Decl c:const( id( name ), _ ),
 	storeResult = store( tables, name, < \void(), scope, true > );
 	
 	return < c[@scope=scope], storeResult.tables, storeResult.errorMsg >;
+}
+
+tuple[ Decl astNode, IndexTables tables, str errorMsg ]
+indexer( Decl d:constant( id( name ), Expr init ), IndexTables tables, Scope scope ) {
+	visit( init ) {
+		case var(id(_)) : { 
+			d.init@message = error( "global constants must be statically evaluatable", d.init@location );
+			return <d,tables,"">; 
+		}
+	}
+	
+	init = visit( init ) {
+		case Expr e => resolve( e )
+	}
+	init_type = getType( init );
+	
+	if( isEmpty() := init_type ) { d@message = error( "unable to statically resolve global constant\'s type", d@location ); }
+	
+	storeResult = store( tables, name, <init_type,scope,true> );
+
+	return < d, storeResult.tables, storeResult.errorMsg >;	
 }
 
 tuple[ Param astNode, IndexTables tables, str errorMsg ]

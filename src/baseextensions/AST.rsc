@@ -3,7 +3,7 @@ module baseextensions::AST
 extend lang::mbeddr::AST;
 
 data Decl
-	= constant(Id name, Literal \value);
+	= constant(Id name, Expr init);
 
 data Expr
 	= lambda(list[Param] params, list[Stat] body )

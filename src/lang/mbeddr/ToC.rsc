@@ -334,6 +334,9 @@ Box toBox(Enum::const(Id name))
 
 Box toBox(Enum::const(Id name, Expr init))
   = H(L(name.name), L("="), H(toBox(init), L(";")), hs=1);
+
+Box toBox(Decl::constant(Id name, Expr init))
+  = H(L("#define"),L("="),H(L("("),toBox(init),L(")"),L(";")),hs=1);
  
 /*
  * Statements

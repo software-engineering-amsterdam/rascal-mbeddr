@@ -55,25 +55,3 @@ public test bool test_multiple_lambdas() {
 	
 	return passed;
 }
-
-public test bool test_and_operator() {
-	str testCaseName = "test_and_operator";
-	if( PRINT ) { println("RUNNING: <testCaseName>"); }
-	passed = true;
-	str input = "
-		module Test;
-		void main() {
-			uint8 x = 1;
-			if( true && true ) { 
-				x = 10;
-			}
-		}
-	";
-	ast = resolver( input );
-	
-	expectedMsgs = [];
-	passed = equalMessages( msgs, expectedMsgs );
-	outputTest( testCaseName, passed, expectedMsgs, msgs );
-	
-	return passed;
-}

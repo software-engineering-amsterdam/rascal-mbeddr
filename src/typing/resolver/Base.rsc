@@ -151,8 +151,8 @@ public Expr resolveBinaryExpression( Expr e, Expr lhs, Expr rhs, TypeTree typeTr
 	lhs_type = getType( lhs );
 	rhs_type = getType( rhs );
 	
-	if( pointerArithmetic && arePointerArithmeticTypes( lhs_type, rhs_type, typeTree[ int8() ] ) ) { 
-		return resolvePointerArithmetic( e, lhs_type, rhs_type, typeTree[ int8() ] );
+	if( pointerArithmetic && arePointerArithmeticTypes( lhs_type, rhs_type, typeTree[ usint8() ] ) ) { 
+		return resolvePointerArithmetic( e, lhs_type, rhs_type, typeTree[ usint8() ] );
 	} 
 	
 	if( ! fittingTypes( typeTree[ category ], [lhs_type, rhs_type] ) ) {
@@ -177,15 +177,15 @@ default &T <: node resolvePointerAssignment( &T <: node n, lhs_type, rhs_type, T
 &T <: node resolvePointerAssignment( &T <: node n, pointer( lhs_type ), pointer( rhs_type ), Type \type ) = resolvePointerAssignment( n, lhs_type, rhs_type, \type );
 
 default Expr resolveAssignment( Expr e, _, _, _, _, _ ) = e[@message = error( "expression <delAnnotationsRec(lhs)> is not assignable", e@location )];
-Expr resolveAssignment(  Expr e, Expr lhs:var( id( name ) ), Expr rhs, TypeTree typeTree, Type category = int8(), bool pointerArithmetic = false ) {
+Expr resolveAssignment(  Expr e, Expr lhs:var( id( name ) ), Expr rhs, TypeTree typeTree, Type category = usint8(), bool pointerArithmetic = false ) {
 	if( !( name in e@symboltable ) ) { return e; }
 	if( isNotEligbleForResolvment( rhs ) || isNotEligbleForResolvment( lhs ) ) { return e; }
 
 	lhs_type = e@symboltable[ name ].\type;
 	rhs_type = getType( rhs );	
 	
-	if( pointerArithmetic && arePointerArithmeticTypes( lhs_type, rhs_type, typeTree[ int8() ] ) ) { 
-		return resolveAssignmentPointerArithmetic( e, lhs_type, rhs_type, typeTree[ int8() ] ); 	
+	if( pointerArithmetic && arePointerArithmeticTypes( lhs_type, rhs_type, typeTree[ usint8() ] ) ) { 
+		return resolveAssignmentPointerArithmetic( e, lhs_type, rhs_type, typeTree[ usint8() ] ); 	
 	}
 	
 	if( isPointerType( lhs_type ) && isPointerType( rhs_type ) ) { 
@@ -282,7 +282,6 @@ Expr resolveSubScript( Expr e, Type array_type, Type sub_type ) {
 }
 
 Type resolveTypeDefs( TypeTable typetable, Type \type ) {
-	println("Resolve Type Defs");
 	return visit( \type ) {
 		case Type t:id( id( typeDefName ) ) : {
 			if( <typeDefName,typedef()> in typetable ) {

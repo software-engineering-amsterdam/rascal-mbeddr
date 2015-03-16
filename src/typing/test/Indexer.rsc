@@ -116,3 +116,21 @@ public test bool test_scope() {
 	
 	return passed;
 }
+	
+public test bool test_constant_indexer() {
+	str testCaseName = "test_constant_indexer";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = "
+		module Test;
+		int8 x = 10;
+		#constant y = 10 + x;
+	";
+	msgs = indexer( input );
+	
+	expectedMsgs = ["global constants must be statically evaluatable"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}

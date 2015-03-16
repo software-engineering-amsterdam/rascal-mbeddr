@@ -10,6 +10,11 @@ import lang::mbeddr::AST;
 
 public default str typeToString( Type t ) = getName( t );
 
+public str typeToString( usint64() ) = "uint64 || int64";   
+public str typeToString( usint8() ) = "uint8 || int8"; 
+public str typeToString( usint16() ) = "uint16 || int16"; 
+public str typeToString( usint32() ) = "uint32 || int32"; 
+public str typeToString( usint64() ) = "uint64 || int64";
 public str typeToString( id(id(name)) ) =  "<name>";
 public str typeToString( struct(id(name)) ) =  "struct <name>";
 public str typeToString( struct(id(name), _) ) =  "struct <name>";
@@ -36,11 +41,11 @@ public int detectLiteralBitSize( int v ) {
 	return intSizes[0];
 }
 
-public default Type unsignedIntegerType( _ ) = uint64();  
-public Type unsignedIntegerType( 8 ) = uint8();  
-public Type unsignedIntegerType( 16 ) = uint16();  
-public Type unsignedIntegerType( 32 ) = uint32();  
-public Type unsignedIntegerType( 64 ) = uint64();
+public default Type unsignedIntegerType( _ ) = usint64();  
+public Type unsignedIntegerType( 8 ) = usint8();  
+public Type unsignedIntegerType( 16 ) = usint16();  
+public Type unsignedIntegerType( 32 ) = usint32();  
+public Type unsignedIntegerType( 64 ) = usint64();
 
 public default Type signedIntegerType( _ ) = int64();  
 public Type signedIntegerType( 8 ) = int8();  
