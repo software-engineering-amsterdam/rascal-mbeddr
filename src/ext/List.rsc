@@ -2,6 +2,7 @@ module ext::List
 extend List;
 
 list[&T] insertListFor( list[&T] lst, int n, list[&T] input ) {
+	
 	lst[ n ] = input[ 0 ];
 	for( i <- [1..size(input)] ) {
 		lst = insertAt( lst, n + i, input[i] );

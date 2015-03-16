@@ -1,5 +1,7 @@
 module typing::resolver::Declaration
-extend typing::resolver::ResolverBase;
+extend typing::resolver::Base;
+
+import typing::Util;
 
 // DECLARATION EVALUATORS
 

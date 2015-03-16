@@ -42,6 +42,7 @@ public test bool test_unkown_testcase_test() {
 	
 	return passed;
 }
+
 public test bool test_wrong_testcase_test() {
 	str testCaseName = "test_wrong_testcase_test";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
@@ -49,8 +50,8 @@ public test bool test_wrong_testcase_test() {
 	str input = 
 	"module Test;
 	' void HelloWorld();
-	' void main() {
-	'  test [ HelloWorld ];
+	' int32 main() {
+	'  return test [ HelloWorld ];
 	' } 
 	";
 	msgs = resolver( input );

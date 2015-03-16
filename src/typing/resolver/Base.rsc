@@ -1,4 +1,4 @@
-module typing::resolver::ResolverBase
+module typing::resolver::Base
 
 import ext::List;
 import ext::Node;
@@ -10,7 +10,6 @@ import lang::mbeddr::AST;
 import typing::IndexTable;
 import typing::TypeTree;
 import typing::Scope;
-import typing::Util;
 
 anno Type Expr @ \type;
 
@@ -25,11 +24,25 @@ bool isEmpty( Type t ) {
 
 Type getType( Expr n ) {
 	if( "type" in getAnnotations( n ) ) {
-		return n@\type;
+		return unTypeDef( n@\type, n@typetable );
 	} else {
 		return empty();
 	}
 }
+
+Type unTypeDef( Type t, TypeTable types ) {
+	return visit( t ) {
+		case id( id( typeName ) ) : {
+			if( <typeName,typedef()> in types ) {
+				insert types[ <typeName,typedef()> ].\type;
+			} else {
+				insert empty();
+			}
+		}
+	}
+}
+
+&T <: node resolve( &T <: node n ) = n;
 
 public default bool isStructType( _ ) = false;
 public bool isStructType( Type _:struct( id( _ ) ) ) = true;

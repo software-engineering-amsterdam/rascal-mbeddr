@@ -1,4 +1,4 @@
-module typing::Constraints
+module typing::constraints::Constraints
 
 import IO;
 import Message;

@@ -1,4 +1,4 @@
-module typing::Indexer
+module typing::indexer::Indexer
 
 import IO;
 import ext::List;

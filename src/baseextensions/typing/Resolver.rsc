@@ -3,10 +3,6 @@ extend typing::Resolver;
 
 import baseextensions::AST;
 
-// ========= //
-// EVALUATOR //
-// ========= //
-
 Expr resolve( Expr e:lambda(list[Param] params, list[Stat] stats ) ) {
 	int returns = 0;
 	Type return_type = \void();

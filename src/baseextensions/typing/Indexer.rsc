@@ -1,5 +1,5 @@
 module baseextensions::typing::Indexer
-extend typing::Indexer;
+extend typing::indexer::Indexer;
 
 import baseextensions::AST;
 

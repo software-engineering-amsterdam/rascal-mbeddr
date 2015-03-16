@@ -2,14 +2,16 @@ module \test::TestBase
 
 import IO;
 import ext::List;
+import ext::Node;
 import Message;
 
+import lang::mbeddr::AST;
 import lang::mbeddr::ToC;
 
 import typing::IndexTable;
 
 private bool PRINT = true;
-private bool DEBUG = false;
+private bool DEBUG = true;
 
 private bool equalMessages( list[Message] msgs, list[str] expectedMsgs ) {
 	result = size(msgs) == size(expectedMsgs);
@@ -56,4 +58,44 @@ private bool checkForTypeErrors( ast, str testCase ) {
 	}
 	
 	return result;
+}
+
+private list[&T <: node] detect( str testCaseName, bool inHeader, &T <: node n, list[&T <: node] lst ) {
+    header = false;
+    if( "header" in getAnnotations(n) ) { header = n@header; }
+    
+    if( n in lst ) {
+	    if( header == inHeader ) {
+	        lst -= [n];
+	    } elseif( PRINT ) {
+	    	if( header ) {
+	    		println("ERROR in <testCaseName>: expecting node in header file but found in c file: <n>");
+	    	} else {
+	    		println("ERROR in <testCaseName>: expecting node in c file but found in header file: <n>");
+	    	}
+	    }
+	}
+	
+	return lst;
+}
+
+private bool validateDesugarOutput( str testCaseName, Module ast, list[&T <: node] headerOutput, list[&T <: node] cOutput ) {
+	visit( ast ) {
+		case &T <: node n : {
+			headerOutput = detect( testCaseName, true, n, headerOutput );
+			cOutput = detect( testCaseName, false, n, cOutput );
+		}	
+	}
+	
+	if( size( headerOutput ) != 0 && PRINT ) {
+		println("ERROR: did not find all nodes in header ast, following nodes where not found:");
+		iprintln( headerOutput );
+	}
+	
+	if( size( cOutput ) != 0 && PRINT ) {
+		println("ERROR: did not find all nodes in c ast, following nodes where not found:");
+		iprintln( cOutput );
+	}
+
+	return size(headerOutput) == 0 && size(cOutput) == 0;	
 }

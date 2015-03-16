@@ -1,5 +1,5 @@
 module statemachine::Desugar
-extend DesugarBase;
+extend desugar::Base;
 
 import IO;
 import String;

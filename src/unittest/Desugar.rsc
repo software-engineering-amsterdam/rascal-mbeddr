@@ -1,7 +1,8 @@
 module unittest::Desugar
-extend DesugarBase;
+extend desugar::Base;
 
-// LOCAL IMPORTS
+import ext::List;
+
 import unittest::AST;  
 
 Module desugar_unittest( Module m ) {

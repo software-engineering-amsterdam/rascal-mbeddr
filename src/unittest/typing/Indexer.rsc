@@ -1,5 +1,5 @@
 module unittest::typing::Indexer
-extend typing::Indexer;
+extend typing::indexer::Indexer;
 
 import unittest::AST;
 import unittest::typing::Scope;

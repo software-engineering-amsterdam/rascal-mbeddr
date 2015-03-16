@@ -28,7 +28,7 @@ public test bool test_state_desugar() {
 	passed = checkForTypeErrors( ast, testCaseName );
 	
 	if( passed ) {
-		ast = desugar_statemachine( ast );
+		ast = desugarModule( ast );
 		printC( ast );
 	}
 	return passed;
@@ -51,7 +51,7 @@ public test bool test_in_event_desugar() {
 	passed = checkForTypeErrors( ast, testCaseName );
 	
 	if( passed ) {
-		ast = desugar_statemachine( ast );
+		ast = desugarModule( ast );
 		printC( ast );
 	}
 	
@@ -77,7 +77,7 @@ public test bool test_init_desugar() {
 	passed = checkForTypeErrors( ast, testCaseName );
 	
 	if( passed ) {
-		ast = desugar_statemachine( ast );
+		ast = desugarModule( ast );
 		printC( ast );
 	}
 	
@@ -102,7 +102,7 @@ public test bool test_var_cond() {
 	passed = checkForTypeErrors( ast, testCaseName );
 	
 	if( passed ) {
-		ast = desugar_statemachine( ast );
+		ast = desugarModule( ast );
 		printC( ast );
 	}
 	return passed;
@@ -130,7 +130,7 @@ public test bool test_entry_exit() {
 	passed = checkForTypeErrors( ast, testCaseName );
 	
 	if( passed ) {
-		ast = desugar_statemachine( ast );
+		ast = desugarModule( ast );
 		printC( ast );
 	}
 	
@@ -156,7 +156,7 @@ public test bool test_initialization() {
 	passed = checkForTypeErrors( ast, testCaseName );
 	
 	if( passed ) {
-		ast = desugar_statemachine( ast );
+		ast = desugarModule( ast );
 		printC( ast );
 	}
 	return passed;
@@ -182,7 +182,7 @@ public test bool test_setState() {
 	passed = checkForTypeErrors( ast, testCaseName );
 	
 	if( passed ) {
-		ast = desugar_statemachine( ast );
+		ast = desugarModule( ast );
 		printC( ast );
 	}
 	return passed;
@@ -208,7 +208,7 @@ public test bool test_isInState() {
 	passed = checkForTypeErrors( ast, testCaseName );
 	
 	if( passed ) {
-		ast = desugar_statemachine( ast );
+		ast = desugarModule( ast );
 		printC( ast );
 	}
 	return passed;
@@ -235,7 +235,7 @@ public test bool test_trigger() {
 	passed = checkForTypeErrors( ast, testCaseName );
 	
 	if( passed ) {
-		ast = desugar_statemachine( ast );
+		ast = desugarModule( ast );
 		printC( ast );
 	}
 	return passed;

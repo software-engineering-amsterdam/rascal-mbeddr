@@ -1,5 +1,5 @@
 module statemachine::typing::Constraints
-extend typing::Constraints;
+extend typing::constraints::Constraints;
 
 import Node;
 

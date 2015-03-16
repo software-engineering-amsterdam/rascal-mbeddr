@@ -15,6 +15,8 @@ private  TypeTree typeTree = [
     <\double(),   \double()>
 ];
 
+// TODO: fix type checker so it support multiple detection types for int literals,
+//		this way the type conversion from intX to uintX can be removed from typetree (this shouldn't be allowed)
 private TypeTree Integers = [
 	<int8(),    uint8()>,
 	<int16(),   uint16()>,

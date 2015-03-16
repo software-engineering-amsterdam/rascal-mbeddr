@@ -2,6 +2,7 @@ module unittest::typing::Resolver
 extend typing::Resolver;
 
 import unittest::AST;
+import IO;
 
 Stat resolve( Stat e:\assert( Expr \test ) ) {
 	test_type = getType( \test );

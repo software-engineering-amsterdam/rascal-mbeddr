@@ -21,6 +21,10 @@ syntax Stat
 	= send: "send" Id "(" {Expr ","}* ")" ";"
 	;
 
+syntax Expr
+	= objectField: Expr ":" Id
+	;
+
 syntax Modifier
 	= readable: "readable"
 	;

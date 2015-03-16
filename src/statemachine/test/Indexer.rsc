@@ -12,6 +12,7 @@ public test bool test_empty_statemachine() {
 	
 	return size(msgs) == 0;
 }
+
 public test bool test_state_redefinition() {
 	str input = 
 	"module Test;

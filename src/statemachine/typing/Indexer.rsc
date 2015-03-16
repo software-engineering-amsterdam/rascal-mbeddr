@@ -1,5 +1,5 @@
 module statemachine::typing::Indexer
-extend typing::Indexer;
+extend typing::indexer::Indexer;
 
 import statemachine::AST;
 

@@ -1,5 +1,5 @@
 module baseextensions::Desugar
-extend DesugarBase;
+extend desugar::Base;
 
 // LIBRARY IMPORTS
 import ext::List;
@@ -7,18 +7,13 @@ import ext::Node;
 
 // LOCAL IMPORTS
 import typing::IndexTable;
+import typing::resolver::Base;
 import baseextensions::AST;
 
 // DESUGAR BASEEXTENSIONS
 
 Module desugar_baseextensions( Module m:\module( name, imports, decls ) ) {
 	m = desugar_lambdas( m );
-	
-	m = headerFunctions( m );
-	
-	m = visit( m ) {
-		case Decl d => desugar_mods( d )
-	}
 	
 	return m;
 }
@@ -36,7 +31,7 @@ private Module desugar_lambdas( Module m:\module( name, imports, decls ) ) {
 				liftedParams = findLiftedParams( body, params, liftedLambdaGlobals );
 		
 				liftedLambdas += function( [static()], l@\type, id("lambda_function_$<i>"), params + liftedParams, liftLambdaBody( body ) );
-				liftedLambdaGlobals["lambda_function_$<i>"] = < l@\type, global(), true >;
+				liftedLambdaGlobals["lambda_function_$<i>"] = symbolRow( l@\type, global(), true );
 				
 				// TODO detect uses of lambda and replace those 
 				n = var( id( "lambda_function_$<i>" ) );
@@ -81,84 +76,64 @@ private list[str] extractParamNames( list[Param] params ) = [ paramName | param(
 
 // DESUGAR DECL MODIFIERS //
 
-Module headerFunctions( Module m ) {
-	exportedFuns = [];
-	visit( m ) {
-		case Decl d:function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats) : {
-			if( exported() in d.mods ) {
-				exportedFuns += function(d.mods, d.\type, d.name, d.params)[@header=true];
-			}
-		}
+Decl desugarDeclMods( Decl d ) {
+	export = exported() in d.mods;
+	d.mods = exportedMods( d.mods );
 	
-		case Decl d:function(list[Modifier] mods, Type \type, Id name, list[Param] params) : {
-			if( exported() in d.mods ) {
-				exportedFuns += d[@header=true];
-			}
-		}
-	}
-	m.decls += exportedFuns;
-	return m;
-}
-
-list[Decl] desugarToList(  Decl d:function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats) ) {
-	if( exported() in d.mods ) {
-		return [ d, function(d.mods, d.\type, d.name, d.params)[@header=true] ];
-	}
-	
-	return [ d ];
-}
-
-Decl desugar( Decl d:function(list[Modifier] mods, Type \type, Id name, list[Param] params) ) {
-	if( exported() in d.mods ) {
+	if( export ) {
 		return d[@header=true];
 	}
 	
 	return d;
 }
 
-default Decl desugar_mods( Decl d ) = d;
+list[Decl] desugarToList(  Decl d:function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats) ) {
+	export = exported() in d.mods;
+	d.mods = exportedMods( d.mods );
 
-Decl desugar_mods( Decl f:function(list[Modifier] mods, Type \type, Id name, list[Param] params, list[Stat] stats) ) {
-	return f.mods = exportedMods( f.mods );
+	if( export ) {
+		return [ d, function(d.mods, d.\type, d.name, d.params)[@header=true] ];
+	}
+	
+	return [ d ];
 }
-Decl desugar_mods( Decl f:function(list[Modifier] mods, Type \type, Id name, list[Param] params) ) {
-	return f.mods = exportedMods( f.mods );
+
+list[Decl] desugarSingle( Decl d:function(list[Modifier] mods, Type \type, Id name, list[Param] params) ) {
+	return desugerMods( d );
 }
-Decl desugar_mods( Decl d:typeDef(list[Modifier] mods, Type \type, Id name) ) { 
-	d.mods = exportedMods( d.mods );
-	return d[@header=exported() in mods];
-}
-Decl desugar_mods( Decl d:struct(list[Modifier] mods, Id name) ) {
-	d.mods = exportedMods( d.mods );
-	return d[@header=exported() in mods];
-}
-Decl desugar_mods( Decl d:struct(list[Modifier] mods, Id name, list[Field] fields) ) {
-	d.mods = exportedMods( d.mods );
-	return d[@header=exported() in mods];
-}
-Decl desugar_mods( Decl d:union(list[Modifier] mods, Id name) ) {
-	d.mods = exportedMods( d.mods );
-	return d[@header=exported() in mods];
-}
-Decl desugar_mods( Decl d:union(list[Modifier] mods, Id name, list[Field] fields) ) {
-	d.mods = exportedMods( d.mods );
-	return d[@header=exported() in mods];
-}
-Decl desugar_mods( Decl d:enum(list[Modifier] mods, Id name) ) {
-	d.mods = exportedMods( d.mods );
-	return d[@header=exported() in mods];
-}
-Decl desugar_mods( Decl d:enum(list[Modifier] mods, Id name, list[Enum] enums) ) {
-	d.mods = exportedMods( d.mods );
-	return d[@header=exported() in mods];
-}
-Decl desugar_mods( Decl d:variable(list[Modifier] mods, Type \type, Id name) ) {
-	d.mods = exportedMods( d.mods );
+
+Decl desugarSingle( Decl d:typeDef(list[Modifier] mods, Type \type, Id name) ) = desugarDeclMods( d );
+Decl desugarSingle( Decl d:struct(list[Modifier] mods, Id name) ) = desugarDeclMods( d );
+Decl desugarSingle( Decl d:struct(list[Modifier] mods, Id name, list[Field] fields) ) = desugarDeclMods( d );
+Decl desugarSingle( Decl d:union(list[Modifier] mods, Id name) ) = desugarDeclMods( d );
+Decl desugarSingle( Decl d:union(list[Modifier] mods, Id name, list[Field] fields) ) = desugarDeclMods( d );
+Decl desugarSingle( Decl d:enum(list[Modifier] mods, Id name) ) = desugarDeclMods( d );
+Decl desugarSingle( Decl d:enum(list[Modifier] mods, Id name, list[Enum] enums) ) = desugarDeclMods( d );
+
+Decl desugarVariableMods( Decl d ) {
+    export = exported() in d.mods;
+    d.mods = exportedMods( d.mods );
+	
+	if( export ) {
+		d.mods += [extern()];
+		d@header=true;
+	}
+
 	return d;
 }
-Decl desugar_mods( Decl d:variable(list[Modifier] mods, Type \type, Id name, Expr init) ) {
-	d.mods = exportedMods( d.mods );
-	return d;
+
+Decl desugarSingle( Decl d:variable(list[Modifier] mods, Type \type, Id name) ) {
+	return desugarVariableMods( d );
+}
+
+list[Decl] desugarToList( Decl d:variable(list[Modifier] mods, Type \type, Id name, Expr init) ) {
+	d = desugarVariableMods( d );
+	
+	if( exported() in mods ) {
+		return [ variable( d.mods, \type, name )[@header=true], variable( exportedMods( mods ), \type, name, init ) ];
+	}
+	
+	return [ d ];
 }
 
 // DESUGAR //

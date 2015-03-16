@@ -1,7 +1,7 @@
 module typing::resolver::Expression
-extend typing::resolver::ResolverBase;
+extend typing::resolver::Base;
 
-// EXPRESSION EVALUATORS
+import String;
 
 default Expr resolve( Expr e ) {
 	return e@message = warning( "unkown expression to typechecker <delAnnotationsRec(e)>", e@location );
@@ -33,7 +33,19 @@ Expr resolve( Expr e:var( id( name ) ) ) {
 
 // LITERALS
 
-Expr resolve( Expr e:lit( \int( v ) ) ) { return e@\type = int8(); }
+Expr resolve( Expr e:neg( lit( \int( v ) ) ) ) {
+	valueInt = - toInt( v );
+	intSize = detectLiteralBitSize( valueInt );
+	
+    return e@\type = signedIntegerType( intSize );
+}
+
+Expr resolve( Expr e:lit( \int( v ) ) ) {
+	valueInt = toInt( v );
+	intSize = detectLiteralBitSize( valueInt );
+	
+    return e@\type = unsignedIntegerType( intSize );
+}
 
 Expr resolve( Expr e:lit( char( v ) ) ) { return e@\type = char(); }
 
@@ -81,7 +93,6 @@ Expr resolve( Expr e:dotField( Expr record, id( name ) ) ) {
 
 Expr resolve( Expr e:ptrField( Expr record, id( name ) ) ) {
 	record_type = getType( record );
-	
 	if( isEmpty(record_type ) ) return e;
 	
 	if( pointer( Type \type ) := record_type ) {

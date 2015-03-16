@@ -1,5 +1,5 @@
 module typing::resolver::Statement
-extend typing::resolver::ResolverBase;
+extend typing::resolver::Base;
 
 // STATEMENT EVALUATORS
 

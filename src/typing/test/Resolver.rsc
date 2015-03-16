@@ -318,7 +318,7 @@ public test bool test_wrong_assignment_3() {
 				'int8[10] xs = 1;";
 	msgs = resolver( input );
 
-	expectedMsgs = ["\'int8\' not a subtype of \'array[10] int8\'"];
+	expectedMsgs = ["\'uint8\' not a subtype of \'array[10] int8\'"];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -334,7 +334,7 @@ public test bool test_wrong_implicit_assignment_1() {
 				'int8 y = 256;";
 	msgs = resolver( input );
 	
-	expectedMsgs = [""];
+	expectedMsgs = ["\'uint16\' not a subtype of \'int8\'"];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -347,10 +347,10 @@ public test bool test_wrong_implicit_assignment_2() {
 	passed = true;
 	str input = "module Test;
 				'// Can not assign uint16 or int16 to int8 (inferred type from literal)
-				'int8 y = -10;";
+				'uint8 y = -10;";
 	msgs = resolver( input );
 	
-	expectedMsgs = [""];
+	expectedMsgs = ["\'int8\' not a subtype of \'uint8\'"];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -365,7 +365,7 @@ public test bool test_pointer_assignment() {
 				'int8** i = &8;";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["type \'int8\' is not a subtype of type \'pointer int8\'"];
+	expectedMsgs = ["type \'uint8\' is not a subtype of type \'pointer int8\'"];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -385,7 +385,7 @@ public test bool test_pointer_assignment_expression() {
 				"; 
 	msgs = resolver( input );
 	
-	expectedMsgs = ["type \'int8\' is not a subtype of type \'pointer int8\'"];
+	expectedMsgs = ["type \'uint8\' is not a subtype of type \'pointer int8\'"];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -469,7 +469,7 @@ public test bool test_typedef_var() {
 	passed = true;
 	str input = "module Test;
 				'typedef int8 as test_type;
-				'test_type x;
+				'test_type x = 10;
 				";
 	msgs = resolver( input );
 	
@@ -492,6 +492,32 @@ public test bool test_assignment() {
 	msgs = resolver( input );
 	
 	expectedMsgs = ["use of undeclared variable \'x\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}
+
+public test bool test_struct_field_reference() {
+	str testCaseName = "test_struct_field_reference";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = "
+	module Test;
+	
+	//typedef struct TrackPoint as TrackPoint;
+	struct TrackPoint {
+		int32 alt;
+		int32 speed;
+	};
+	
+	int32 main( TrackPoint* tp ) {
+		return tp-\>alt;
+	}
+	";
+	msgs = resolver( input );
+	
+	expectedMsgs = [];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
