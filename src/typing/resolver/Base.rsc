@@ -24,21 +24,9 @@ bool isEmpty( Type t ) {
 
 Type getType( Expr n ) {
 	if( "type" in getAnnotations( n ) ) {
-		return unTypeDef( n@\type, n@typetable );
+		return n@\type;
 	} else {
 		return empty();
-	}
-}
-
-Type unTypeDef( Type t, TypeTable types ) {
-	return visit( t ) {
-		case id( id( typeName ) ) : {
-			if( <typeName,typedef()> in types ) {
-				insert types[ <typeName,typedef()> ].\type;
-			} else {
-				insert empty();
-			}
-		}
 	}
 }
 
@@ -291,4 +279,17 @@ Expr resolveSubScript( Expr e, Type array_type, Type sub_type ) {
 	}	
 	
 	return e;
+}
+
+Type resolveTypeDefs( TypeTable typetable, Type \type ) {
+	println("Resolve Type Defs");
+	return visit( \type ) {
+		case Type t:id( id( typeDefName ) ) : {
+			if( <typeDefName,typedef()> in typetable ) {
+				insert typetable[ <typeDefName,typedef()> ].\type;
+			} else {
+            	return empty();
+			}
+		}
+	}
 }

@@ -463,12 +463,29 @@ public test bool test_pointer_addition() {
 	return passed;
 }
 
-public test bool test_typedef_var() {
-	str testCaseName = "test_typedef_var";
+public test bool test_typedef_var_1() {
+	str testCaseName = "test_typedef_var_1";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
 				'typedef int8 as test_type;
+				'test_type x;
+				";
+	msgs = resolver( input );
+	
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}
+
+public test bool test_typedef_var_2() {
+	str testCaseName = "test_typedef_var_2";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = "module Test;
+				'typedef uint8 as test_type;
 				'test_type x = 10;
 				";
 	msgs = resolver( input );

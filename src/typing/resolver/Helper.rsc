@@ -9,7 +9,7 @@ import lang::mbeddr::AST;
 default Module resolver( m:\module( name, imports, decls ) ) = resolver( m, (), () );
 default Module resolver( &T <: node n, SymbolTable symbols, TypeTable types ) {
 	n = copyDownIndexTables( n, symbols, types );
-
+	
 	n = visit( n ) {
 		case Stat s => resolve( s ) 
 		case Expr e => resolve( e )

@@ -16,14 +16,9 @@ Expr resolve( Expr e:var( id( name ) ) ) {
 	if( name in table ) {
 		\type = table[ name ].\type;
 		
-		// Resolve typedefs
-		if( id( id( typeDefName ) ) := \type ) {
-			if( <typeDefName,typedef()> in typetable ) {
-				\type = typetable[ <typeDefName,typedef()> ].\type;
-			} else {
-				return e;
-			}
-		}
+		\type = resolveTypeDefs( typetable, \type );
+		
+		if( isEmpty(\type) ) { e@message = error( "unkown type \'<typeDefName>\'", t@location ); }
 		
 		return e@\type = \type;
 	} else {
@@ -93,7 +88,8 @@ Expr resolve( Expr e:dotField( Expr record, id( name ) ) ) {
 
 Expr resolve( Expr e:ptrField( Expr record, id( name ) ) ) {
 	record_type = getType( record );
-	if( isEmpty(record_type ) ) return e;
+	
+	if( isEmpty(record_type) ) return e;
 	
 	if( pointer( Type \type ) := record_type ) {
 		return resolveField( e, \type, name );

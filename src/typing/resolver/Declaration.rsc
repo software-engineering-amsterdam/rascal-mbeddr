@@ -3,8 +3,6 @@ extend typing::resolver::Base;
 
 import typing::Util;
 
-// DECLARATION EVALUATORS
-
 default Decl resolve( Decl d ) = d;
 
 Decl resolve( Decl f:function(list[Modifier] mods, Type \type, id( name ), list[Param] params, list[Stat] stats) ) {
@@ -33,14 +31,9 @@ Decl resolve( Decl f:function(list[Modifier] mods, Type \type, id( name ), list[
 
 Decl resolve( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr init) ) {
 	init_type = getType( init );
-	
-	if( id( id( typeName ) ) := \type ) {
-		if( <typeName,typedef()> in v@typetable ) {
-			\type = v@typetable[ <typeName,typedef()> ].\type;
-		} else {
-			return v;
-		}
-	}
+
+	v.\type = resolveTypeDefs( v@typetable, \type );
+
 	
 	if( struct( id( structName ) ) := \type ) {
 		return resolveStruct( v, init, structName );
