@@ -84,7 +84,7 @@ syntax Expr
     | postDecr: Expr "--" 
     > preIncr: [+] !<< "++" Expr 
     | preDecr: [\-] !<< "--" Expr 
-    | addrOf: "&" Expr 
+    | addrOf: "&" !>> "&" Expr 
     | refOf: "*" Expr 
     | pos: "+" Expr 
     | neg: "-" Expr 
