@@ -12,6 +12,7 @@ import typing::TypeTree;
 import typing::Scope;
 
 anno Type Expr @ \type;
+anno Type Type @ \type;
 
 data Type = empty();
 
@@ -22,13 +23,8 @@ bool isEmpty( Type t ) {
 	return e := t;
 }
 
-Type getType( Expr n ) {
-	if( "type" in getAnnotations( n ) ) {
-		return n@\type;
-	} else {
-		return empty();
-	}
-}
+default Type getType( &T <: node n ) = ( "type" in getAnnotations( n ) ) ? n@\type : empty();
+Type getType( Type n )  = ( "type" in getAnnotations( n ) ) ? n@\type : n; 
 
 &T <: node resolve( &T <: node n ) = n;
 
@@ -178,12 +174,13 @@ default &T <: node resolvePointerAssignment( &T <: node n, lhs_type, rhs_type, T
 
 default Expr resolveAssignment( Expr e, _, _, _, _, _ ) = e[@message = error( "expression <delAnnotationsRec(lhs)> is not assignable", e@location )];
 Expr resolveAssignment(  Expr e, Expr lhs:var( id( name ) ), Expr rhs, TypeTree typeTree, Type category = usint8(), bool pointerArithmetic = false ) {
-	if( !( name in e@symboltable ) ) { return e; }
+	if( ! contains( e@symboltable, name ) ) { return e; }
 	if( isNotEligbleForResolvment( rhs ) || isNotEligbleForResolvment( lhs ) ) { return e; }
 
-	lhs_type = e@symboltable[ name ].\type;
+	lhs_type = lookup( e@symboltable, name ).\type;
+	lhs_type = resolveTypeDefs( e@typetable, lhs_type );
 	rhs_type = getType( rhs );	
-	
+
 	if( pointerArithmetic && arePointerArithmeticTypes( lhs_type, rhs_type, typeTree[ usint8() ] ) ) { 
 		return resolveAssignmentPointerArithmetic( e, lhs_type, rhs_type, typeTree[ usint8() ] ); 	
 	}
@@ -254,7 +251,7 @@ Expr resolveCall( Expr e, Type returnType, list[Expr] args, list[Type] argsTypes
 }
 
 Expr resolveCall( Expr e:call( v:var( id( func ) ), list[Expr] args ), SymbolTable symbols ) {
-	if( func in symbols && function(Type returnType, list[Type] argsTypes) := symbols[ func ].\type ) {
+	if( contains( symbols, func ) && function(Type returnType, list[Type] argsTypes) := lookup( symbols, func ).\type ) {
 		e = resolveCall( e, returnType, args, argsTypes );
 	} else {
 		e@message = error(  "calling undefined function \'<func>\'", e@location );

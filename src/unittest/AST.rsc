@@ -8,10 +8,7 @@ data Decl
 	
 data Stat
 	= \assert( Expr \test )
-	;
-	
-data Expr
-	= \test( list[Id] tests )
+	| \test( list[Id] tests )
 	;
 
 data Type

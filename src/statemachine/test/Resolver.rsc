@@ -1,5 +1,5 @@
 module statemachine::\test::Resolver
-extend \test::TestBase;
+extend \test::Base;
 
 import Message;
 

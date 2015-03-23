@@ -7,10 +7,7 @@ syntax Decl
 	
 syntax Stat
 	= \assert: "assert" Expr ";"
-	;
-	
-syntax Expr
-	= \test: "test" "[" {Id ","}* "]"
+	| \test: "return" "test" "[" {Id ","}* "]"
 	;
 	
 keyword Keyword = "test";

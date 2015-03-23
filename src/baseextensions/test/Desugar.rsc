@@ -1,5 +1,5 @@
 module baseextensions::\test::Desugar
-extend \test::TestBase;
+extend \test::Base;
 
 import lang::mbeddr::ToC;
 

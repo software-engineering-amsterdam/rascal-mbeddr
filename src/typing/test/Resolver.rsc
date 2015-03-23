@@ -1,5 +1,5 @@
 module typing::\test::Resolver
-extend \test::TestBase;
+extend \test::Base;
 
 import typing::\test::Helper;
 
@@ -148,7 +148,9 @@ public test bool test_function_call_1() {
 	str input = "module Test;
 				'
 				'int32 add( int8 x, int8 y ) {
-				' return x + y;
+				' if( true ) {
+				'  return x + y;
+				' }
 				'}
 				'
 				'int32 r = add( 1, 2, 3);";
@@ -438,7 +440,7 @@ public test bool test_pointer_assignment() {
 				'}";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["\'int8\' not a subtype of \'pointer int8\'"];
+	expectedMsgs = ["\'uint8 || int8\' not a subtype of \'pointer int8\'"];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -488,6 +490,53 @@ public test bool test_typedef_var_2() {
 				'typedef uint8 as test_type;
 				'test_type x = 10;
 				";
+	msgs = resolver( input );
+	
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}
+
+public test bool testCorrectlyResolveTypeDefFunctionReturnType() {
+	str testCaseName = "testCorrectlyResolveTypeDefFunctionReturnType";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = "
+		module Test;
+		
+		typedef int32 as blaat;
+	
+		blaat x = 10;
+		
+		blaat main() {
+			return x;
+		}
+	";
+	msgs = resolver( input );
+	
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}
+
+public test bool testCorrectlyResolveTypeDefVariableAssignment() {
+	str testCaseName = "testCorrectlyResolveTypeDefVariableAssignment";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = "
+		module Test;
+		
+		typedef int32 as blaat;
+		blaat x;
+		
+		void main() {
+			x = 10;
+		}
+	";
 	msgs = resolver( input );
 	
 	expectedMsgs = [];

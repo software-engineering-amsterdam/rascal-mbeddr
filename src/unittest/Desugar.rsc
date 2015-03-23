@@ -34,19 +34,21 @@ Decl desugarTestCase( Decl d:\testCase(mods, id(name), stats), str ModuleName ) 
 	return function(d.mods, int8(), id("test_" + name), [], body);
 }
 
-public Stat desugar( Stat s:returnExpr( t:\test( list[Id] tests ) ) ) {
+public Stat desugar( Stat s:t:\test( list[Id] tests ) ) {
 	list[Stat] body = [
 		decl( variable( [], \int32(), id( "failureVals" ), lit( \int("0") ) ) ),
 		decl( variable( [], pointer( \int32() ), id( "failures" ), addrOf( var( id( "failureVals" ) ) ) ) )
 	];
 	
-	body += for( \test <- tests ) {
-		append expr( assign( var( id( "failures" ) ), add( var( id( "failures" ) ), call( var( \test ), [] ) ) ) ); 
-	}
+	body += [ desugarTestCall( \test ) | \test <- tests ]; 
 	
 	body += returnExpr( var( id( "failureVals" ) ) );
 	
 	return block( body );
+}
+
+private Stat desugarTestCall( Id \test ) {
+	return expr( assign( var( id( "failures" ) ), add( var( id( "failures" ) ), call( var( \test ), [] ) ) ) );
 }
 
 private Expr printf_expr( str arg ) {

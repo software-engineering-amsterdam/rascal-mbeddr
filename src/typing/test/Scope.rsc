@@ -1,5 +1,5 @@
 module typing::\test::Scope
-extend \test::TestBase;
+extend \test::Base;
 
 import typing::Scope;
 

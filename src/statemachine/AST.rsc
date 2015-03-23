@@ -6,6 +6,9 @@ import statemachine::typing::IndexTable;
 anno loc StateMachineStat@location;
 anno loc StateStat@location;
 
+anno Message StateMachineStat@message;
+anno Message StateStat@message;
+
 data Decl = stateMachine( list[Modifier] mods, Id name, list[Id] initial, list[StateMachineStat] body );
 
 data StateMachineStat 

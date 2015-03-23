@@ -8,6 +8,8 @@
 @contributor{Tijs van der Storm - storm@cwi.nl}
 module lang::mbeddr::AST
 
+import Message;
+
 anno loc Module@location;
 anno loc Import@location;
 anno loc QId@location;
@@ -21,6 +23,20 @@ anno loc Type@location;
 anno loc Modifier@location;
 anno loc Field@location;
 anno loc Enum@location;
+
+anno Message Module@message;
+anno Message Import@message;
+anno Message QId@message;
+anno Message Id@message;
+anno Message Decl@message;
+anno Message Stat@message;
+anno Message Expr@message;
+anno Message Param@message;
+anno Message Literal@message;
+anno Message Type@message;
+anno Message Modifier@message;
+anno Message Field@message;
+anno Message Enum@message;
 
 anno bool Decl@header;
 

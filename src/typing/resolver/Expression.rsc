@@ -11,16 +11,21 @@ default Expr resolve( Expr e ) {
 
 // VARIABLES
 
+default Type resolve( Type t ) = t;
+Type resolve( Type t:id( id( name ) ) ) {
+	return t[@\type = resolveTypeDefs( t@typetable, t )];
+}
+
 Expr resolve( Expr e:var( id( name ) ) ) {
 	table = e@symboltable;
 	typetable = e@typetable;
 	
-	if( name in table ) {
-		\type = table[ name ].\type;
+	if( contains( table, name ) ) {
+		\type = lookup( table, name ).\type;
 		
 		\type = resolveTypeDefs( typetable, \type );
 		
-		if( isEmpty(\type) ) { println(table[name]); e@message = error( "unkown type \'<name>\'", e@location ); }
+		if( isEmpty(\type) ) { e@message = error( "unkown type \'<name>\'", e@location ); }
 		
 		return e@\type = \type;
 	} else {

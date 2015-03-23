@@ -1,5 +1,5 @@
 module typing::\test::Constraints
-extend \test::TestBase;
+extend \test::Base;
 
 import typing::\test::Helper;
 

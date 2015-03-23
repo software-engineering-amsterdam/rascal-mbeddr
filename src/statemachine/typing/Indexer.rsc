@@ -41,25 +41,30 @@ Decl hoistStateMachineIndexTables( Decl d:stateMachine( _, _, _, _ ) ) {
 		
 		tables = <symbols,types>;
 		
-		d.body = for( s <- d.body ) {
-			s@symboltable = symbols;
-			s@typetable = types;
-		
-			s = visit( s ) {
-				case &T <: node n : {
-					if( "symboltable" in getAnnotations(n) ) {
-						n@symboltable = n@symboltable + symbols;
-						n@typetable = n@typetable + types;
-						insert n;
-					}
-				}
-			}
-			
-			append s;
-		} 
+		d.body = [ hoistStateMachineStat( s, symbols, types ) | s <- d.body ]; 
 	}
 	
 	return d;
+}
+
+private StateMachineStat hoistStateMachineStat( StateMachineStat s, symbols, types ) {
+	s@symboltable = symbols;
+	s@typetable = types;
+
+	s = visit( s ) {
+		case &T <: node n => hoistNode( n, symbols, types ) 
+	}
+	
+	return s;
+}
+
+private &T <: node hoistNode( &T <: node n, symbols, types ) {
+	if( "symboltable" in getAnnotations(n) ) {
+		n@symboltable = n@symboltable + symbols;
+		n@typetable = n@typetable + types;
+	}
+	
+	return n;
 }
 
 tuple[ StateMachineStat astNode, IndexTables tables, str errorMsg ]

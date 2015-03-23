@@ -1,4 +1,4 @@
-module \test::TestBase
+module \test::Base
 
 import IO;
 import ext::List;

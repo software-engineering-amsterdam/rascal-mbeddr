@@ -1,5 +1,5 @@
 module baseextensions::\test::Resolver
-extend \test::TestBase;
+extend \test::Base;
 
 import Message;
 import ext::Node;
@@ -20,6 +20,27 @@ public test bool test_multiple_lambdas() {
 	'	
 	'	return x + y;
 	'];";
+	msgs = resolver( input );
+	
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}
+
+public test bool lambdaReturnsAreNotMatchedAsFunctionReturn() {
+	str testCaseName = "lambdaReturnsAreNotMatchedAsFunctionReturn";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input =
+	"module MultipleLambda;
+	'
+	'void main() {
+		int8() lambda = [ | return 10; ];
+		return;
+	'}
+	'";
 	msgs = resolver( input );
 	
 	expectedMsgs = [];

@@ -21,38 +21,28 @@ data Scope
 	| block( Scope scope )
 	| \switch( Scope scope )
 	;
-	
+
+data SymbolTableKey
+	= key( str symbolName )
+	| key( str key, DeclType declType )
+	;
+
 data SymbolTableRow 
 	= symbolRow( Type \type, Scope scope, bool initialized )
 	| symbolRow( SymbolTable symbols, Type \type, Scope scope, bool initialized )
 	;
 
-//alias SymbolTableRow = tuple[ Type \type, Scope scope, bool initialized ];
-alias SymbolTable = map[ str, SymbolTableRow ];
+alias SymbolTable = map[ SymbolTableKey, SymbolTableRow ];
 
 alias TypeTableRow = tuple[Type \type, Scope scope, bool initialized ];
 alias TypeTable = map[ tuple[str,DeclType], TypeTableRow ];
 
 alias IndexTables = tuple[ SymbolTable symbols, TypeTable types ];
 
-data RuntimeException = TypeCheckerError( str message, loc location );
+alias StoreResult = tuple[ IndexTables tables, str errorMsg ]; 
 
 anno SymbolTable node @ symboltable;
 anno TypeTable node @ typetable;
-
-anno Message Module@message;
-anno Message Import@message;
-anno Message QId@message;
-anno Message Id@message;
-anno Message Decl@message;
-anno Message Stat@message;
-anno Message Expr@message;
-anno Message Param@message;
-anno Message Literal@message;
-anno Message Type@message;
-anno Message Modifier@message;
-anno Message Field@message;
-anno Message Enum@message;
 
 anno Scope Module@scope;
 anno Scope Import@scope;
@@ -73,7 +63,7 @@ store( IndexTables tables,
 	   str name, 
 	   tuple[ Type \type, Scope scope, bool initialized ] row
 	  ) {
-	
+	SymbolTableKey name = key( name );
 	table = tables.symbols;
 	types = tables.types;
 	
@@ -83,16 +73,16 @@ store( IndexTables tables,
 		item = table[ name ];
 		
 		if( item.initialized ) {
-			errorMsg = "redefinition of \'<name>\'";
+			errorMsg = "redefinition of \'<name.symbolName>\'";
 		} else if( item.\type != row.\type ) {
-			errorMsg = "redefinition of \'<name>\' with a different type \'<typeToString( row.\type )>\' vs \'<typeToString( table[name].\type )>\'";
+			errorMsg = "redefinition of \'<name.symbolName>\' with a different type \'<typeToString( row.\type )>\' vs \'<typeToString( table[name].\type )>\'";
 		} else if( row.initialized ) {
 			table[ name ].initialized = true;
 		}
 		
 	} else if( name in table && function(_,_) := row.\type && function(_,_) := table[ name ].\type && row.\type != table[ name ].\type ) {
 		
-		errorMsg = "confliciting types for \'<name>\'";
+		errorMsg = "confliciting types for \'<name.symbolName>\'";
 	
 	} else {
 		
@@ -120,17 +110,19 @@ store( IndexTables tables,
 }
 
 SymbolTable update( SymbolTable symbols, str name, SymbolTableRow row ) {
-	if( name in symbols ) {
-		symbols[ name ] = row;
+	if( key(name) in symbols ) {
+		symbols[ key(name) ] = row;
 	}
 	
 	return symbols;
 } 
 
 SymbolTableRow lookup( SymbolTable table, str name ) {
-	if( name in table ) {
-		return table[ name ];
-	}
+	return table[ key(name) ];
+}
+
+bool contains( SymbolTable symbols, str name ) {
+	return key(name) in symbols;
 }
 
 tuple[ IndexTables tables, str errorMsg ]

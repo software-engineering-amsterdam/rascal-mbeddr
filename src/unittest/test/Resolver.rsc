@@ -1,5 +1,5 @@
 module unittest::\test::Resolver
-extend \test::TestBase;
+extend \test::Base;
 
 import unittest::\test::Helper;
 
@@ -30,8 +30,8 @@ public test bool test_unkown_testcase_test() {
 	str input = 
 	"module Test;
 	'
-	' void main() {
-	'  test [ HelloWorld ];
+	' int32 main() {
+	'  return test [ HelloWorld ];
 	' } 
 	";
 	msgs = resolver( input );

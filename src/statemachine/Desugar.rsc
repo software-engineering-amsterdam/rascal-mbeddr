@@ -30,9 +30,7 @@ StateMachine compile_statemachine( Decl d:stateMachine( _, _, _, _ ) ) {
 default str extractInitial( _ ) = "";
 str extractInitial( [ Id( initial ) ] ) = initial;
 Instance compileInstance( Decl d:stateMachine( _, _, list[Id] initial, _ ) ) {
-	vars = for( v:var( _, _, _, _ ) <- d.body ) {
-		append v;
-	} 
+	vars = [ v | v:var( _, _, _, _ ) <- d.body ];
 	
 	entries = exits = ();
 	
@@ -115,26 +113,18 @@ list[Decl] createHeader( Decl d:stateMachine(_,_,_,_), StateMachine s ) {
 	result += typeDef( d.mods, enum( id( namespace( s.name, "states" ) ) ), id( "__" + namespace( s.name, "states" ) ) );
 	
 	// States Enumerable
-	enums = for( str stateName <- s.states ) {
-		append const( id( namespace_state( s.name, stateName ) ) );
-	}
+	enums = [ const( id( namespace_state( s.name, stateName ) ) ) | str stateName <- s.states ]; 
 	result += enum( d.mods, id( namespace( s.name, "states" ) ), enums );
 	
 	// Inevents Enumerable
 	result += typeDef( d.mods, enum( id( namespace( s.name, "inevents" ) ) ), id( "__" + namespace( s.name, "inevents" ) ) );
-	enums = for( str eventName <- s.instance.entries ) {
-		append const( id( namespace_event( s.name, eventName ) ) );
-	} 
-	
+	enums = [ const( id( namespace_event( s.name, eventName ) ) ) | str eventName <- s.instance.entries ]; 
 	result += enum( d.mods, id( namespace( s.name, "inevents" ) ), enums );
 	
 	// Data structs
 	result += typeDef( d.mods, enum( id( namespace( s.name, "data_t" ) ) ), id( "__" + namespace( s.name, "data_t" ) ) );
 	list[Field] fields = [ field( id( id( namespace( s.name, "state" ) ) ), currentState ) ];
-	fields += for( var( _, Type \type, Id name, Expr init ) <- s.instance.vars ) {
-		append field( \type, name ); 
-	}
-	
+	fields += [ field( \type, name ) | var( _, Type \type, Id name, Expr init ) <- s.instance.vars ];
 	result += struct( d.mods, id( namespace( s.name, "data" ) ), fields ); 
 	
 	return result;
@@ -162,9 +152,7 @@ Decl createInitialFunction( Decl d:stateMachine(_,_,_,_), StateMachine s ) {
 		funBody += [ expr( assign( ptrField( instance, currentState ), var( s.instance.currentState ) ) ) ];	
 	}
 	 
-	funBody += for( var( list[Modifier] mods, Type \type, Id varName, Expr init ) <- s.instance.vars ) {
-		append expr( assign( ptrField( instanceVar, varName ), init ) );
-	}
+	funBody += [ expr( assign( ptrField( instanceVar, varName ), init ) ) | var( list[Modifier] mods, Type \type, Id varName, Expr init ) <- s.instance.vars ];
 	
 	// void init( data_t* instance ) { funBody }
 	return function( 
@@ -183,57 +171,56 @@ Decl createInitialFunction( Decl d:stateMachine(_,_,_,_), StateMachine s ) {
 }
 
 Stat createStateSwitch( StateMachine s ) {
-	states = for( str name <- s.states ) {
-		append \case(
+	states = 
+		[ \case(
 			var( id( namespace_state( s.name, name ) ) ),
 			\switch( event, block(
 				createStateCases( s, s.states[name] )
 			) )
-		);
-	}
+		) | str name <- s.states ];
 	
 	// switch( instance->__currentState ) { states }
 	return \switch( ptrField( instanceVar, currentState ), block( states ) );
 }
 
-list[Stat] createStateCases( StateMachine s, State state ) {
-	return for( str eventName <- state.transitions ) {
-		list[Stat] tests = [];
-		for( Transition t <- state.transitions[ eventName ] ) {
-			i = 0;
-			exits = [];
-			for( Stat exit <- state.exits ) {
-				exits += expr( call( var( id( namespace( s.name, "ExitAction<i>" ) ) ), [instanceVar] ) );
-				i += 1;
-			}
-			
-			i = 0;
-			entries = [];
-			for( Stat entry <- s.states[ t.next ].entries ) {
-				entries += expr( call( var( id( namespace( s.name, "EntryAction<i>" ) ) ), [instanceVar] ) );
-				i += 1;
-			}
-			
-			tests +=
-				ifThen( 
-					size(t.cond) > 0 ? createParamVarReference( t.cond[0], s.inEvents[ eventName ], s.instance.vars ) : lit( boolean( "true" ) ), 
-					block(
-						[ createParamVarReference( block( t.body ), s.inEvents[ eventName ], s.instance.vars ) ] +
-						exits +
-						[expr( assign( ptrField( instanceVar, currentState ), var( id( t.next ) ) ) )] +
-						entries +
-						[\return()]	
-					) 
-				); 
+list[Stat] createStateCases( StateMachine s, State state ) = [ createTransitionsForEvent( s, state, eventName ) | eventName <- state.transitions ];
+
+Stat createTransitionsForEvent( StateMachine s, State state, str eventName ) {
+	list[Stat] tests = [];
+	for( Transition t <- state.transitions[ eventName ] ) {
+		i = 0;
+		exits = [];
+		for( Stat exit <- state.exits ) {
+			exits += expr( call( var( id( namespace( s.name, "ExitAction<i>" ) ) ), [instanceVar] ) );
+			i += 1;
 		}
 		
-		append \case( 
-			var( id( namespace_event( s.name, eventName ) ) ), 
-			block( 
-				tests
-			) 
-		);
+		i = 0;
+		entries = [];
+		for( Stat entry <- s.states[ t.next ].entries ) {
+			entries += expr( call( var( id( namespace( s.name, "EntryAction<i>" ) ) ), [instanceVar] ) );
+			i += 1;
+		}
+		
+		tests +=
+			ifThen( 
+				size(t.cond) > 0 ? createParamVarReference( t.cond[0], s.inEvents[ eventName ], s.instance.vars ) : lit( boolean( "true" ) ), 
+				block(
+					[ createParamVarReference( block( t.body ), s.inEvents[ eventName ], s.instance.vars ) ] +
+					exits +
+					[expr( assign( ptrField( instanceVar, currentState ), var( id( t.next ) ) ) )] +
+					entries +
+					[\return()]	
+				) 
+			); 
 	}
+	
+	return \case( 
+		var( id( namespace_event( s.name, eventName ) ) ), 
+		block( 
+			tests
+		) 
+	);
 }
 
 list[Decl] createEntryExitFunctions( StateMachine s ) {

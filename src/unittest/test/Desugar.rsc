@@ -1,5 +1,5 @@
 module unittest::\test::Desugar
-extend \test::TestBase;
+extend \test::Base;
 
 import unittest::\test::Helper;
 

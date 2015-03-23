@@ -14,6 +14,7 @@ default Module resolver( &T <: node n, SymbolTable symbols, TypeTable types ) {
 		case Stat s => resolve( s ) 
 		case Expr e => resolve( e )
 		case Decl d => resolve( d )
+		case Type t => resolve( t )
 	}
 
 	return n;	

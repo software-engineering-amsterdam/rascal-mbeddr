@@ -1,5 +1,5 @@
 module statemachine::\test::Desugar
-extend \test::TestBase;
+extend \test::Base;
 
 import ext::Node;
 

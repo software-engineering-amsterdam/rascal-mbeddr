@@ -1,5 +1,5 @@
 module statemachine::\test::Indexer
-extend \test::TestBase;
+extend \test::Base;
 
 import statemachine::\test::Helper;
 
