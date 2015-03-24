@@ -273,11 +273,11 @@ public test bool test_while_condition() {
 				'}";				
 	msgs = resolver( input );
 
-	if( PRINT ) {
-		iprintln( msgs );
-	}
-	return size( msgs ) == 1 &&
-		   error( str msg, _ ) := msgs[0];
+	expectedMsgs = ["while condition should be a \'boolean\'"];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_wrong_assignment_1() {

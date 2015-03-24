@@ -49,11 +49,13 @@ ReturnResolver resolveReturnType( Stat s:\for(list[Expr] init, list[Expr] conds,
 
 ReturnResolver resolveReturnType( Stat s:\return(), Type expectedReturnType, bool ret ) {
 	if( isEmpty( expectedReturnType ) ) { expectedReturnType = \void(); }
-	return <true, expectedReturnType, checkReturnType( s, expectedReturnType )>;
+	
+	return <false, expectedReturnType, checkReturnType( s, expectedReturnType )>;
 }
 ReturnResolver resolveReturnType( Stat s:\returnExpr(Expr expr), Type expectedReturnType, bool ret ) { 
 	if( isEmpty( expectedReturnType ) ) { expectedReturnType = getType( expr ); }
-	s = checkReturnType( s, expectedReturnType );
+	
+	s.expr = checkReturnType( s.expr, expectedReturnType );
 	return <true, expectedReturnType, s>; 
 }
 
@@ -71,9 +73,9 @@ default Decl resolve( Decl d ) = d;
 
 tuple[&T<:node,Type,list[Stat]] resolveFunctionReturnType( &T <: node n, list[Stat] stats, Type expectedReturnType ) {
 	< hasReturn, returnType, stats > = resolveReturnType( stats, expectedReturnType, false );
-	
-	if(!hasReturn && \type != \void() ) {
-		return n@message = error(  "control reaches end of non-void function", f@location );
+
+	if(!hasReturn && returnType != \void() ) {
+		n@message = error(  "control reaches end of non-void function", n@location );
 	}
 	
 	return < n, returnType, stats >;

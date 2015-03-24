@@ -13,17 +13,16 @@ default Expr resolve( Expr e ) {
 
 default Type resolve( Type t ) = t;
 Type resolve( Type t:id( id( name ) ) ) {
-	return t[@\type = resolveTypeDefs( t@typetable, t )];
+	return t[@\type = resolveTypeDefs( t@indextable, t )];
 }
 
 Expr resolve( Expr e:var( id( name ) ) ) {
-	table = e@symboltable;
-	typetable = e@typetable;
+	table = e@indextable;
 	
-	if( contains( table, name ) ) {
-		\type = lookup( table, name ).\type;
+	if( contains( table, symbolKey( name ) ) ) {
+		\type = lookup( table, symbolKey( name ) ).\type;
 		
-		\type = resolveTypeDefs( typetable, \type );
+		\type = resolveTypeDefs( table, \type );
 		
 		if( isEmpty(\type) ) { e@message = error( "unkown type \'<name>\'", e@location ); }
 		
@@ -76,7 +75,7 @@ Expr resolve( Expr e:call( v:var( id( func ) ), list[Expr] args ) ) {
 	e.func = v;
 	e.args = args;
 	
-	return resolveCall( e, e@symboltable );
+	return resolveCall( e, e@indextable );
 }
 
 Expr resolve( Expr e:sizeof( Type \type ) ) { return e@\type = uint8(); }

@@ -1,12 +1,12 @@
 module typing::IndexTable
 
 import IO;
-import Node;
+import ext::Node;
 import Message;
 
-import util::Util;
 import lang::mbeddr::AST;
 import typing::Util;
+import typing::Scope;
 
 data DeclType 
 	= enum() 
@@ -15,34 +15,21 @@ data DeclType
 	| union()
 	;
 
-data Scope 
-	= global( )
-	| function( Scope scope )
-	| block( Scope scope )
-	| \switch( Scope scope )
+data IndexTableKey
+	= symbolKey( str symbolName )
+	| typeKey( str key, DeclType declType )
 	;
 
-data SymbolTableKey
-	= key( str symbolName )
-	| key( str key, DeclType declType )
-	;
-
-data SymbolTableRow 
+data IndexTableRow 
 	= symbolRow( Type \type, Scope scope, bool initialized )
-	| symbolRow( SymbolTable symbols, Type \type, Scope scope, bool initialized )
+	| symbolRow( IndexTable symbols, Type \type, Scope scope, bool initialized )
+	| typeRow( Type \type, Scope scope, bool initialized )
 	;
 
-alias SymbolTable = map[ SymbolTableKey, SymbolTableRow ];
+alias IndexTable = map[ IndexTableKey, IndexTableRow ];
+alias StoreResult = tuple[ IndexTable table, str errorMsg ]; 
 
-alias TypeTableRow = tuple[Type \type, Scope scope, bool initialized ];
-alias TypeTable = map[ tuple[str,DeclType], TypeTableRow ];
-
-alias IndexTables = tuple[ SymbolTable symbols, TypeTable types ];
-
-alias StoreResult = tuple[ IndexTables tables, str errorMsg ]; 
-
-anno SymbolTable node @ symboltable;
-anno TypeTable node @ typetable;
+anno IndexTable node @ indextable;
 
 anno Scope Module@scope;
 anno Scope Import@scope;
@@ -58,100 +45,110 @@ anno Scope Modifier@scope;
 anno Scope Field@scope;
 anno Scope Enum@scope;
 
-tuple[ IndexTables tables, str errorMsg ]
-store( IndexTables tables, 
-	   str name, 
-	   tuple[ Type \type, Scope scope, bool initialized ] row
-	  ) {
-	SymbolTableKey name = key( name );
-	table = tables.symbols;
-	types = tables.types;
-	
+StoreResult store( IndexTable table, key:symbolKey(_), row:symbolRow(_,_,_) ) {
 	str errorMsg = "";
 	
-	if( name in table && table[ name ].scope == row.scope ) {
-		item = table[ name ];
+	if( contains( table, key ) && lookup( table, key ).scope == row.scope ) {
+		item = lookup( table, key );
 		
 		if( item.initialized ) {
-			errorMsg = "redefinition of \'<name.symbolName>\'";
+			errorMsg = "redefinition of \'<key.symbolName>\'";
 		} else if( item.\type != row.\type ) {
-			errorMsg = "redefinition of \'<name.symbolName>\' with a different type \'<typeToString( row.\type )>\' vs \'<typeToString( table[name].\type )>\'";
+			errorMsg = "redefinition of \'<key.symbolName>\' with a different type \'<typeToString( row.\type )>\' vs \'<typeToString( item.\type )>\'";
 		} else if( row.initialized ) {
-			table[ name ].initialized = true;
+			table[ key ].initialized = true;
 		}
 		
-	} else if( name in table && function(_,_) := row.\type && function(_,_) := table[ name ].\type && row.\type != table[ name ].\type ) {
+	} else if( contains( table, key ) && function(_,_) := row.\type && function(_,_) := lookup( table, key ).\type && row.\type != lookup( table, key ).\type ) {
 		
-		errorMsg = "confliciting types for \'<name.symbolName>\'";
+		errorMsg = "confliciting types for \'<key.symbolName>\'";
 	
 	} else {
 		
 		// Custom type
-		if( id( id( typeName ) ) := row.\type && !doesTypeExist( types, typeName ) ) {
+		if( id( id( typeName ) ) := row.\type && !doesTypeExist( table, typeName ) ) {
 			errorMsg = "unknown type name \'<typeName>\'";
 		} 
 		
 		// Struct type
-		if( struct( id( structName ) ) := row.\type && !doesStructExist( types, structName ) ) {
+		if( struct( id( structName ) ) := row.\type && !doesStructExist( table, structName ) ) {
 			errorMsg = "unkown struct \'<structName>\'";
 		}
 		
 		// Enum type
-		if( enum( id( enumName ) ) := row.\type && !doesEnumExist( types, enumName ) ) {
+		if( enum( id( enumName ) ) := row.\type && !doesEnumExist( table, enumName ) ) {
 			errorMsg = "unkown enum \'<enumName>\'";
 		}
 		
-		table[ name ] = symbolRow( row.\type, row.scope, row.initialized );
-	
+		table[ key ] = row;
 	}
 	
-	return < < table, types >, errorMsg >;
+	return < table, errorMsg >;
 	 
 }
 
-SymbolTable update( SymbolTable symbols, str name, SymbolTableRow row ) {
-	if( key(name) in symbols ) {
-		symbols[ key(name) ] = row;
+IndexTable update( IndexTable table, key:symbolKey(_), row:symbolRow( _, _, _ ) ) {
+	if( contains( table, key ) ) {
+		table[ key ] = row;
 	}
 	
-	return symbols;
+	return table;
 } 
 
-SymbolTableRow lookup( SymbolTable table, str name ) {
-	return table[ key(name) ];
+IndexTableRow lookup( IndexTable table, key:symbolKey(_) ) {
+	row = table[ key ];
+	assert symbolRow(_,_,_) := row : "Can only store SymbolTableRow under SymbolTableKey";
+	return row;
 }
 
-bool contains( SymbolTable symbols, str name ) {
-	return key(name) in symbols;
+bool contains( IndexTable symbols, key:symbolKey(_) ) {
+	return key in symbols;
 }
 
-tuple[ IndexTables tables, str errorMsg ]
-store( IndexTables tables, 
-       tuple[str name,DeclType declType] key, 
-       TypeTableRow row
+// TYPETABLE
+
+StoreResult
+store( IndexTable table, 
+       key:typeKey(_,_), 
+       row:typeRow(_,_,_)
       ) {
     errorMsg = "";  
      
-	if( key in tables.types && 
-		tables.types[key].scope == row.scope && 
-		tables.types[key].initialized
+	if( contains( table, key ) && 
+		lookup( table, key ).scope == row.scope && 
+		lookup( table, key ).initialized
 		) {
 		errorMsg = "redefinition of \'<key.name>\'";
 	} else {
-		tables.types[key] = row;
+		table[ key ] = row;
 	}
 	
-	return < tables, errorMsg >;
+	return < table, errorMsg >;
 }
 
-bool doesTypeExist( TypeTable types, str name ) {
-	return <name,typedef()> in types;
+IndexTable update( IndexTable table, key:typeKey(_,_), row:typeRow(_,_,_) ) {
+	if( contains( table, key ) ) {
+		table[ key ] = row;
+	}
+	return table;
 }
 
-bool doesStructExist( TypeTable types, str name ) {
-	return <name,struct()> in types;
+IndexTableRow lookup( IndexTable table, key:typeKey(_,_) ) {
+	row = table[ key ];
+	assert typeRow(_,_,_) := row : "Can only store TypeTableRow under TypeTableKey";
+	
+	return row;
 }
 
-bool doesEnumExist( TypeTable types, str name ) {
-	return <name,enum()> in types;
+bool contains( IndexTable table, key:typeKey(_,_) ) {
+	if( key in table ) {
+		lookup( table, key );
+		return true;
+	}
+	
+	return false;
 }
+
+private bool doesTypeExist( IndexTable table, str name ) = contains( table, typeKey( name,typedef() ) );
+private bool doesStructExist( IndexTable table, str name ) = contains( table, typeKey( name,struct() ) );
+private bool doesEnumExist( IndexTable table, str name ) = contains( table, typeKey( name,enum() ) );

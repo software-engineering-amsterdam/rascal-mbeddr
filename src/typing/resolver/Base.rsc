@@ -69,9 +69,9 @@ public Expr resolveAssignmentPointerArithmetic( Expr e, Type lhs_type, Type rhs_
 }
 
 public Expr resolveStructField( Expr e, Type \type, str name ) {
-	typetable = e@typetable;
+	table = e@indextable;
 		
-	if( struct(list[Field] fields) := typetable[ < \type.name.name, struct() > ].\type ) {
+	if( struct(list[Field] fields) := lookup( table, typeKey( \type.name.name, struct() ) ).\type ) {
 		e = resolvePtrField( e, \type, fields, name );
 	}
 	
@@ -79,9 +79,9 @@ public Expr resolveStructField( Expr e, Type \type, str name ) {
 }
 
 public Expr resolveUnionField( Expr e, Type \type, str name ) {
-	typetable = e@typetable;
+	table = e@indextable;
 	
-	if( union(list[Field] fields) := typetable[ < \type.name.name, union() > ].\type ) {
+	if( union(list[Field] fields) := lookup( table, typeKey( \type.name.name, union() ).\type ) ) {
 		e = resolvePtrField( e, \type, fields, name );
 	}
 	
@@ -128,7 +128,7 @@ public Decl resolveStruct( Decl d, Expr init, str structName ) {
 	if( isNotEligbleForResolvment( init ) ) { return d; }
 	init_type = getType( init );
 	
-	if( struct( list[Field] initFields ) := init_type && struct( list[Field] fields ) := d@typetable[ <structName,struct()> ].\type ) {
+	if( struct( list[Field] initFields ) := init_type && struct( list[Field] fields ) := lookup( d@indextable, typeKey( structName,struct() ) ).\type ) {
 		return resolveStruct( d, initFields, fields );
 	}
 	return d@message = error(  "initializing \'<typeToString(\type)>\' with an expression of incompatible type \'<typeToString(init@\type)>\'", d@location );
@@ -174,11 +174,11 @@ default &T <: node resolvePointerAssignment( &T <: node n, lhs_type, rhs_type, T
 
 default Expr resolveAssignment( Expr e, _, _, _, _, _ ) = e[@message = error( "expression <delAnnotationsRec(lhs)> is not assignable", e@location )];
 Expr resolveAssignment(  Expr e, Expr lhs:var( id( name ) ), Expr rhs, TypeTree typeTree, Type category = usint8(), bool pointerArithmetic = false ) {
-	if( ! contains( e@symboltable, name ) ) { return e; }
+	if( ! contains( e@indextable, symbolKey(name) ) ) { return e; }
 	if( isNotEligbleForResolvment( rhs ) || isNotEligbleForResolvment( lhs ) ) { return e; }
 
-	lhs_type = lookup( e@symboltable, name ).\type;
-	lhs_type = resolveTypeDefs( e@typetable, lhs_type );
+	lhs_type = lookup( e@indextable, symbolKey(name) ).\type;
+	lhs_type = resolveTypeDefs( e@indextable, lhs_type );
 	rhs_type = getType( rhs );	
 
 	if( pointerArithmetic && arePointerArithmeticTypes( lhs_type, rhs_type, typeTree[ usint8() ] ) ) { 
@@ -204,11 +204,17 @@ Expr resolveAssignment(  Expr e, Expr lhs:var( id( name ) ), Expr rhs, TypeTree 
 
 Decl resolveVariableAssignment( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr init), Type init_type ) {
 	if( function( Type return_type, list[Type] args ) := \type ) {
+		
 		return resolveVariableFunctionAssignment( v, args, return_type, init_type );
+		
 	} elseif( isPointerType( \type ) && isPointerType( init_type ) ) {
+		
 		return resolvePointerAssignment( v, \type, init_type, \type );
+		
 	} elseif( !( \type in CTypeTree[ init_type ] ) ) {
+		
 		return v@message = error(  "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
+		
 	}
 	
 	return v;
@@ -250,8 +256,8 @@ Expr resolveCall( Expr e, Type returnType, list[Expr] args, list[Type] argsTypes
 	return e;
 }
 
-Expr resolveCall( Expr e:call( v:var( id( func ) ), list[Expr] args ), SymbolTable symbols ) {
-	if( contains( symbols, func ) && function(Type returnType, list[Type] argsTypes) := lookup( symbols, func ).\type ) {
+Expr resolveCall( Expr e:call( v:var( id( func ) ), list[Expr] args ), IndexTable table ) {
+	if( contains( table, symbolKey(func) ) && function(Type returnType, list[Type] argsTypes) := lookup( table, symbolKey(func) ).\type ) {
 		e = resolveCall( e, returnType, args, argsTypes );
 	} else {
 		e@message = error(  "calling undefined function \'<func>\'", e@location );
@@ -278,11 +284,11 @@ Expr resolveSubScript( Expr e, Type array_type, Type sub_type ) {
 	return e;
 }
 
-Type resolveTypeDefs( TypeTable typetable, Type \type ) {
+Type resolveTypeDefs( IndexTable table, Type \type ) {
 	return visit( \type ) {
 		case Type t:id( id( typeDefName ) ) : {
-			if( <typeDefName,typedef()> in typetable ) {
-				insert typetable[ <typeDefName,typedef()> ].\type;
+			if( contains( table, typeKey( typeDefName,typedef() ) ) ) {
+				insert lookup( table, typeKey( typeDefName,typedef() ) ).\type;
 			} else {
             	return empty();
 			}

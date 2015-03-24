@@ -3,7 +3,7 @@ extend \test::Base;
 
 import typing::\test::Helper;
 
-public test bool test_redefenition_1() {
+public test bool test_redefinition_1() {
 	str testCaseName = "test_redefenition_1";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
@@ -19,7 +19,7 @@ public test bool test_redefenition_1() {
 	return passed;
 }
 
-public test bool test_redefenition_2() {
+public test bool test_redefinition_2() {
 	str testCaseName = "test_redefenition_2";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
@@ -35,7 +35,7 @@ public test bool test_redefenition_2() {
 	return passed;
 }
 
-public test bool test_redefenition_3() {
+public test bool test_redefinition_3() {
 	str testCaseName = "test_redefenition_3";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
