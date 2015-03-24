@@ -4,6 +4,7 @@ extend desugar::Base;
 // LIBRARY IMPORTS
 import ext::List;
 import ext::Node;
+import IO;
 
 // LOCAL IMPORTS
 import typing::IndexTable;
@@ -31,7 +32,7 @@ private Module desugar_lambdas( Module m:\module( name, imports, decls ) ) {
 				liftedParams = findLiftedParams( body, params, liftedLambdaGlobals );
 		
 				liftedLambdas += function( [static()], l@\type, id("lambda_function_$<i>"), params + liftedParams, liftLambdaBody( body ) );
-				liftedLambdaGlobals["lambda_function_$<i>"] = symbolRow( l@\type, global(), true );
+				liftedLambdaGlobals = store( <liftedLambdaGlobals,()>, "lambda_function_$<i>", < l@\type, global(), true > ).tables.symbols;
 				
 				// TODO detect uses of lambda and replace those 
 				n = var( id( "lambda_function_$<i>" ) );
@@ -51,8 +52,8 @@ private list[Param] findLiftedParams( lambdaBody, list[Param] lambdaParams, Symb
 	top-down visit( lambdaBody ) {
 		// Detect all variable usages outside the scope of the lambda function
 		case e:var( id( varName ) ) : {
-			if( ! ( varName in paramNames ) && ! ( varName in globals ) ) {
-				result += param( [], e@symboltable[ varName ].\type, id( varName ) );
+			if( ( "symboltable" in getAnnotations(e) ) && ! ( varName in paramNames ) && ! ( varName in globals ) ) {
+				result += param( [], lookup( e@symboltable, varName ).\type, id( varName ) );
 			}		
 		}
 	}
