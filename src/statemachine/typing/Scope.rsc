@@ -5,9 +5,4 @@ data Scope
 	= stateMachine( Scope s )
 	;
 	
-bool inStateMachine( Scope s ) {
-	visit( s ) {
-		case stateMachine(_) : return true;
-	}
-	return false;
-}
+bool inStateMachine( Scope s ) = (/stateMachine(_) := s);

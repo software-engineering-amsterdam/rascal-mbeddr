@@ -7,13 +7,6 @@ data Scope
 	| \switch( Scope scope )
 	;
 	
-bool inSwitch( Scope s ) {
-	visit( s ) {
-		case \switch(_) : return true;
-	}
-	
-	return false;
-}
-
+bool inSwitch( Scope s ) = (/\switch(_) := s);
 bool inGlobal( Scope s ) = global() := s;
 
