@@ -3,45 +3,25 @@ extend typing::indexer::Indexer;
 
 import extensions::baseextensions::AST;
 
-// ======= //
-// INDEXER //
-// ======= //
-
-tuple[ Expr astNode, IndexTables tables, str errorMsg ]
-indexer( Expr e:lambda(list[Param] params, list[Stat] body ), IndexTables tables, Scope scope ) {
+tuple[ Expr astNode, IndexTable table, str errorMsg ]
+indexer( Expr e:lambda(list[Param] params, list[Stat] body ), IndexTable table, Scope scope ) {
 	scope = function(scope);
 	
-	result = indexParams( params, tables, scope );
+	result = indexParams( params, table, scope );
 	e.params = result.params;
-	e.body = indexer( body, result.tables, scope); 
+	e.body = indexer( body, result.table, scope); 
 
-	return < e[@scope=scope], tables, "" >;	
+	return < e[@scope=scope], table, "" >;	
 }
 
-tuple[ Expr astNode, IndexTables tables, str errorMsg ]
-indexer( Expr e:lambda(list[Param] params, Expr body ), IndexTables tables, Scope scope ) {
+tuple[ Expr astNode, IndexTable table, str errorMsg ]
+indexer( Expr e:lambda(list[Param] params, Expr body ), IndexTable table, Scope scope ) {
 	scope = function(scope);
-	result = indexParams( params, tables, scope );
+	result = indexParams( params, table, scope );
 	
-	body@symboltable=result.tables.symbols;
-	body@typetable=result.tables.types;
+	body@indextable = result.table;
 	e.params = result.params;
-	e.expr = indexWrapper( body, result.tables, scope );
+	e.expr = indexWrapper( body, result.table, scope );
 	
-	return < e[@scope = scope], tables, "" >;	
+	return < e[@scope = scope], table, "" >;	
 }
-
-tuple[ Decl astNode, IndexTables tables, str errorMsg ]
-indexer( Decl d:constant( id( name ), Literal \value), IndexTables tables, Scope scope ) {
-	value_type = getLiteralType( \value );
-	storeResult = store( tables, name, <value_type,scope,true> );
-
-	return < d, storeResult.tables, storeResult.errorMsg >;	
-}
-
-private Type getLiteralType( boolean(_) ) = \boolean();
-private Type getLiteralType( hex(_) ) = int32();
-private Type getLiteralType( \int(_) ) = int32();
-private Type getLiteralType( char(_) ) = char();
-private Type getLiteralType( float(_) ) = float();
-private Type getLiteralType( string(_) ) = pointer( char() );

@@ -8,18 +8,18 @@ default StateStat resolve( StateStat s ) = s;
 default StateMachineStat resolve( StateMachineStat s ) = s;
 
 StateMachineStat resolve( StateMachineStat s:outEvent( id( name ), list[Param] params, id( ref ) ) ) {
-	symbols = s@symboltable;
+	table = s@indextable;
 	
-	if( ref in symbols ) {
+	if( contains( table, symbolKey(ref) ) ) {
 		
-		if( Type t:function(_,_) := symbols[ ref ].\type ) {
+		if( Type t:function(_,_) := lookup( table, symbolKey(ref) ).\type ) {
 			
 			if( parameterTypes(params) != t.args ) {
 				s@message = error( "wrong argument type(s)", s@location );
 			} 
 			
 		} else {
-			s@message = error( "\'<ref>\' is not a function, but \'<typeToString(symbols[ref].\type)>\'", s@location );
+			s@message = error( "\'<ref>\' is not a function, but \'<typeToString( lookup( table, symbolKey(ref) ).\type)>\'", s@location );
 		}
 		
 	} else {
@@ -30,11 +30,11 @@ StateMachineStat resolve( StateMachineStat s:outEvent( id( name ), list[Param] p
 }
 
 Stat resolve( Stat s:send( id( name ), list[Expr] args ) ) {
-	symbols = s@symboltable;
+	table = s@indextable;
 	
-	if( name in symbols ) {
+	if( contains( table, symbolKey( name ) ) ) {
 	
-		if( outEvent( list[Type] argsTypes ) := symbols[ name ].\type ) {
+		if( outEvent( list[Type] argsTypes ) := lookup( table, symbolKey( name ) ).\type ) {
 			
 			if( size( argsTypes ) != size( args ) ) {
 				s@message = error( "too many arguments to out event call, expected <size(argsTypes)>, have <size(args)>", s@location );
@@ -50,7 +50,7 @@ Stat resolve( Stat s:send( id( name ), list[Expr] args ) ) {
 			}
 			
 		} else {
-			s@message = error( "\'<name>\' is not an out event, but \'<typeToString(symbols[name].\type)>\'", s@location );
+			s@message = error( "\'<name>\' is not an out event, but \'<typeToString( lookup( table, symbolKey(name) ).\type )>\'", s@location );
 		} 
 	
 	} else {
@@ -67,11 +67,11 @@ StateStat resolve( StateStat s:on( Id event, list[Expr] cond, Id next ) ) {
 	return resolveOn( s, event, cond, next ); 
 }
 private StateStat resolveOn( StateStat s, id( event ), list[Expr] cond, id( next ) ) {
-	symbols = s@symboltable;
+	table = s@indextable;
 	
-	if( event in symbols ) {
+	if( contains( table, symbolKey( event ) ) ) {
 		
-		if( inEvent(_) := symbols[event].\type ) {
+		if( inEvent(_) := lookup( table, symbolKey( event ) ).\type ) {
 			
 			if( size(cond) > 0 ) { 
 				e = cond[0];
@@ -83,12 +83,12 @@ private StateStat resolveOn( StateStat s, id( event ), list[Expr] cond, id( next
 				}
 			}
 			
-			if( !( next in symbols && symbols[ next ].\type == state() ) ) {
+			if( !( contains( table, symbolKey(next) ) && lookup( table, symbolKey(next) ).\type == state() ) ) {
 				s.next@message = error( "unknown event \'<next>\'", s@location );
 			}
 			
 		} else {
-			s@message = error( "\'<event>\' is not an in event, but \'<typeToString(symbols[event].\type)>\'", s@location );
+			s@message = error( "\'<event>\' is not an in event, but \'<typeToString(lookup( table, symbolKey(event) ).\type)>\'", s@location );
 		}
 		
 	} else {
@@ -101,11 +101,11 @@ private StateStat resolveOn( StateStat s, id( event ), list[Expr] cond, id( next
 Decl resolve( Decl d:stateMachine( list[Modifier] mods, Id name, list[Id] initial, list[StateMachineStat] body ) ) {
 	if( size(initial) > 0 ) {
 		initialState = initial[0];
-		symbols = body[0]@symboltable;
+		table = body[0]@indextable;
 
-		if( !(initialState.name in symbols) ) {
+		if( !contains( table, symbolKey(initialState.name) ) ) {
 			initialState@message = error( "undefined initial state \'<initialState.name>\'", initialState@location );
-		} else if( initialState.name in symbols && symbols[ initialState.name ].\type != state() ) {
+		} else if( contains( table, symbolKey(initialState.name) ) && lookup( table, symbolKey(initialState.name) ).\type != state() ) {
 			initialState@message = error( "initial state \'<initialState.name>\' is not of the type \'state\'", initialState@location );
 		}
 		
@@ -127,19 +127,19 @@ StateMachineStat resolve( StateMachineStat s:var( list[Modifier] mods, Type \typ
 	return s;
 }
 
-SymbolTable convertInEventToFunction( SymbolTable symbols, str name ) {
-	if( name in symbols && inEvent( params ) := symbols[ name ].\type ) {
-		symbols[ name ].\type = function( \void(), [ t | param(_,t,_) <- params ] );
+IndexTable convertInEventToFunction( IndexTable table, str name ) {
+	if( contains( table, symbolKey(name) ) && inEvent( params ) := lookup( table, symbolKey( name ) ).\type ) {
+		table = update( table, symbolKey(name), lookup( table, symbolKey(name) )[\type=function( \void(), [ t | param(_,t,_) <- params ] )] );
 	}
 	
-	return symbols;
+	return table;
 }
 Expr resolve( Expr e:call( e2:dotField( Expr record, id( name ) ), list[Expr] args ) ) {
 	record_type = getType( record );
 	e.func = var( id( name ) );
 
 	if( stateMachine( str stateMachineName ) := record_type ) {
-		symbols = e@symboltable[ stateMachineName ].symbols;
+		symbols = lookup( e@indextable, objectKey( stateMachineName ) ).symbols;
 		symbols = convertInEventToFunction( symbols, name );
 		
 		e2 = delAnnotation( e2, "message" );
@@ -151,11 +151,11 @@ Expr resolve( Expr e:call( e2:dotField( Expr record, id( name ) ), list[Expr] ar
 }
 
 public Expr resolveField( Expr e, stateMachine( str stateMachineName ), str name ) {
-	symbols = e@symboltable[ stateMachineName ].symbols;
+	symbols = lookup( e@indextable, objectKey( stateMachineName ) ).symbols;
 
-    if( name in symbols ) {
+    if( contains( symbols, symbolKey(name) ) ) {
     
-        e@\type = symbols[ name ].\type;
+        e@\type = lookup( symbols, symbolKey(name) ).\type;
     } else {
         e@message = error( "unkown statemachine property \'<name>\' for statemachine \'<stateMachineName>\'", e@location );
     } 

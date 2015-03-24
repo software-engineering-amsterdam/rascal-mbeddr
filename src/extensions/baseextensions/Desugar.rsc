@@ -8,21 +8,22 @@ import IO;
 
 // LOCAL IMPORTS
 import typing::IndexTable;
+import typing::Scope;
 import typing::resolver::Base;
 import extensions::baseextensions::AST;
 
 // DESUGAR BASEEXTENSIONS
 
-Module desugar_baseextensions( Module m:\module( name, imports, decls ) ) {
-	m = desugar_lambdas( m );
+Module desugarBaseExtensions( Module m:\module( name, imports, decls ) ) {
+	m = desugarLambdas( m );
 	
 	return m;
 }
 
-private Module desugar_lambdas( Module m:\module( name, imports, decls ) ) {
+private Module desugarLambdas( Module m:\module( name, imports, decls ) ) {
 	int i = 0;
 	list[Decl] liftedLambdas = [];
-	SymbolTable liftedLambdaGlobals = (); 
+	IndexTable liftedLambdaGlobals = (); 
 
 	// Find lambdas and lift to top-level function
 	solve( m ) {
@@ -32,7 +33,7 @@ private Module desugar_lambdas( Module m:\module( name, imports, decls ) ) {
 				liftedParams = findLiftedParams( body, params, liftedLambdaGlobals );
 		
 				liftedLambdas += function( [static()], l@\type, id("lambda_function_$<i>"), params + liftedParams, liftLambdaBody( body ) );
-				liftedLambdaGlobals = store( <liftedLambdaGlobals,()>, "lambda_function_$<i>", < l@\type, global(), true > ).tables.symbols;
+				liftedLambdaGlobals = store( liftedLambdaGlobals, symbolKey("lambda_function_$<i>"), symbolRow( l@\type, global(), true ) ).table;
 				
 				// TODO detect uses of lambda and replace those 
 				n = var( id( "lambda_function_$<i>" ) );
@@ -45,28 +46,20 @@ private Module desugar_lambdas( Module m:\module( name, imports, decls ) ) {
 	return m;
 }
 
-private list[Param] findLiftedParams( lambdaBody, list[Param] lambdaParams, SymbolTable globals ) {
+private list[Param] findLiftedParams( lambdaBody, list[Param] lambdaParams, IndexTable globals ) {
 	result = [];
 	paramNames = extractParamNames( lambdaParams );
 
 	top-down visit( lambdaBody ) {
 		// Detect all variable usages outside the scope of the lambda function
 		case e:var( id( varName ) ) : {
-			if( ( "symboltable" in getAnnotations(e) ) && ! ( varName in paramNames ) && ! ( varName in globals ) ) {
-				result += param( [], lookup( e@symboltable, varName ).\type, id( varName ) );
+			if( ( "indextable" in getAnnotations(e) ) && ! ( varName in paramNames ) && ! ( contains( globals, symbolKey(varName) ) ) ) {
+				result += param( [], lookup( e@indextable, symbolKey(varName) ).\type, id( varName ) );
 			}		
 		}
 	}
 	
 	return result;
-}
-
-private SymbolTable findGlobals( SymbolTable symbols ) {
-	result = ();
-	for( ( name : row ) <- symbols, global( row.scope ) ) {
-		result[ name ] = row;
-	}
-	return result;	
 }
 
 private list[Stat] liftLambdaBody( list[Stat] b ) = b;

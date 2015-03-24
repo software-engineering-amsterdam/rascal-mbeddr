@@ -10,7 +10,7 @@ Module desugarModule( Module m ) {
 	
 	ast = desugar_unittest( m );
 	ast = desugar_statemachine( ast );
-	ast = desugar_baseextensions( ast );
+	ast = desugarBaseExtensions( ast );
 
 	ast = runDesugar( ast );
 	

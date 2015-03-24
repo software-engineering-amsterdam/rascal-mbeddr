@@ -31,3 +31,18 @@ public test bool test_send_constraint_2() {
 	
 	return size( msgs ) == 0;
 }
+
+public test bool test_send_constraint_3() {
+	str input = 
+	" module Test;
+	' 
+	'statemachine FlightAnalyzer {
+	' state airborne {
+	'  entry { if( true ) { send crashed(); } }
+	' }
+	'}
+	";
+	msgs = constraints( input );
+	
+	return size( msgs ) == 0;
+}

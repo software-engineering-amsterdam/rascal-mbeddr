@@ -17,18 +17,16 @@ data DeclType
 
 data IndexTableKey
 	= symbolKey( str symbolName )
-	| typeKey( str key, DeclType declType )
+	| typeKey( str typeName, DeclType declType )
 	;
 
 data IndexTableRow 
 	= symbolRow( Type \type, Scope scope, bool initialized )
-	| symbolRow( IndexTable symbols, Type \type, Scope scope, bool initialized )
 	| typeRow( Type \type, Scope scope, bool initialized )
 	;
 
 alias IndexTable = map[ IndexTableKey, IndexTableRow ];
 alias StoreResult = tuple[ IndexTable table, str errorMsg ]; 
-alias Symbol = tuple[ IndexTableKey, IndexTableRow ];
 
 anno IndexTable node @ indextable;
 
@@ -45,12 +43,6 @@ anno Scope Type@scope;
 anno Scope Modifier@scope;
 anno Scope Field@scope;
 anno Scope Enum@scope;
-
-list[Symbol] retrieveGlobals( IndexTable table ) {
-	return for( IndexTableKey key : IndexTableRow row <- table, symbolKey(_) := key && symbolRow(_,_,_) := row && inGlobal( row.scope ) ) {
-		append <key,row>;
-	}
-} 
 
 StoreResult store( IndexTable table, key:symbolKey(_), row:symbolRow(_,_,_) ) {
 	str errorMsg = "";
@@ -125,7 +117,7 @@ store( IndexTable table,
 		lookup( table, key ).scope == row.scope && 
 		lookup( table, key ).initialized
 		) {
-		errorMsg = "redefinition of \'<key.name>\'";
+		errorMsg = "redefinition of \'<key.typeName>\'";
 	} else {
 		table[ key ] = row;
 	}

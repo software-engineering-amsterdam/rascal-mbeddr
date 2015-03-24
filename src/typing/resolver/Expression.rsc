@@ -70,7 +70,6 @@ Expr resolve( Expr e:subscript( Expr array, Expr sub )  ) {
 }
 
 Expr resolve( Expr e:call( v:var( id( func ) ), list[Expr] args ) ) {
-	// Remove error messages from the var id subnode
 	v = delAnnotation( v, "message" );
 	e.func = v;
 	e.args = args;

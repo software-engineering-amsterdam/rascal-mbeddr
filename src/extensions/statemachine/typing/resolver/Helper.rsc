@@ -1,9 +1,9 @@
 module extensions::statemachine::typing::resolver::Helper
 extend typing::resolver::Helper;
 
-Module resolver( m:\module( name, imports, decls ) ) = resolver( m, (), () );
-Module resolver( &T <: node n, SymbolTable symbols, TypeTable types ) {
-	n = copyDownIndexTables( n, symbols, types );
+Module resolver( m:\module( name, imports, decls ) ) = resolver( m, () );
+Module resolver( &T <: node n, IndexTable table ) {
+	n = copyDownIndexTables( n, table );
 
 	n = visit( n ) {
 		case Stat s => resolve( s ) 

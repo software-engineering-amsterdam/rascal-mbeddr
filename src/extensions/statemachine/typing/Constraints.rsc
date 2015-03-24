@@ -9,7 +9,11 @@ StateStat constraint( StateStat s:entry(_) ) = s[body = removeSendMessage( s.bod
 
 StateStat constraint( StateStat s:exit(_) ) = s[body = removeSendMessage( s.body )];
 
-private list[Stat] removeSendMessage( list[Stat] body ) = [ checkSend( stat ) | Stat stat <- body ];
+private list[Stat] removeSendMessage( list[Stat] body ) { 
+	return visit( body ) { 
+		case Stat s => checkSend( s ) 
+	}
+}
 
 private default Stat checkSend( Stat s ) = s;
 private Stat checkSend( Stat s:send(_,_) ) = delAnnotation( s, "message" );
