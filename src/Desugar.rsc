@@ -1,8 +1,8 @@
 module Desugar
 
-extend baseextensions::Desugar;
-extend unittest::Desugar;
-extend statemachine::Desugar;
+extend extensions::baseextensions::Desugar;
+extend extensions::unittest::Desugar;
+extend extensions::statemachine::Desugar;
 
 extend desugar::Helper;
 

@@ -2,14 +2,14 @@ module Parser
 
 import ParseTree;
 
-extend baseextensions::AST;
-extend baseextensions::Syntax;
+extend extensions::baseextensions::AST;
+extend extensions::baseextensions::Syntax;
 
-extend unittest::AST;
-extend unittest::Syntax;
+extend extensions::unittest::AST;
+extend extensions::unittest::Syntax;
 
-extend statemachine::AST;
-extend statemachine::Syntax;
+extend extensions::statemachine::AST;
+extend extensions::statemachine::Syntax;
 
 Module createAST( Tree pt ) = implode( #Module, pt );
 Module createAST( loc location ) = implode( #Module, parse( location ) );

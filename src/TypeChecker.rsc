@@ -2,11 +2,11 @@ module TypeChecker
 
 import lang::mbeddr::AST;
 
-extend baseextensions::TypeChecker;
-extend unittest::TypeChecker;
-extend statemachine::TypeChecker;
+extend extensions::baseextensions::TypeChecker;
+extend extensions::unittest::TypeChecker;
+extend extensions::statemachine::TypeChecker;
 
-extend statemachine::typing::resolver::Helper;
+extend extensions::statemachine::typing::resolver::Helper;
 extend typing::indexer::Helper;
 extend typing::constraints::Helper;
 
