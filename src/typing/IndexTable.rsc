@@ -28,6 +28,7 @@ data IndexTableRow
 
 alias IndexTable = map[ IndexTableKey, IndexTableRow ];
 alias StoreResult = tuple[ IndexTable table, str errorMsg ]; 
+alias Symbol = tuple[ IndexTableKey, IndexTableRow ];
 
 anno IndexTable node @ indextable;
 
@@ -44,6 +45,12 @@ anno Scope Type@scope;
 anno Scope Modifier@scope;
 anno Scope Field@scope;
 anno Scope Enum@scope;
+
+list[Symbol] retrieveGlobals( IndexTable table ) {
+	return for( IndexTableKey key : IndexTableRow row <- table, symbolKey(_) := key && symbolRow(_,_,_) := row && inGlobal( row.scope ) ) {
+		append <key,row>;
+	}
+} 
 
 StoreResult store( IndexTable table, key:symbolKey(_), row:symbolRow(_,_,_) ) {
 	str errorMsg = "";
