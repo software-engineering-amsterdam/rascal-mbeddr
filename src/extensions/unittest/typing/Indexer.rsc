@@ -4,31 +4,31 @@ extend typing::indexer::Indexer;
 import extensions::unittest::AST;
 import extensions::unittest::typing::Scope;
 
-tuple[ Decl astNode, IndexTables tables, str errorMsg ]
+tuple[ Decl astNode, IndexTable table, str errorMsg ]
 indexer( Decl d:testCase(list[Modifier] mods, id( name ), list[Stat] stats),
-	   	 IndexTables tables, 
+	   	 IndexTable table, 
 	   	 Scope scope
 	   ) {
-	storeResult = store( tables, name, < testCase(), scope, true > );
-	d.stats = indexer( stats, storeResult.tables, \test( scope ) );
+	storeResult = store( table, symbolKey(name), symbolRow(testCase(), scope, true ) );
+	d.stats = indexer( stats, storeResult.table, \test( scope ) );
 			 
-	return < d[@scope=scope], storeResult.tables, storeResult.errorMsg >;
+	return < d[@scope=scope], storeResult.table, storeResult.errorMsg >;
 }
 
-tuple[ Expr astNode, IndexTables tables, str errorMsg ]
+tuple[ Expr astNode, IndexTable table, str errorMsg ]
 indexer( Expr e:\test( list[Id] tests ),
-		 IndexTables tables,
+		 IndexTable table,
 		 Scope scope
 		) {
 	
-	return < e[@scope=scope], tables, "" >;	
+	return < e[@scope=scope], table, "" >;	
 }
 
-tuple[ Stat astNode, IndexTables tables, str errorMsg ]
+tuple[ Stat astNode, IndexTable table, str errorMsg ]
 indexer( Stat s:\assert( Expr \test ),
-		 IndexTables tables,
+		 IndexTable table,
 		 Scope scope
 		) {
-	s.\test = indexWrapper( \test, tables, scope );
-	return < s[@scope=scope], tables, "" >;	
+	s.\test = indexWrapper( \test, table, scope );
+	return < s[@scope=scope], table, "" >;	
 }

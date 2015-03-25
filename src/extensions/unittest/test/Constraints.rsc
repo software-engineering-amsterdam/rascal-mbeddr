@@ -53,12 +53,12 @@ public test bool test_test_return() {
 	' testcase HelloWorld { }
 	
 	' void main() {
-	'  test[ HelloWorld ];
+	'  return test[ HelloWorld ];
 	' }
 	";
 	msgs = constraints( input );
 	
-	expectedMsgs = ["expecting return statement"];
+	expectedMsgs = [];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	

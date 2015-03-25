@@ -328,7 +328,7 @@ Decl desugar_on_conditions( Decl d:stateMachine( _, id( name ), _, _ ) ) {
 }
 
 Decl desugar( Decl d:variable(list[Modifier] mods, id( id( typeName ) ), Id name) ) {
-	if( typeName in d@symboltable && stateMachine(_) := d@symboltable[ typeName ].\type ) {
+	if( contains( d@indextable, symbolKey(typeName) ) && stateMachine(_) := lookup( d@indextable, symbolKey(typeName) ).\type ) {
 		d.\type =  id( id( namespace( typeName, "data_t" ) ) );
 		d.name = name;
 	}

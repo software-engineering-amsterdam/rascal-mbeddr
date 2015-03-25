@@ -7,6 +7,7 @@ import extensions::unittest::Desugar;
 import extensions::unittest::typing::Indexer;
 import extensions::unittest::typing::Constraints;
 import extensions::unittest::typing::Resolver;
+import extensions::unittest::typing::Scope;
 
 extend \test::Helper;
 extend desugar::Helper;

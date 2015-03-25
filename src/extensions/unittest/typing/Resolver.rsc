@@ -24,17 +24,17 @@ Stat resolve( Stat e:\assert( Expr \test ) ) {
 }
 
 Stat resolve( Stat t:\test( list[Id] tests ) ) {
-	symbols = t@symboltable;
+	table = t@indextable;
 	
-	t.tests = [ resolveTestCase( id, symbols ) | id <- tests ]; 
+	t.tests = [ resolveTestCase( id, table ) | id <- tests ]; 
 	
 	return t[@\type=int32()];
 }
 
-private Id resolveTestCase( Id n:id( name ), symbols ) {
-	if( ! contains( symbols, name ) ) {
+private Id resolveTestCase( Id n:id( name ), IndexTable table ) {
+	if( ! contains( table, symbolKey(name) ) ) {
 		n@message = error( "unkown testcase \'<name>\'", n@location );
-	} else if( !( \testCase() := lookup( symbols, name ).\type) ) {
+	} else if( !( \testCase() := lookup( table, symbolKey(name) ).\type) ) {
 		n@message = error( "referenced test \'<name>\' is not a testcase", n@location);
 	}
 	
