@@ -185,22 +185,22 @@ Stat createStateSwitch( StateMachine s ) {
 
 list[Stat] createStateCases( StateMachine s, State state ) = [ createTransitionsForEvent( s, state, eventName ) | eventName <- state.transitions ];
 
+list[Stat] createEntryExitCall( StateMachine s, list[Stat] stats, str namespace ) {
+	result = [];
+	i = 0;
+	for( Stat stat <- stats ) {
+		result += expr( call( var( id( namespace( s.name, "<namespace><i>" ) ) ), [instanceVar] ) );
+		i += 1;
+	}
+	
+	return result;
+}
+
 Stat createTransitionsForEvent( StateMachine s, State state, str eventName ) {
 	list[Stat] tests = [];
 	for( Transition t <- state.transitions[ eventName ] ) {
-		i = 0;
-		exits = [];
-		for( Stat exit <- state.exits ) {
-			exits += expr( call( var( id( namespace( s.name, "ExitAction<i>" ) ) ), [instanceVar] ) );
-			i += 1;
-		}
-		
-		i = 0;
-		entries = [];
-		for( Stat entry <- s.states[ t.next ].entries ) {
-			entries += expr( call( var( id( namespace( s.name, "EntryAction<i>" ) ) ), [instanceVar] ) );
-			i += 1;
-		}
+		exits = createEntryExitCall( s, state.exits, "ExitAction" );
+		entries = createEntryExitCall( s, s.states[ t.next ].entries, "EntryAction" );
 		
 		tests +=
 			ifThen( 
