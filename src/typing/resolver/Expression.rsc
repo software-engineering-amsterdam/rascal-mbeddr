@@ -60,12 +60,12 @@ Expr resolve( Expr e:lit( boolean( v ) ) ) { return e@\type = boolean(); }
 // EXPRESSIONS
 
 Expr resolve( Expr e:subscript( Expr array, Expr sub )  ) {
-	array_type = getType( array );
-	sub_type = getType( sub );
+	arrayType = getType( array );
+	subType = getType( sub );
 	
-	if( isEmpty(array_type ) || isEmpty(sub_type ) ) return e;
+	if( isEmpty(arrayType ) || isEmpty(subType ) ) return e;
 	
-	return resolveSubScript( e, array_type, sub_type );
+	return resolveSubScript( e, arrayType, subType );
 }
 
 Expr resolve( Expr e:call( v:var( id( func ) ), list[Expr] args ) ) {
@@ -84,21 +84,21 @@ Expr resolve( Expr e:struct( list[Expr] records ) ) {
 }
 
 Expr resolve( Expr e:dotField( Expr record, id( name ) ) ) {
-	record_type = getType( record );
+	recordType = getType( record );
 	
-	if( isEmpty(record_type ) ) return e;
-	return resolveField( e, record_type, name );
+	if( isEmpty(recordType ) ) return e;
+	return resolveField( e, recordType, name );
 }
 
 Expr resolve( Expr e:ptrField( Expr record, id( name ) ) ) {
-	record_type = getType( record );
+	recordType = getType( record );
 	
-	if( isEmpty(record_type) ) return e;
+	if( isEmpty(recordType) ) return e;
 	
-	if( pointer( Type \type ) := record_type ) {
+	if( pointer( Type \type ) := recordType ) {
 		return resolveField( e, \type, name );
 	} else {
-		return e@message = error( referenceMismatchError(),  "member reference type \'<typeToString(record_type)>\' is not a pointer", e@location );
+		return e@message = error( referenceMismatchError(),  "member reference type \'<typeToString(recordType)>\' is not a pointer", e@location );
 	}
 }
 
@@ -113,14 +113,14 @@ Expr resolve( Expr e:preDecr( Expr arg ) ) = resolveUnaryExpression( e, arg, CTy
 Expr resolve( Expr e:addrOf( Expr arg ) ) { return e@\type = pointer( getType( arg ) ); }
 
 Expr resolve( Expr e:refOf( Expr arg ) ) {
-	arg_type = getType( arg );
+	argType = getType( arg );
 	
-	if( isEmpty(arg_type ) ) return e;
+	if( isEmpty(argType ) ) return e;
 	
-	if( pointer( \type ) := arg_type ) {
+	if( pointer( \type ) := argType ) {
 		e@\type = \type;
 	} else {
-		e@message = error( referenceMismatchError(),  "indirection requires pointer operand (\'<typeToString(arg_type)>\' invalid)", e@location );
+		e@message = error( referenceMismatchError(),  "indirection requires pointer operand (\'<typeToString(argType)>\' invalid)", e@location );
 	}
 	
 	return e;
@@ -175,24 +175,24 @@ Expr resolve( Expr e:and( Expr lhs, Expr rhs ) ) = resolveBinaryExpression( e, l
 Expr resolve( Expr e:or( Expr lhs, Expr rhs ) ) = resolveBinaryExpression( e, lhs, rhs, CIntegerTypeTree, category=boolean() );
 
 Expr resolve( Expr e:cond( Expr cond, Expr then, Expr els ) ) {
-	cond_type = getType( cond );
+	condType = getType( cond );
 	
-	if( isEmpty( cond_type ) ) return e;
+	if( isEmpty( condType ) ) return e;
 	
-	if( cond_type != \boolean() ) {
-		return e@message = error( conditionalMisuseError(),  "\'<typeToString(cond_type)>\' is not a subtype of \'boolean\'", e@location ); 
+	if( condType != \boolean() ) {
+		return e@message = error( conditionalMisuseError(),  "\'<typeToString(condType)>\' is not a subtype of \'boolean\'", e@location ); 
 	}
 	
-	then_type = getType( then );
-	els_type = getType( els );
+	thenType = getType( then );
+	elsType = getType( els );
 	
-	if( isEmpty(then_type ) || isEmpty(els_type ) ) return e;
+	if( isEmpty(thenType ) || isEmpty(elsType ) ) return e;
 	
-	if( then_type != els_type ) {
-		return e@message = error( conditionalMismatchError(),  "<typeToString(then_type)>/<typeToString(els_type)> type mismatch in conditional expression (\'<typeToString(then_type)>\' and \'<typeToString(els_type)>\')", e@location );
+	if( thenType != elsType ) {
+		return e@message = error( conditionalMismatchError(),  "<typeToString(thenType)>/<typeToString(elsType)> type mismatch in conditional expression (\'<typeToString(thenType)>\' and \'<typeToString(elsType)>\')", e@location );
 	} 
 	
-	return e@\type = then_type;
+	return e@\type = thenType;
 }
 
 Expr resolve( Expr e:assign( Expr lhs, Expr rhs ) ) = resolveAssignment( e, lhs, rhs, CTypeTree );

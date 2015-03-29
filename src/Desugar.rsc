@@ -8,8 +8,8 @@ extend desugar::Helper;
 
 Module desugarModule( Module m ) {
 	
-	ast = desugar_unittest( m );
-	ast = desugar_statemachine( ast );
+	ast = desugarUnitTest( m );
+	ast = desugarStateMachine( ast );
 	ast = desugarBaseExtensions( ast );
 
 	ast = runDesugar( ast );

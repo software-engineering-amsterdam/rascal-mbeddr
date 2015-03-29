@@ -5,7 +5,7 @@ import ext::List;
 
 import extensions::unittest::AST;  
 
-Module desugar_unittest( Module m ) {
+Module desugarUnitTest( Module m ) {
 	return visit( m ) {
 		case d:\testCase(_,_,_) => desugarTestCase( d, joinList( [ name | id( name ) <- m.name.parts ], "/" ) ) 
 	}
@@ -15,7 +15,7 @@ Decl desugarTestCase( Decl d:\testCase(mods, id(name), stats), str ModuleName ) 
 	int i = 0;
 	list[Stat] body = [
 		decl( variable( [], int8(), id("failures"), lit( \int("0") ) ) ),
-		expr( printf_expr("running test @<ModuleName>:test_<name>:<i>\n") )
+		expr( printfExpr("running test @<ModuleName>:test_<name>:<i>\n") )
 	];
 	
 	body += visit( stats ) {
@@ -23,8 +23,8 @@ Decl desugarTestCase( Decl d:\testCase(mods, id(name), stats), str ModuleName ) 
 			i += 1;
 			insert ifThen( not( \test ), block( [
 				expr( postIncr( var( id( "failures" ) ) ) ),
-				expr( printf_expr("FAILED: @<ModuleName>:test_<name>:<i>\n") ), 
-				expr( printf_expr("testID = <s@location>\n") )
+				expr( printfExpr("FAILED: @<ModuleName>:test_<name>:<i>\n") ), 
+				expr( printfExpr("testID = <s@location>\n") )
 			] ) );
 		}
 	}
@@ -51,6 +51,6 @@ private Stat desugarTestCall( Id \test ) {
 	return expr( assign( var( id( "failures" ) ), add( var( id( "failures" ) ), call( var( \test ), [] ) ) ) );
 }
 
-private Expr printf_expr( str arg ) {
+private Expr printfExpr( str arg ) {
 	return call( var( id( "printf" ) ), [ lit( string( arg ) ) ] );
 }

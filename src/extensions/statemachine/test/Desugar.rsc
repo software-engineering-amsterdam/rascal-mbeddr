@@ -268,8 +268,8 @@ public test bool test_send_notification() {
 	return passed;
 }
 
-public test bool test_compile_statemachines() {
-    str testCaseName = "test_compile_statemachines";
+public test bool test_compileStateMachines() {
+    str testCaseName = "test_compileStateMachines";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -291,7 +291,7 @@ public test bool test_compile_statemachines() {
 	stateMachines = [];
 	visit( ast ) {
 		case Decl d:stateMachine(_,_,_,_) : {
-			stateMachines += compile_statemachine( d );
+			stateMachines += compileStateMachine( d );
 		}
 	}
 

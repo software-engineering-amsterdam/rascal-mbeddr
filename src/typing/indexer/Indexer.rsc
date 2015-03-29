@@ -359,11 +359,11 @@ indexer( Decl d:constant( id( name ), Expr init ), IndexTable table, Scope scope
 	init = visit( init ) {
 		case Expr e => resolve( e )
 	}
-	init_type = getType( init );
+	initType = getType( init );
 	
-	if( isEmpty() := init_type ) { d@message = error( "unable to statically resolve global constant\'s type", d@location ); }
+	if( isEmpty() := initType ) { d@message = error( "unable to statically resolve global constant\'s type", d@location ); }
 	
-	storeResult = store( table, symbolKey( name ), symbolRow( init_type,scope,true ) );
+	storeResult = store( table, symbolKey( name ), symbolRow( initType,scope,true ) );
 
 	return < d, storeResult.table, storeResult.errorMsg >;	
 }

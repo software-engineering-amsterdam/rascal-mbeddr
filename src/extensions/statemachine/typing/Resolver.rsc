@@ -41,8 +41,8 @@ Stat resolve( Stat s:send( id( name ), list[Expr] args ) ) {
 			} else {
 			
 				for( i <- [0..size( argsTypes )] ) {
-					arg_type = getType( args[i] );
-					if( !isEmpty( arg_type ) && !(argsTypes[i] in CTypeTree[ arg_type ]) ) {
+					argType = getType( args[i] );
+					if( !isEmpty( argType ) && !(argsTypes[i] in CTypeTree[ argType ]) ) {
 						s@message = error( argumentsMismatchError(), "wrong argument type(s)", s@location );
 					}
 				}
@@ -75,9 +75,9 @@ private StateStat resolveOn( StateStat s, id( event ), list[Expr] cond, id( next
 			
 			if( size(cond) > 0 ) { 
 				e = cond[0];
-				expr_type = getType( e );
+				exprType = getType( e );
 				
-				if( ! isEmpty( expr_type ) && !(boolean() := expr_type) ) { 
+				if( ! isEmpty( exprType ) && !(boolean() := exprType) ) { 
 					e@message = error( conditionalAbuseError(), "expression expected to be of \'boolean\' type", e@location );
 					s.cond = [e];
 				}
@@ -116,12 +116,12 @@ Decl resolve( Decl d:stateMachine( list[Modifier] mods, Id name, list[Id] initia
 }
 
 StateMachineStat resolve( StateMachineStat s:var( list[Modifier] mods, Type \type, Id name, Expr init ) ) {
-	init_type = getType( init );
+	initType = getType( init );
 	
-	if( isEmpty( init_type ) ) { return s; }
+	if( isEmpty( initType ) ) { return s; }
 	
-	if( !(\type in CTypeTree[ init_type ]) ) {
-		s@message = error( incompatibleTypesError(), "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", s@location );
+	if( !(\type in CTypeTree[ initType ]) ) {
+		s@message = error( incompatibleTypesError(), "\'<typeToString(initType)>\' not a subtype of \'<typeToString(\type)>\'", s@location );
 	}
 	
 	return s;
@@ -135,10 +135,10 @@ IndexTable convertInEventToFunction( IndexTable table, str name ) {
 	return table;
 }
 Expr resolve( Expr e:call( e2:dotField( Expr record, id( name ) ), list[Expr] args ) ) {
-	record_type = getType( record );
+	recordType = getType( record );
 	e.func = var( id( name ) );
 
-	if( stateMachine( str stateMachineName ) := record_type ) {
+	if( stateMachine( str stateMachineName ) := recordType ) {
 		symbols = lookup( e@indextable, objectKey( stateMachineName ) ).symbols;
 		symbols = convertInEventToFunction( symbols, name );
 		

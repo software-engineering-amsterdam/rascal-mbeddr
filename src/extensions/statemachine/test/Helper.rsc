@@ -17,7 +17,7 @@ extend typing::indexer::Helper;
 extend typing::constraints::Helper;
 
 Module desugarModule( Module m ) {
-	m = desugar_statemachine( m );
+	m = desugarStateMachine( m );
 	m = runDesugar( m );
 	
 	return m;

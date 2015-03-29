@@ -18,7 +18,7 @@ data Transition = transition( list[Expr] cond, str next, list[Stat] body );
 alias Transitions = map[ str name, list[Transition] transitions ];
 alias Channels = map[ str event, list[Param] params];
 
-StateMachine compile_statemachine( Decl d:stateMachine( _, _, _, _ ) ) {
+StateMachine compileStateMachine( Decl d:stateMachine( _, _, _, _ ) ) {
 	return statemachine(
 		d.name.name,
 		compileInstance( d ),
@@ -78,12 +78,12 @@ Expr instanceVar = var( instanceId );
 Expr event = var( id( "event" ) );
 Expr arguments = var( id( "arguments" ) );
 
-Module desugar_statemachine( Module m ) {
+Module desugarStateMachine( Module m ) {
 	decls = [];
 	
 	visit( m ) {
 		case Decl d:stateMachine( _, _, _, _ ) : {
-			decls = desugar_statemachine( d, compile_statemachine( d ) );
+			decls = desugarStateMachine( d, compileStateMachine( d ) );
 			
 			m.decls = insertListFor( m.decls, indexOf( m.decls, d ), decls );
 		} 
@@ -92,7 +92,7 @@ Module desugar_statemachine( Module m ) {
 	return m;
 }
 
-list[Decl] desugar_statemachine( Decl d:stateMachine( _, _, _, _ ), StateMachine s ) {
+list[Decl] desugarStateMachine( Decl d:stateMachine( _, _, _, _ ), StateMachine s ) {
 	Decl initFunction = createInitialFunction( d, s );
 	Decl execFunction = createExecFunction( d, s );
 	list[Decl] headerConstructs = createHeader( d, s );
@@ -113,12 +113,12 @@ list[Decl] createHeader( Decl d:stateMachine(_,_,_,_), StateMachine s ) {
 	result += typeDef( d.mods, enum( id( namespace( s.name, "states" ) ) ), id( "__" + namespace( s.name, "states" ) ) );
 	
 	// States Enumerable
-	enums = [ const( id( namespace_state( s.name, stateName ) ) ) | str stateName <- s.states ]; 
+	enums = [ const( id( namespaceState( s.name, stateName ) ) ) | str stateName <- s.states ]; 
 	result += enum( d.mods, id( namespace( s.name, "states" ) ), enums );
 	
 	// Inevents Enumerable
 	result += typeDef( d.mods, enum( id( namespace( s.name, "inevents" ) ) ), id( "__" + namespace( s.name, "inevents" ) ) );
-	enums = [ const( id( namespace_event( s.name, eventName ) ) ) | str eventName <- s.instance.entries ]; 
+	enums = [ const( id( namespaceEvent( s.name, eventName ) ) ) | str eventName <- s.instance.entries ]; 
 	result += enum( d.mods, id( namespace( s.name, "inevents" ) ), enums );
 	
 	// Data structs
@@ -173,7 +173,7 @@ Decl createInitialFunction( Decl d:stateMachine(_,_,_,_), StateMachine s ) {
 Stat createStateSwitch( StateMachine s ) {
 	states = 
 		[ \case(
-			var( id( namespace_state( s.name, name ) ) ),
+			var( id( namespaceState( s.name, name ) ) ),
 			\switch( event, block(
 				createStateCases( s, s.states[name] )
 			) )
@@ -216,7 +216,7 @@ Stat createTransitionsForEvent( StateMachine s, State state, str eventName ) {
 	}
 	
 	return \case( 
-		var( id( namespace_event( s.name, eventName ) ) ), 
+		var( id( namespaceEvent( s.name, eventName ) ) ), 
 		block( 
 			tests
 		) 
@@ -286,7 +286,7 @@ list[Stat] createEntryExitBody( StateMachine s, list[Stat] body ) {
 }
 
 
-Decl namespace_statemachine( Decl d:stateMachine( _, id( name ), _, _ ) ) {
+Decl namespaceStatemachine( Decl d:stateMachine( _, id( name ), _, _ ) ) {
 	return visit( d ) {
 		case s:state( id( stateName ), _ ) : { 
 			s.name = id("StateMachines_<name>__states__<name>_<stateName>__state");
@@ -305,10 +305,10 @@ Decl namespace_statemachine( Decl d:stateMachine( _, id( name ), _, _ ) ) {
 }
 
 str namespace( str name, str i ) ="StateMachines_<name>__<i>";
-str namespace_state( str name, str i ) = "StateMachines_<name>__states__<name>_<i>__state";
-str namespace_event( str name, str i ) = "StateMachines_<name>__inevents__<name>_<i>__event";
+str namespaceState( str name, str i ) = "StateMachines_<name>__states__<name>_<i>__state";
+str namespaceEvent( str name, str i ) = "StateMachines_<name>__inevents__<name>_<i>__event";
 
-Decl desugar_on_conditions( Decl d:stateMachine( _, id( name ), _, _ ) ) {
+Decl desugarOnConditions( Decl d:stateMachine( _, id( name ), _, _ ) ) {
 	inEvents = ();
 	for( inEvent( id( eventName ), list[Param] params ) <- d.body ) {
 		inEvents[ eventName ] = params;
@@ -319,7 +319,7 @@ Decl desugar_on_conditions( Decl d:stateMachine( _, id( name ), _, _ ) ) {
 			if( size(cond) > 0 ) {
 				params = inEvents[ eventName ];
 				
-				s.cond = [desugar_condition( s.cond[0], params )];
+				s.cond = [desugarCondition( s.cond[0], params )];
 				
 				insert s;
 			}
@@ -337,11 +337,11 @@ Decl desugar( Decl d:variable(list[Modifier] mods, id( id( typeName ) ), Id name
 }
 
 Expr desugar( Expr e:dotField( Expr record, id( str name ) ) ) {
-	e_type = getType( e );
-	record_type = getType( record );
+	eType = getType( e );
+	recordType = getType( record );
 	
-	if( stateMachine( str stateMachineName ) := record_type && state() := e_type ) {
-		e = var( id( namespace_state( stateMachineName, name ) ) );
+	if( stateMachine( str stateMachineName ) := recordType && state() := eType ) {
+		e = var( id( namespaceState( stateMachineName, name ) ) );
 	}
 	
 	return e;
@@ -355,7 +355,7 @@ Stat desugarTrigger( Expr record, str stateMachineName, str eventName, list[Expr
 		i += 1;
 	}
 	Expr callFun = var( id( namespace( stateMachineName, "execute" ) ) );
-	list[Expr] callArgs = [ addrOf( record ), var( id( namespace_event( stateMachineName, eventName ) ) ), var( id( "___args" ) ) ];
+	list[Expr] callArgs = [ addrOf( record ), var( id( namespaceEvent( stateMachineName, eventName ) ) ), var( id( "___args" ) ) ];
 	bl += expr( call( callFun, callArgs ) );
 	return block( bl );
 }
@@ -370,11 +370,11 @@ Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr reco
 }
 
 Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr record, "setState", [ dotField( Expr record, id( stateName ) ) ] ) {
-	e =  assign( dotField( record, currentState ), var( id( namespace_state( stateMachineName, stateName ) ) ) );
+	e =  assign( dotField( record, currentState ), var( id( namespaceState( stateMachineName, stateName ) ) ) );
 	return expr( e );
 }
 
 Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr record, "isInState", [ dotField( Expr record, id( stateName ) ) ]  ) {
-	e = eq( dotField( record, currentState ), var( id( namespace_state( stateMachineName, stateName ) ) ) );
+	e = eq( dotField( record, currentState ), var( id( namespaceState( stateMachineName, stateName ) ) ) );
 	return expr( e );
 }

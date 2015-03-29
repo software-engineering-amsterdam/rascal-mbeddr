@@ -21,9 +21,9 @@ Expr resolve( Expr e:lambda(list[Param] params, Expr \return) ) {
 }
 
 Expr resolve( Expr e:call( l:lambda( list[Param] params, body ), list[Expr] args ) ) {
-	l_type = getType( l );
+	lType = getType( l );
 	
-	if( function( returnType, args ) := l_type ) {
+	if( function( returnType, args ) := lType ) {
 		return e@\type = returnType;	
 	} else {
 		return e;

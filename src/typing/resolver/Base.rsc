@@ -63,8 +63,8 @@ public Expr resolvePointerArithmetic( Expr e, Type t1, Type t2, list[Type] integ
 	return e;
 }
 
-public Expr resolveAssignmentPointerArithmetic( Expr e, Type lhs_type, Type rhs_type, list[Type] integerTypes ) {
-	if( isPointerType( lhs_type ) && rhs_type in integerTypes ) { e@\type = lhs_type; }
+public Expr resolveAssignmentPointerArithmetic( Expr e, Type lhsType, Type rhsType, list[Type] integerTypes ) {
+	if( isPointerType( lhsType ) && rhsType in integerTypes ) { e@\type = lhsType; }
 	return e;
 }
 
@@ -94,21 +94,21 @@ public default Expr resolveField( Expr e, Type \type, str name ) {
 	return e@\message = error( fieldReferenceError(), "member reference base type \'<typeToString(\type)>\' is not a structure or union", e@location );
 }
 
-public default Expr resolvePtrField( Expr e, Type record_type, list[Field] fields, str name ) {
+public default Expr resolvePtrField( Expr e, Type recordType, list[Field] fields, str name ) {
 	for( field( Type fieldType, id( fieldName ) ) <- fields, fieldName == name ) {
         return e@\type = fieldType;
 	}
 	
-	return e@message = error( fieldReferenceError(), "no member named \'<name>\' in \'<typeToString(record_type)>\'", e@location );
+	return e@message = error( fieldReferenceError(), "no member named \'<name>\' in \'<typeToString(recordType)>\'", e@location );
 }
 
 public Expr resolveUnaryExpression( Expr e, Expr arg, TypeTree typeTree, Type category = number(), bool pointerArithmetic = false ) {
 	if( isNotEligbleForResolvment( e ) ) { return e; }
-	arg_type = getType( arg );
+	argType = getType( arg );
 
-	if( arg_type in typeTree[ category ] ) { return e@\type = arg_type; } 
-	if( pointerArithmetic && isPointerType( arg_type ) ) { return e@\type = arg_type; } 
-	return e@message = error( unaryArgumentError(), "invalid argument type \'<typeToString(arg_type)>\' to unary expression", e@location );
+	if( argType in typeTree[ category ] ) { return e@\type = argType; } 
+	if( pointerArithmetic && isPointerType( argType ) ) { return e@\type = argType; } 
+	return e@message = error( unaryArgumentError(), "invalid argument type \'<typeToString(argType)>\' to unary expression", e@location );
 }
 
 public Decl resolveStruct( Decl d, list[Field] initFields, list[Field] fields ) {
@@ -126,115 +126,115 @@ public Decl resolveStruct( Decl d, list[Field] initFields, list[Field] fields ) 
 
 public Decl resolveStruct( Decl d, Expr init, str structName ) {
 	if( isNotEligbleForResolvment( init ) ) { return d; }
-	init_type = getType( init );
+	initType = getType( init );
 	
-	if( struct( list[Field] initFields ) := init_type && struct( list[Field] fields ) := lookup( d@indextable, typeKey( structName,struct() ) ).\type ) {
+	if( struct( list[Field] initFields ) := initType && struct( list[Field] fields ) := lookup( d@indextable, typeKey( structName,struct() ) ).\type ) {
 		return resolveStruct( d, initFields, fields );
 	}
 	return d@message = error( structAssignmentError(), "initializing \'<typeToString(\type)>\' with an expression of incompatible type \'<typeToString(init@\type)>\'", d@location );
 }
 
-public Expr resolveBinaryExpression( Expr e, Type lhs_type, Type rhs_type, TypeTree typeTree ) {
-	if( lhs_type == rhs_type ) { e@\type = lhs_type; } 
-	elseif( rhs_type in typeTree[ lhs_type ] ) { e@\type = lhs_type; } 
-	elseif( lhs_type in typeTree[ rhs_type ] ) { e@\type = rhs_type; } 
-	else { e@message = error( binaryArgumentError(), "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location ); }
+public Expr resolveBinaryExpression( Expr e, Type lhsType, Type rhsType, TypeTree typeTree ) {
+	if( lhsType == rhsType ) { e@\type = lhsType; } 
+	elseif( rhsType in typeTree[ lhsType ] ) { e@\type = lhsType; } 
+	elseif( lhsType in typeTree[ rhsType ] ) { e@\type = rhsType; } 
+	else { e@message = error( binaryArgumentError(), "operator can not be applied to \'<typeToString(lhsType)>\' and \'<typeToString(rhsType)>\'", e@location ); }
 	return e;
 }
 
 public Expr resolveBinaryExpression( Expr e, Expr lhs, Expr rhs, TypeTree typeTree, Type category = number(), Type override=empty(), bool pointerArithmetic = false ) {
 	if( isNotEligbleForResolvment( lhs ) || isNotEligbleForResolvment( rhs ) ) { return e; }
-	lhs_type = getType( lhs );
-	rhs_type = getType( rhs );
+	lhsType = getType( lhs );
+	rhsType = getType( rhs );
 	
-	if( pointerArithmetic && arePointerArithmeticTypes( lhs_type, rhs_type, typeTree[ usint8() ] ) ) { 
-		return resolvePointerArithmetic( e, lhs_type, rhs_type, typeTree[ usint8() ] );
+	if( pointerArithmetic && arePointerArithmeticTypes( lhsType, rhsType, typeTree[ usint8() ] ) ) { 
+		return resolvePointerArithmetic( e, lhsType, rhsType, typeTree[ usint8() ] );
 	} 
 	
-	if( ! fittingTypes( typeTree[ category ], [lhs_type, rhs_type] ) ) {
-		return e@message = error( nonFittingTypesError(), "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
+	if( ! fittingTypes( typeTree[ category ], [lhsType, rhsType] ) ) {
+		return e@message = error( nonFittingTypesError(), "operator can not be applied to \'<typeToString(lhsType)>\' and \'<typeToString(rhsType)>\'", e@location );
 	}
 		
-	e = resolveBinaryExpression( e, lhs_type, rhs_type, typeTree );
+	e = resolveBinaryExpression( e, lhsType, rhsType, typeTree );
 	
 	if( !isEmpty( override ) ) { e@\type = override; }
 	
 	return e;
 }
 
-default &T <: node resolvePointerAssignment( &T <: node n, lhs_type, rhs_type, Type \type ) {
-	if( lhs_type in CTypeTree[ rhs_type ] ) {
+default &T <: node resolvePointerAssignment( &T <: node n, lhsType, rhsType, Type \type ) {
+	if( lhsType in CTypeTree[ rhsType ] ) {
 		if( isExpression( n ) ) { n@\type = \type; }
 	} else {
-		n@message = error( pointerAssignmentError(), "type \'<typeToString(rhs_type)>\' is not a subtype of type \'<typeToString(lhs_type)>\'", n@location );
+		n@message = error( pointerAssignmentError(), "type \'<typeToString(rhsType)>\' is not a subtype of type \'<typeToString(lhsType)>\'", n@location );
 	}
 	return n;
 } 
-&T <: node resolvePointerAssignment( &T <: node n, pointer( lhs_type ), pointer( rhs_type ), Type \type ) = resolvePointerAssignment( n, lhs_type, rhs_type, \type );
+&T <: node resolvePointerAssignment( &T <: node n, pointer( lhsType ), pointer( rhsType ), Type \type ) = resolvePointerAssignment( n, lhsType, rhsType, \type );
 
 default Expr resolveAssignment( Expr e, _, _, _, _, _ ) = e[@message = error( "expression <delAnnotationsRec(lhs)> is not assignable", e@location )];
 Expr resolveAssignment(  Expr e, Expr lhs:var( id( name ) ), Expr rhs, TypeTree typeTree, Type category = usint8(), bool pointerArithmetic = false ) {
 	if( ! contains( e@indextable, symbolKey(name) ) ) { return e; }
 	if( isNotEligbleForResolvment( rhs ) || isNotEligbleForResolvment( lhs ) ) { return e; }
 
-	lhs_type = lookup( e@indextable, symbolKey(name) ).\type;
-	lhs_type = resolveTypeDefs( e@indextable, lhs_type );
-	rhs_type = getType( rhs );	
+	lhsType = lookup( e@indextable, symbolKey(name) ).\type;
+	lhsType = resolveTypeDefs( e@indextable, lhsType );
+	rhsType = getType( rhs );	
 
-	if( pointerArithmetic && arePointerArithmeticTypes( lhs_type, rhs_type, typeTree[ usint8() ] ) ) { 
-		return resolveAssignmentPointerArithmetic( e, lhs_type, rhs_type, typeTree[ usint8() ] ); 	
+	if( pointerArithmetic && arePointerArithmeticTypes( lhsType, rhsType, typeTree[ usint8() ] ) ) { 
+		return resolveAssignmentPointerArithmetic( e, lhsType, rhsType, typeTree[ usint8() ] ); 	
 	}
 	
-	if( isPointerType( lhs_type ) && isPointerType( rhs_type ) ) { 
-		return resolvePointerAssignment( e, lhs_type, rhs_type, lhs_type );
+	if( isPointerType( lhsType ) && isPointerType( rhsType ) ) { 
+		return resolvePointerAssignment( e, lhsType, rhsType, lhsType );
 	}
 	
-	if( ! fittingTypes( typeTree[ category ], [ lhs_type, rhs_type ] ) ) {
-		return e@message = error( nonFittingTypesError(), "assigment operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
+	if( ! fittingTypes( typeTree[ category ], [ lhsType, rhsType ] ) ) {
+		return e@message = error( nonFittingTypesError(), "assigment operator can not be applied to \'<typeToString(lhsType)>\' and \'<typeToString(rhsType)>\'", e@location );
 	}
 	
-	if( lhs_type in typeTree[ rhs_type ] ) {
-		return e@\type = lhs_type;
+	if( lhsType in typeTree[ rhsType ] ) {
+		return e@\type = lhsType;
 	} else {
-		return e@message = error( incompatibleTypesError(),"type \'<typeToString(rhs_type)>\' is not a subtype of type \'<typeToString(lhs_type)>\'", e@location);
+		return e@message = error( incompatibleTypesError(),"type \'<typeToString(rhsType)>\' is not a subtype of type \'<typeToString(lhsType)>\'", e@location);
 	}
 	
 	return e;
 }
 
-Decl resolveVariableAssignment( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr init), Type init_type ) {
-	if( function( Type return_type, list[Type] args ) := \type ) {
+Decl resolveVariableAssignment( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr init), Type initType ) {
+	if( function( Type returnType, list[Type] args ) := \type ) {
 		
-		return resolveVariableFunctionAssignment( v, args, return_type, init_type );
+		return resolveVariableFunctionAssignment( v, args, returnType, initType );
 		
-	} elseif( isPointerType( \type ) && isPointerType( init_type ) ) {
+	} elseif( isPointerType( \type ) && isPointerType( initType ) ) {
 		
-		return resolvePointerAssignment( v, \type, init_type, \type );
+		return resolvePointerAssignment( v, \type, initType, \type );
 		
-	} elseif( !( \type in CTypeTree[ init_type ] ) ) {
+	} elseif( !( \type in CTypeTree[ initType ] ) ) {
 		
-		return v@message = error( incompatibleTypesError(), "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
+		return v@message = error( incompatibleTypesError(), "\'<typeToString(initType)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
 		
 	}
 	
 	return v;
 }
 
-Decl resolveVariableFunctionAssignment( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr init), args, Type return_type, Type init_type ) {
-	if( function( Type init_return_type, list[Type] init_args ) := init_type ) {
-		v = resolveVariableFunctionAssignment( v, args, init_args, return_type, init_type, init_return_type );
+Decl resolveVariableFunctionAssignment( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr init), args, Type returnType, Type initType ) {
+	if( function( Type initReturnType, list[Type] initArgs ) := initType ) {
+		v = resolveVariableFunctionAssignment( v, args, initArgs, returnType, initType, initReturnType );
 	} else {
-		v@message = error( functionAssignmentError(),"expected function but got \'<typeToString(init_type)>\'", v@location );
+		v@message = error( functionAssignmentError(),"expected function but got \'<typeToString(initType)>\'", v@location );
 	}
 	
 	return v;
 }
 
-Decl resolveVariableFunctionAssignment( Decl v, args, init_args, Type return_type, Type init_type, Type init_return_type ) {
-	if( !(return_type in CTypeTree[init_return_type]) ) {
-		v@message = error( functionAssignmentError(),"expected function with return type \'<typeToString(return_type)>\' but got \'<typeToString(init_return_type)>\'", v@location );
-	} else if( args != init_args ) {
-		v@message = error( functionAssignmentError(),"expected function with argument types \'<for( arg <- args ){><typeToString(arg)>,<}>\' but got \'<for( init_arg <- init_args ){><typeToString(init_arg)>,<}>\'", v@location );
+Decl resolveVariableFunctionAssignment( Decl v, args, initArgs, Type returnType, Type initType, Type initReturnType ) {
+	if( !(returnType in CTypeTree[initReturnType]) ) {
+		v@message = error( functionAssignmentError(),"expected function with return type \'<typeToString(returnType)>\' but got \'<typeToString(initReturnType)>\'", v@location );
+	} else if( args != initArgs ) {
+		v@message = error( functionAssignmentError(),"expected function with argument types \'<for( arg <- args ){><typeToString(arg)>,<}>\' but got \'<for( initArgs <- initArgs ){><typeToString(initArgs)>,<}>\'", v@location );
 	}
 	
 	return v;
@@ -266,17 +266,17 @@ Expr resolveCall( Expr e:call( v:var( id( func ) ), list[Expr] args ), IndexTabl
 	return e;
 }
 
-Expr resolveSubScript2( Expr e, Type \type, Type sub_type ) {
-	if( sub_type in CIntegerTypeTree[ int8() ] ) {
+Expr resolveSubScript2( Expr e, Type \type, Type subType ) {
+	if( subType in CIntegerTypeTree[ int8() ] ) {
 		e@\type = \type;
 	} else {
 		e@message = error( subscriptMisuseError(), "array subscript is not an integer", sub@location );
 	}
 }
 
-Expr resolveSubScript( Expr e, Type array_type, Type sub_type ) {
-	if( array( \type ) := array_type || array( \type, _ ) := array_type || pointer( \type ) := array_type ) {
-		e = resolveSubScript2( e, \type, sub_type );
+Expr resolveSubScript( Expr e, Type arrayType, Type subType ) {
+	if( array( \type ) := arrayType || array( \type, _ ) := arrayType || pointer( \type ) := arrayType ) {
+		e = resolveSubScript2( e, \type, subType );
 	} else {
 		e@message = error( subscriptMismatchError(),"subscripted value is not an array, pointer, or vector", array@location );
 	}	

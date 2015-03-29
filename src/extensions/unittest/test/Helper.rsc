@@ -16,7 +16,7 @@ extend typing::indexer::Helper;
 extend typing::constraints::Helper;
 
 Module desugarModule( Module ast ) {
-	ast = desugar_unittest( ast );
+	ast = desugarUnitTest( ast );
 	ast = runDesugar( ast );
 	
 	return ast;

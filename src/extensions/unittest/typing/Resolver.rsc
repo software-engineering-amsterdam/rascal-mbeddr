@@ -13,11 +13,11 @@ ReturnResolver resolveReturnType( Stat s:\test( list[Id] tests ), Type expectedR
 }
 
 Stat resolve( Stat e:\assert( Expr \test ) ) {
-	test_type = getType( \test );
+	testType = getType( \test );
 
-	if( isEmpty( test_type ) ) return e;
+	if( isEmpty( testType ) ) return e;
 	
-	if( !( \boolean() := test_type ) ) {
+	if( !( \boolean() := testType ) ) {
 		e@message = error( assertAbuseError(), "an assert expression should be of the type boolean", e@location );
 	}
 	

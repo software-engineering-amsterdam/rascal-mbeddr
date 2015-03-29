@@ -60,10 +60,10 @@ ReturnResolver resolveReturnType( Stat s:\returnExpr(Expr expr), Type expectedRe
 }
 
 &T <: node checkReturnType( &T <: node n, Type expectedReturnType ) {
-	n_type = getType( n );
+	nType = getType( n );
 	
-	if( !( isEmpty( n_type ) ) && !( getType( expectedReturnType ) in CTypeTree[ n_type ] ) ) {
-		n@message = error( returnMismatchError(), "return type \'<typeToString( n_type )>\' not a subtype of expected type \'<typeToString( expectedReturnType )>\'", n@location ); 	
+	if( !( isEmpty( nType ) ) && !( getType( expectedReturnType ) in CTypeTree[ nType ] ) ) {
+		n@message = error( returnMismatchError(), "return type \'<typeToString( nType )>\' not a subtype of expected type \'<typeToString( expectedReturnType )>\'", n@location ); 	
 	}
 	
 	return n;
@@ -88,13 +88,13 @@ Decl resolve( Decl f:function(_, _, _, _, _) ) {
 
 
 Decl resolve( Decl v:variable(list[Modifier] mods, Type \type, id( name ), Expr init) ) {
-	init_type = getType( init );
+	initType = getType( init );
 	v.\type = getType( \type );
 
 	if( struct( id( structName ) ) := \type ) {
 		return resolveStruct( v, init, structName );
-	} elseif( !isEmpty(init_type ) ) {
-		v = resolveVariableAssignment( v, init_type );	
+	} elseif( !isEmpty(initType ) ) {
+		v = resolveVariableAssignment( v, initType );	
 	} 
 	
 	return v;
