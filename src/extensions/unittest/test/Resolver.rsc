@@ -4,8 +4,8 @@ extend \test::Base;
 import extensions::unittest::\test::Helper;
 import extensions::unittest::typing::TypeMessage;
 
-public test bool test_assert_boolean() {
-	str testCaseName = "test_assert_boolean";
+public test bool testDisallowAssertStatementWithNonBoolean() {
+	str testCaseName = "testDisallowAssertStatementWithNonBoolean";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -24,8 +24,8 @@ public test bool test_assert_boolean() {
 	return passed;
 }
 
-public test bool test_unkown_testcase_test() {
-	str testCaseName = "test_unkown_testcase_test";
+public test bool testDisallowRunningUndefinedTestCase() {
+	str testCaseName = "testDisallowRunningUndefinedTestCase";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -44,8 +44,8 @@ public test bool test_unkown_testcase_test() {
 	return passed;
 }
 
-public test bool test_wrong_testcase_test() {
-	str testCaseName = "test_wrong_testcase_test";
+public test bool testDisallowRunnigFunctionAsTestCase() {
+	str testCaseName = "testDisallowRunnigFunctionAsTestCase";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 

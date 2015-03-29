@@ -3,8 +3,8 @@ extend \test::Base;
 
 import extensions::unittest::\test::Helper;
 
-public test bool test_assert_constraint() {
-	str testCaseName = "test_assert_constraint";
+public test bool testDisallowAssertOutsideTestCase() {
+	str testCaseName = "testDisallowAssertOutsideTestCase";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -23,8 +23,8 @@ public test bool test_assert_constraint() {
 	return passed;
 }
 
-public test bool test_testcase_constraint() {
-	str testCaseName = "test_testcase_constraint";
+public test bool testDisallowTestCaseOutsideGlobalScope() {
+	str testCaseName = "testDisallowTestCaseOutsideGlobalScope";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -43,8 +43,8 @@ public test bool test_testcase_constraint() {
 	return passed;
 }
 
-public test bool test_test_return() {
-	str testCaseName = "test_test_return";
+public test bool testAllowTestStatementInFunctionBody() {
+	str testCaseName = "testAllowTestStatementInFunctionBody";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 

@@ -3,8 +3,8 @@ extend \test::Base;
 
 import extensions::unittest::\test::Helper;
 
-public test bool test_testcase() {
-	str testCaseName = "test_test_case";
+public test bool testDesugarTestCase() {
+	str testCaseName = "testDesugarTestCase";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "
@@ -24,8 +24,8 @@ public test bool test_testcase() {
 	return passed;
 }
 
-public test bool test_run_testcase() {
-	str testCaseName = "test_run_testcase";
+public test bool testDesugarRunTestCase() {
+	str testCaseName = "testDesugarRunTestCase";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "
