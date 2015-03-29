@@ -1,7 +1,7 @@
 module extensions::unittest::Desugar
 extend desugar::Base;
 
-import ext::List;
+import util::ext::List;
 
 import extensions::unittest::AST;  
 

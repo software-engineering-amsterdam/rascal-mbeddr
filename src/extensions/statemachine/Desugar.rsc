@@ -3,8 +3,8 @@ extend desugar::Base;
 
 import IO;
 import String;
-import ext::List;
-import ext::Node;
+import util::ext::List;
+import util::ext::Node;
 
 import util::Util;
 import extensions::statemachine::AST;

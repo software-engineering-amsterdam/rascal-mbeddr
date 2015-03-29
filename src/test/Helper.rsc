@@ -1,7 +1,7 @@
 module \test::Helper
 
 import ParseTree;
-import ext::Node;
+import util::ext::Node;
 
 import lang::mbeddr::MBeddrC;
 import lang::mbeddr::AST;

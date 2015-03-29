@@ -1,7 +1,7 @@
 module typing::resolver::Helper
 
 import IO;
-import ext::Node;
+import util::ext::Node;
 
 import typing::IndexTable;
 import lang::mbeddr::AST;

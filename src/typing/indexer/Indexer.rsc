@@ -1,8 +1,8 @@
 module typing::indexer::Indexer
 
 import IO;
-import ext::List;
-import ext::Node;
+import util::ext::List;
+import util::ext::Node;
 import typing::TypeMessage;
 import ParseTree;
 

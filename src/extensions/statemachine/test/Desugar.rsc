@@ -1,7 +1,7 @@
 module extensions::statemachine::\test::Desugar
 extend \test::Base;
 
-import ext::Node;
+import util::ext::Node;
 
 import extensions::statemachine::AST;
 import extensions::statemachine::Desugar;

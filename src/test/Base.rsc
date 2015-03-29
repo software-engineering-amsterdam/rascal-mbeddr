@@ -1,8 +1,8 @@
 module \test::Base
 
 import IO;
-import ext::List;
-import ext::Node;
+import util::ext::List;
+import util::ext::Node;
 import typing::TypeMessage;
 
 import lang::mbeddr::AST;
@@ -69,6 +69,7 @@ private void outputResult( str testCaseName, bool passed ) {
 }
 
 private void outputTest( str testCaseName, bool passed, list[tuple[ErrorType error, str msg]] expectedMsgs, list[Message] msgs ) {
+	outputResult( testCaseName, passed );
 	if( ! passed && PRINT ) {
         println("ERROR: <testCaseName> failed");
         println("expected errors: <[ msg.error | msg <- expectedMsgs]>");

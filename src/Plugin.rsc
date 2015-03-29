@@ -46,6 +46,16 @@ void printErrors( start[Module] m ) {
 	}
 }
 
+void printLinks( start[Module] m ) {
+	visit( m ) {
+		case Tree t : {
+			if( "link" in getAnnotations(t) ) {
+				println( "<t@\loc> -\> <t@link>" );
+			}
+		}
+	}
+}
+
 void convert2C(Tree tree, loc selection) {
     println("Showing C...");
     if (start[Module] m := tree) {
@@ -73,7 +83,7 @@ start[Module] typeCheckerAnnotator( start[Module] m ) {
 	
 	msgs = collectMessages( ast );
 	links = collectLinks( ast );
-	iprintln(links);
+	
 	return visit( m ) {
 		case Tree t : { 
 			if( msgs[t@\loc]? ) {

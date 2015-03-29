@@ -18,13 +18,16 @@ Module runTypeChecker( Module m ) {
 	return m;
 }
 
+private default Message convertMessage( Message msg ) = msg;
+private Message convertMessage( Message m:error( _, str msg, loc at ) ) = error( msg, at );
+
 public map[loc,Message] collectMessages( Module m ) {
 	result = ();
 	
 	visit( m ) {
 		case &T <: node n : {
 			if( "message" in getAnnotations( n ) ) {
-				result[n@location] = n@message;
+				result[n@location] = convertMessage( n@message );
 			}
 		}
 	}

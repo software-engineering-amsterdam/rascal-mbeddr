@@ -1,7 +1,7 @@
 module typing::resolver::Declaration
 extend typing::resolver::Base;
 
-import ext::Node;
+import util::ext::Node;
 import typing::Util;
 
 alias ReturnResolver = tuple[bool,Type,Stat];

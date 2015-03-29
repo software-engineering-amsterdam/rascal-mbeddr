@@ -2,7 +2,7 @@ module extensions::baseextensions::\test::Resolver
 extend \test::Base;
 
 import typing::TypeMessage;
-import ext::Node;
+import util::ext::Node;
 
 import extensions::baseextensions::\test::Helper;
 

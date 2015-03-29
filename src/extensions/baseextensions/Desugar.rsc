@@ -2,8 +2,8 @@ module extensions::baseextensions::Desugar
 extend desugar::Base;
 
 // LIBRARY IMPORTS
-import ext::List;
-import ext::Node;
+import util::ext::List;
+import util::ext::Node;
 import IO;
 
 // LOCAL IMPORTS

@@ -606,3 +606,25 @@ public test bool testAllowInitializationOfConstant() {
 	
 	return passed;
 }
+
+public test bool testPlusOperatorDoesntResolveToBoolean() {
+	str testCaseName = "testPlusOperatorDoesntResolveToBoolean";
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	passed = true;
+	str input = "module Test;
+	int8 x = 10;
+	
+	void main() {
+		if( (x == 10) + 1 ) {
+			return;
+		}
+	}
+	";
+	msgs = resolver( input );
+	
+	expectedMsgs = [< nonFittingTypesError(), "operator can not be applied to \'boolean\' and \'uint8 || int8\'" >];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}

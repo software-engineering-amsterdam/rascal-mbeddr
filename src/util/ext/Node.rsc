@@ -1,4 +1,4 @@
-module ext::Node
+module util::ext::Node
 extend Node;
 
 public &T <: node copyAnnotations( &T <: node n, &T <: node m ) {

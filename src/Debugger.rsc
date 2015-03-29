@@ -5,7 +5,7 @@ import Plugin;
 import TypeChecker;
 import Desugar;
 
-import ext::List;
+import util::ext::List;
 
 public loc unittest = |project://rascal-mbeddr/input/tests.mbdr|;
 public loc helloworld = |project://rascal-mbeddr/input/helloworld.mbdr|;

@@ -5,9 +5,8 @@ import typing::TypeMessage;
 
 import extensions::statemachine::\test::Helper;
 
-
-public test bool test_order_independent_state() {
-	str testCaseName = "test_order_independent_state";
+public test bool testAllowStateReferenceIndependentOfOrder() {
+	str testCaseName = "testAllowStateReferenceIndependentOfOrder";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -28,8 +27,8 @@ public test bool test_order_independent_state() {
 	return passed;
 }
 
-public test bool test_state_reference() {
-	str testCaseName = "test_state_reference";
+public test bool testDisallowReferenceOfUndefinedEvent() {
+	str testCaseName = "testDisallowReferenceOfUndefinedEvent";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -49,8 +48,8 @@ public test bool test_state_reference() {
 	return passed;
 }
 
-public test bool test_on_condition_1() {
-	str testCaseName = "test_on_condition_1";
+public test bool testDisallowNonBooleanConditionTypeForOnEvent() {
+	str testCaseName = "testDisallowNonBooleanConditionTypeForOnEvent";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -70,8 +69,8 @@ public test bool test_on_condition_1() {
 	return passed;
 }
 
-public test bool test_on_condition_2() {
-	str testCaseName = "test_on_condition_2";
+public test bool testAllowArgumentReferenceInEventConditional() {
+	str testCaseName = "testAllowArgumentReferenceInEventConditional";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -91,8 +90,8 @@ public test bool test_on_condition_2() {
 	return passed;
 }
 
-public test bool test_on_condition_3() {
-	str testCaseName = "test_on_condition_3";
+public test bool testAllowVarReferenceInEventConditional() {
+	str testCaseName = "testAllowVarReferenceInEventConditional";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -113,8 +112,8 @@ public test bool test_on_condition_3() {
 	return passed;
 }
 
-public test bool test_on_event_1() {
-	str testCaseName = "test_on_event_1";
+public test bool testDisallowOnEventForUnknownEvent() {
+	str testCaseName = "testDisallowOnEventForUnknownEvent";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -133,8 +132,8 @@ public test bool test_on_event_1() {
 	return passed;
 }
 
-public test bool test_on_event_2() {
-	str testCaseName = "test_on_event_2";
+public test bool testDisallowOnEventForOutEvent() {
+	str testCaseName = "testDisallowOnEventForOutEvent";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -155,8 +154,8 @@ public test bool test_on_event_2() {
 	return passed;
 }
 
-public test bool test_initial_state_1() {
-	str testCaseName = "test_initial_state_1";
+public test bool testDisallowUseOfUndefinedStateAsInitialState() {
+	str testCaseName = "testDisallowUseOfUndefinedStateAsInitialState";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -174,8 +173,8 @@ public test bool test_initial_state_1() {
 	return passed;
 }
 
-public test bool test_initial_state_2() {
-	str testCaseName = "test_initial_state_2";
+public test bool testDisallowUseOfInitialStateThatIsNotOfTypeState() {
+	str testCaseName = "testDisallowUseOfInitialStateThatIsNotOfTypeState";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -194,8 +193,8 @@ public test bool test_initial_state_2() {
 	return passed;
 }
 
-public test bool test_initial_state_3() {
-	str testCaseName = "test_initial_state_3";
+public test bool testAllowUseOfInitialState() {
+	str testCaseName = "testAllowUseOfInitialState";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -213,8 +212,8 @@ public test bool test_initial_state_3() {
 	return passed;
 }
 
-public test bool test_var_declaration() {
-	str testCaseName = "test_var_declaration";
+public test bool testDisallowUncompatibleTypesOnVarDeclarationsInsideStateMachine() {
+	str testCaseName = "testDisallowUncompatibleTypesOnVarDeclarationsInsideStateMachine";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -232,8 +231,8 @@ public test bool test_var_declaration() {
 	return passed;
 }
 
-public test bool test_outevent_call_1() {
-	str testCaseName = "test_outevent_call_1";
+public test bool testDisallowWrongAmountOfArgumentsOnSend() {
+	str testCaseName = "testDisallowWrongAmountOfArgumentsOnSend";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -255,8 +254,8 @@ public test bool test_outevent_call_1() {
 	return passed;
 }
 
-public test bool test_outevent_call_2() {
-	str testCaseName = "test_outevent_call_2";
+public test bool testDisallowWrongArgumentTypesOnSend() {
+	str testCaseName = "testDisallowWrongArgumentTypesOnSend";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -279,8 +278,8 @@ public test bool test_outevent_call_2() {
 	return passed;
 }
 
-public test bool test_outevent_call_3() {
-	str testCaseName = "test_outevent_call_3";
+public test bool testDisallowReferenceOfUnknownOutEventInSend() {
+	str testCaseName = "testDisallowReferenceOfUnknownOutEventInSend";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -301,8 +300,8 @@ public test bool test_outevent_call_3() {
 	return passed;
 }
 
-public test bool test_outevent_call_4() {
-	str testCaseName = "test_outevent_call_4";
+public test bool testDisallowReferenceOfOutEventOfWrongType() {
+	str testCaseName = "testDisallowReferenceOfOutEventOfWrongType";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -322,8 +321,8 @@ public test bool test_outevent_call_4() {
 	return passed;
 }
 
-public test bool test_outevent_ref_1() {
-	str testCaseName = "test_outevent_ref_1";
+public test bool testDisallowOutEventWithUnknownFunction() {
+	str testCaseName = "testDisallowOutEventWithUnknownFunction";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -340,8 +339,8 @@ public test bool test_outevent_ref_1() {
 	return passed;
 }
 
-public test bool test_outevent_ref_2() {
-	str testCaseName = "test_outevent_ref_2";
+public test bool testDisallowOutEventDeclarationWithWrongArgumentTypes() {
+	str testCaseName = "testDisallowOutEventDeclarationWithWrongArgumentTypes";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -361,8 +360,8 @@ public test bool test_outevent_ref_2() {
 	return passed;
 }
 
-public test bool test_outevent_ref_3() {
-	str testCaseName = "test_outevent_ref_3";
+public test bool testDisallowOutEventDeclarationWithNonFunction() {
+	str testCaseName = "testDisallowOutEventDeclarationWithNonFunction";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -380,8 +379,8 @@ public test bool test_outevent_ref_3() {
 	return passed;
 }
 
-public test bool test_outevent_ref_4() {
-	str testCaseName = "test_outevent_ref_4";
+public test bool testAllowCorrectDeclarationOfOutEvent() {
+	str testCaseName = "testAllowCorrectDeclarationOfOutEvent";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -399,8 +398,8 @@ public test bool test_outevent_ref_4() {
 	return passed;
 }
 
-public test bool test_on_body() {
-	str testCaseName = "test_on_body";
+public test bool testDisallowUseOfUndeclaredVariableInsideStateSwitchBody() {
+	str testCaseName = "testDisallowUseOfUndeclaredVariableInsideStateSwitchBody";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -422,8 +421,8 @@ public test bool test_on_body() {
 	return passed;
 }
 
-public test bool test_statemachine_typedef() {
-	str testCaseName = "test_statemachine_typedef";
+public test bool testDisallowRedefinitionOfInitializedStateMachine() {
+	str testCaseName = "testDisallowRedefinitionOfInitializedStateMachine";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -446,8 +445,8 @@ public test bool test_statemachine_typedef() {
 	return passed;
 }
 
-public test bool test_statemachine_init() {
-	str testCaseName = "test_statemachine_init";
+public test bool testAllowInitializationOfStateMachine() {
+	str testCaseName = "testAllowInitializationOfStateMachine";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -470,8 +469,8 @@ public test bool test_statemachine_init() {
 	return passed;
 } 
 
-public test bool test_statemachine_state_access() {
-	str testCaseName = "test_statemachine_state_access";
+public test bool testAllowStateReferenceFromInitializedStateMachine() {
+	str testCaseName = "testAllowStateReferenceFromInitializedStateMachine";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -494,8 +493,8 @@ public test bool test_statemachine_state_access() {
 	return passed;
 }
 
-public test bool test_trigger_event_1() {
-	str testCaseName = "test_trigger_event_1";
+public test bool testAllowTriggerEventFromInitializedStateMachine() {
+	str testCaseName = "testAllowTriggerEventFromInitializedStateMachine";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -519,8 +518,8 @@ public test bool test_trigger_event_1() {
 	return passed;
 }
 
-public test bool test_trigger_event_2() {
-	str testCaseName = "test_trigger_event_2";
+public test bool testDisallowCallingUndefinedFunctionOnInitializedStateMachine() {
+	str testCaseName = "testDisallowCallingUndefinedFunctionOnInitializedStateMachine";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 

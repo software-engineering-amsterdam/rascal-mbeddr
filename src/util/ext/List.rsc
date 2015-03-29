@@ -1,4 +1,4 @@
-module ext::List
+module util::ext::List
 extend List;
 
 list[&T] insertListFor( list[&T] lst, int n, list[&T] input ) {
