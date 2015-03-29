@@ -14,7 +14,7 @@ indexer( Decl d:stateMachine( list[Modifier] mods, id( name ), list[Id] initial,
 	storeResult = store( table, typeKey(name,typedef()), typeRow( stateMachine( name ), scope, true ) );
 	
 	if( storeResult.errorMsg != "" ) {
-		d.name = id( name )[@message = error( storeResult.errorMsg, d.name@location )]; 
+		d.name = id( name )[@message = error( indexError(), storeResult.errorMsg, d.name@location )]; 
 	}
 	
 	storeResult = store( storeResult.table, symbolKey( name ), symbolRow( stateMachine( name ), scope, true ) );

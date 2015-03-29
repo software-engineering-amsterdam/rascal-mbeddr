@@ -4,6 +4,7 @@ extend \test::Base;
 import extensions::statemachine::\test::Helper;
 
 public test bool test_send_constraint_1() {
+	str testCaseName = "test_send_constraint_1";
 	str input = 
 	" module Test;
 	' 
@@ -12,12 +13,16 @@ public test bool test_send_constraint_1() {
 	' }
 	";
 	msgs = constraints( input );
+
+	expectedMsgs = [ < constraintError(), "send statement is constrained to entry or exit bodies" > ];
+	passed = equalMessages( msgs, expectedMsgs );	
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	return size(msgs) > 0 &&
-		   error( "send statement is constrained to entry or exit bodies", _ ) := msgs[0];
+	return passed;
 }
 
 public test bool test_send_constraint_2() {
+	str testCaseName = "test_send_constraint_2";
 	str input = 
 	" module Test;
 	' 
@@ -29,10 +34,15 @@ public test bool test_send_constraint_2() {
 	";
 	msgs = constraints( input );
 	
-	return size( msgs ) == 0;
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );	
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_send_constraint_3() {
+	str testCaseName = "test_send_constraint_3";
 	str input = 
 	" module Test;
 	' 
@@ -44,5 +54,9 @@ public test bool test_send_constraint_3() {
 	";
 	msgs = constraints( input );
 	
-	return size( msgs ) == 0;
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );	
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }

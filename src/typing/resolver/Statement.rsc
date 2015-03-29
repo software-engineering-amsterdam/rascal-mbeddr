@@ -11,7 +11,7 @@ Stat resolve( Stat s:ifThen(Expr cond, Stat body) ) {
 	if( isEmpty( cond_type ) ) { return s; }
 	
 	if( !( boolean() := cond_type ) ) {
-		return s@message = error( "if condition should be a \'boolean\'", s@location );
+		return s@message = error( conditionalAbuseError(), "if condition should be a \'boolean\'", s@location );
 	} else {
 		return s;
 	}
@@ -23,7 +23,7 @@ Stat resolve( Stat s:ifThenElse(Expr cond, Stat body, Stat els) ) {
 	if( isEmpty( cond_type ) ) { return s; }
 	
 	if( !( boolean() := cond_type ) ) {
-		return s@message = error( "if condition should be a \'boolean\'", s@location );
+		return s@message = error( conditionalAbuseError(), "if condition should be a \'boolean\'", s@location );
 	} else {
 		return s;
 	}
@@ -35,7 +35,7 @@ Stat resolve( Stat s:\while(Expr cond, Stat body) ) {
 	if( isEmpty( cond_type ) ) { return s; }
 	
 	if( !( boolean() := cond_type ) ) {
-		return s@message = error( "while condition should be a \'boolean\'", s@location );
+		return s@message = error( loopAbuseError(), "while condition should be a \'boolean\'", s@location );
 	} else {
 		return s;
 	}
@@ -47,7 +47,7 @@ Stat resolve( Stat s:doWhile(Stat body, Expr cond)  ) {
 	if( isEmpty( cond_type ) ) { return s; }
 	
 	if( !( boolean() := cond_type ) ) {
-		return s@message = error( "do while condition should be a \'boolean\'", s@location );
+		return s@message = error( loopAbuseError(), "do while condition should be a \'boolean\'", s@location );
 	} else {
 		return s;
 	}

@@ -3,7 +3,7 @@ module typing::indexer::Indexer
 import IO;
 import ext::List;
 import ext::Node;
-import Message;
+import typing::TypeMessage;
 import ParseTree;
 
 import util::Util;
@@ -27,7 +27,7 @@ list[&T <: node] indexer( list[&T <: node] nodeList, IndexTable table, Scope sco
 	newNode@indextable = result.table;
 	
 	if( result.errorMsg != "" ) {
-		newNode@message = error( result.errorMsg, newNode@location );
+		newNode@message = error( indexError(), result.errorMsg, newNode@location );
 	}
 	
 	return newNode; 
@@ -351,7 +351,7 @@ tuple[ Decl astNode, IndexTable table, str errorMsg ]
 indexer( Decl d:constant( id( name ), Expr init ), IndexTable table, Scope scope ) {
 	visit( init ) {
 		case var(id(_)) : { 
-			d.init@message = error( "global constants must be statically evaluatable", d.init@location );
+			d.init@message = error( staticEvaluationError(), "global constants must be statically evaluatable", d.init@location );
 			return <d,table,"">; 
 		}
 	}

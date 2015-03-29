@@ -19,5 +19,5 @@ private default Stat checkSend( Stat s ) = s;
 private Stat checkSend( Stat s:send(_,_) ) = delAnnotation( s, "message" );
 
 Stat constraint( Stat s:send( _, _ ) ) {
-	return s[@message=error("send statement is constrained to entry or exit bodies",s@location)];
+	return s[@message=error( constraintError(), "send statement is constrained to entry or exit bodies", s@location )];
 }

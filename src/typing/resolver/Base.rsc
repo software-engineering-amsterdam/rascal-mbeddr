@@ -3,7 +3,7 @@ module typing::resolver::Base
 import ext::List;
 import ext::Node;
 import IO;
-import Message;
+import typing::TypeMessage;
 
 import lang::mbeddr::AST;
 
@@ -91,7 +91,7 @@ public Expr resolveUnionField( Expr e, Type \type, str name ) {
 public default Expr resolveField( Expr e, Type \type, str name ) {
 	if( isStructType( \type ) ) { return resolveStructField( e, \type, name ); }
 	if( isUnionType( \type ) ) { return resolveUnionField( e, \type, name ); }
-	return e@\message = error( "member reference base type \'<typeToString(\type)>\' is not a structure or union", e@location );
+	return e@\message = error( fieldReferenceError(), "member reference base type \'<typeToString(\type)>\' is not a structure or union", e@location );
 }
 
 public default Expr resolvePtrField( Expr e, Type record_type, list[Field] fields, str name ) {
@@ -99,7 +99,7 @@ public default Expr resolvePtrField( Expr e, Type record_type, list[Field] field
         return e@\type = fieldType;
 	}
 	
-	return e@message = error( "no member named \'<name>\' in \'<typeToString(record_type)>\'", e@location );
+	return e@message = error( fieldReferenceError(), "no member named \'<name>\' in \'<typeToString(record_type)>\'", e@location );
 }
 
 public Expr resolveUnaryExpression( Expr e, Expr arg, TypeTree typeTree, Type category = number(), bool pointerArithmetic = false ) {
@@ -108,7 +108,7 @@ public Expr resolveUnaryExpression( Expr e, Expr arg, TypeTree typeTree, Type ca
 
 	if( arg_type in typeTree[ category ] ) { return e@\type = arg_type; } 
 	if( pointerArithmetic && isPointerType( arg_type ) ) { return e@\type = arg_type; } 
-	return e@message = error( "invalid argument type \'<typeToString(arg_type)>\' to unary expression", e@location );
+	return e@message = error( unaryArgumentError(), "invalid argument type \'<typeToString(arg_type)>\' to unary expression", e@location );
 }
 
 public Decl resolveStruct( Decl d, list[Field] initFields, list[Field] fields ) {
@@ -117,7 +117,7 @@ public Decl resolveStruct( Decl d, list[Field] initFields, list[Field] fields ) 
 		initFieldType = extractFieldType( initFields[i] );
 		
 		if( !(fieldType in CTypeTree[ initFieldType ]) ) {
-			return d@message = error(  "\'<typeToString(initFieldType)>\' not a subtype of \'<typeToString(fieldType)>\'", d@location );
+			return d@message = error( structAssignmentError(), "\'<typeToString(initFieldType)>\' not a subtype of \'<typeToString(fieldType)>\'", d@location );
 		}
 	}
 	
@@ -131,14 +131,14 @@ public Decl resolveStruct( Decl d, Expr init, str structName ) {
 	if( struct( list[Field] initFields ) := init_type && struct( list[Field] fields ) := lookup( d@indextable, typeKey( structName,struct() ) ).\type ) {
 		return resolveStruct( d, initFields, fields );
 	}
-	return d@message = error(  "initializing \'<typeToString(\type)>\' with an expression of incompatible type \'<typeToString(init@\type)>\'", d@location );
+	return d@message = error( structAssignmentError(), "initializing \'<typeToString(\type)>\' with an expression of incompatible type \'<typeToString(init@\type)>\'", d@location );
 }
 
 public Expr resolveBinaryExpression( Expr e, Type lhs_type, Type rhs_type, TypeTree typeTree ) {
 	if( lhs_type == rhs_type ) { e@\type = lhs_type; } 
 	elseif( rhs_type in typeTree[ lhs_type ] ) { e@\type = lhs_type; } 
 	elseif( lhs_type in typeTree[ rhs_type ] ) { e@\type = rhs_type; } 
-	else { e@message = error(  "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location ); }
+	else { e@message = error( binaryArgumentError(), "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location ); }
 	return e;
 }
 
@@ -152,7 +152,7 @@ public Expr resolveBinaryExpression( Expr e, Expr lhs, Expr rhs, TypeTree typeTr
 	} 
 	
 	if( ! fittingTypes( typeTree[ category ], [lhs_type, rhs_type] ) ) {
-		return e@message = error(  "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
+		return e@message = error( nonFittingTypesError(), "operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
 	}
 		
 	e = resolveBinaryExpression( e, lhs_type, rhs_type, typeTree );
@@ -166,7 +166,7 @@ default &T <: node resolvePointerAssignment( &T <: node n, lhs_type, rhs_type, T
 	if( lhs_type in CTypeTree[ rhs_type ] ) {
 		if( isExpression( n ) ) { n@\type = \type; }
 	} else {
-		n@message = error( "type \'<typeToString(rhs_type)>\' is not a subtype of type \'<typeToString(lhs_type)>\'", n@location );
+		n@message = error( pointerAssignmentError(), "type \'<typeToString(rhs_type)>\' is not a subtype of type \'<typeToString(lhs_type)>\'", n@location );
 	}
 	return n;
 } 
@@ -190,13 +190,13 @@ Expr resolveAssignment(  Expr e, Expr lhs:var( id( name ) ), Expr rhs, TypeTree 
 	}
 	
 	if( ! fittingTypes( typeTree[ category ], [ lhs_type, rhs_type ] ) ) {
-		return e@message = error(  "assigment operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
+		return e@message = error( nonFittingTypesError(), "assigment operator can not be applied to \'<typeToString(lhs_type)>\' and \'<typeToString(rhs_type)>\'", e@location );
 	}
 	
 	if( lhs_type in typeTree[ rhs_type ] ) {
 		return e@\type = lhs_type;
 	} else {
-		return e@message = error( "type \'<typeToString(rhs_type)>\' is not a subtype of type \'<typeToString(lhs_type)>\'", e@location);
+		return e@message = error( incompatibleTypesError(),"type \'<typeToString(rhs_type)>\' is not a subtype of type \'<typeToString(lhs_type)>\'", e@location);
 	}
 	
 	return e;
@@ -213,7 +213,7 @@ Decl resolveVariableAssignment( Decl v:variable(list[Modifier] mods, Type \type,
 		
 	} elseif( !( \type in CTypeTree[ init_type ] ) ) {
 		
-		return v@message = error(  "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
+		return v@message = error( incompatibleTypesError(), "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", v@location );
 		
 	}
 	
@@ -224,7 +224,7 @@ Decl resolveVariableFunctionAssignment( Decl v:variable(list[Modifier] mods, Typ
 	if( function( Type init_return_type, list[Type] init_args ) := init_type ) {
 		v = resolveVariableFunctionAssignment( v, args, init_args, return_type, init_type, init_return_type );
 	} else {
-		v@message = error( "expected function but got \'<typeToString(init_type)>\'", v@location );
+		v@message = error( functionAssignmentError(),"expected function but got \'<typeToString(init_type)>\'", v@location );
 	}
 	
 	return v;
@@ -232,9 +232,9 @@ Decl resolveVariableFunctionAssignment( Decl v:variable(list[Modifier] mods, Typ
 
 Decl resolveVariableFunctionAssignment( Decl v, args, init_args, Type return_type, Type init_type, Type init_return_type ) {
 	if( !(return_type in CTypeTree[init_return_type]) ) {
-		v@message = error( "expected function with return type \'<typeToString(return_type)>\' but got \'<typeToString(init_return_type)>\'", v@location );
+		v@message = error( functionAssignmentError(),"expected function with return type \'<typeToString(return_type)>\' but got \'<typeToString(init_return_type)>\'", v@location );
 	} else if( args != init_args ) {
-		v@message = error( "expected function with argument types \'<for( arg <- args ){><typeToString(arg)>,<}>\' but got \'<for( init_arg <- init_args ){><typeToString(init_arg)>,<}>\'", v@location );
+		v@message = error( functionAssignmentError(),"expected function with argument types \'<for( arg <- args ){><typeToString(arg)>,<}>\' but got \'<for( init_arg <- init_args ){><typeToString(init_arg)>,<}>\'", v@location );
 	}
 	
 	return v;
@@ -242,12 +242,12 @@ Decl resolveVariableFunctionAssignment( Decl v, args, init_args, Type return_typ
 
 Expr resolveCall( Expr e, Type returnType, list[Expr] args, list[Type] argsTypes ) {		
 	if( size( argsTypes ) != size( args ) ) {
-		return e[@message = error(  "too many arguments to function call, expected <size(argsTypes)>, have <size(args)>", e@location )];
+		return e[@message = error( argumentsMismatchError(),  "too many arguments to function call, expected <size(argsTypes)>, have <size(args)>", e@location )];
 	}
 	
 	for( int i <- [0..size(args)] ) {
 		if( ! ( argsTypes[ i ] == getType( args[ i ] ) || argsTypes[ i ] in CTypeTree[ getType( args[ i ] ) ] ) ) {
-			e@message = error(  "wrong argument type(s)", e@location );
+			e@message = error( argumentsMismatchError(), "wrong argument type(s)", e@location );
 		}
 	}
 	
@@ -260,7 +260,7 @@ Expr resolveCall( Expr e:call( v:var( id( func ) ), list[Expr] args ), IndexTabl
 	if( contains( table, symbolKey(func) ) && function(Type returnType, list[Type] argsTypes) := lookup( table, symbolKey(func) ).\type ) {
 		e = resolveCall( e, returnType, args, argsTypes );
 	} else {
-		e@message = error(  "calling undefined function \'<func>\'", e@location );
+		e@message = error( referenceError(), "calling undefined function \'<func>\'", e@location );
 	}
 	
 	return e;
@@ -270,7 +270,7 @@ Expr resolveSubScript2( Expr e, Type \type, Type sub_type ) {
 	if( sub_type in CIntegerTypeTree[ int8() ] ) {
 		e@\type = \type;
 	} else {
-		e@message = error(  "array subscript is not an integer", sub@location );
+		e@message = error( subscriptMisuseError(), "array subscript is not an integer", sub@location );
 	}
 }
 
@@ -278,7 +278,7 @@ Expr resolveSubScript( Expr e, Type array_type, Type sub_type ) {
 	if( array( \type ) := array_type || array( \type, _ ) := array_type || pointer( \type ) := array_type ) {
 		e = resolveSubScript2( e, \type, sub_type );
 	} else {
-		e@message = error( "subscripted value is not an array, pointer, or vector", array@location );
+		e@message = error( subscriptMismatchError(),"subscripted value is not an array, pointer, or vector", array@location );
 	}	
 	
 	return e;

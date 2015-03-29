@@ -1,7 +1,7 @@
 module extensions::statemachine::\test::Resolver
 extend \test::Base;
 
-import Message;
+import typing::TypeMessage;
 
 import extensions::statemachine::\test::Helper;
 
@@ -42,7 +42,7 @@ public test bool test_state_reference() {
 	'}";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["unknown event \'airborne\'"];
+	expectedMsgs = [< referenceError(), "unknown event \'airborne\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -63,7 +63,7 @@ public test bool test_on_condition_1() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["expression expected to be of \'boolean\' type"];
+	expectedMsgs = [< conditionalAbuseError(), "expression expected to be of \'boolean\' type" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -126,7 +126,7 @@ public test bool test_on_event_1() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["unkown in event \'next\'"];
+	expectedMsgs = [< referenceError(), "unkown in event \'next\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -148,7 +148,7 @@ public test bool test_on_event_2() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["\'next\' is not an in event, but \'outEvent\'"];
+	expectedMsgs = [< typeMismatchError(), "\'next\' is not an in event, but \'outEvent\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -167,7 +167,7 @@ public test bool test_initial_state_1() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["undefined initial state \'airborne\'"];
+	expectedMsgs = [< referenceError(), "undefined initial state \'airborne\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -187,7 +187,7 @@ public test bool test_initial_state_2() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["initial state \'airborne\' is not of the type \'state\'"];
+	expectedMsgs = [< typeMismatchError(), "initial state \'airborne\' is not of the type \'state\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -225,7 +225,7 @@ public test bool test_var_declaration() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["\'int32\' not a subtype of \'int8\'"];
+	expectedMsgs = [< incompatibleTypesError(), "\'int32\' not a subtype of \'int8\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -248,7 +248,7 @@ public test bool test_outevent_call_1() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["too many arguments to out event call, expected 1, have 0"];
+	expectedMsgs = [< argumentsMismatchError(), "too many arguments to out event call, expected 1, have 0" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -272,7 +272,7 @@ public test bool test_outevent_call_2() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["wrong argument type(s)"];
+	expectedMsgs = [< argumentsMismatchError(), "wrong argument type(s)" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -294,7 +294,7 @@ public test bool test_outevent_call_3() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["unkown out event \'crashNotification\'"];
+	expectedMsgs = [< referenceError(), "unkown out event \'crashNotification\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -315,7 +315,7 @@ public test bool test_outevent_call_4() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["\'crashNotification\' is not an out event, but \'inEvent\'"];
+	expectedMsgs = [< typeMismatchError(), "\'crashNotification\' is not an out event, but \'inEvent\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -333,7 +333,7 @@ public test bool test_outevent_ref_1() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["unkown function \'raiseAlarm\'"];
+	expectedMsgs = [< referenceError(), "unkown function \'raiseAlarm\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -354,7 +354,7 @@ public test bool test_outevent_ref_2() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["wrong argument type(s)"];
+	expectedMsgs = [< argumentsMismatchError(), "wrong argument type(s)" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -373,7 +373,7 @@ public test bool test_outevent_ref_3() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["\'raiseAlarm\' is not a function, but \'int32\'"];
+	expectedMsgs = [< functionReferenceError(), "\'raiseAlarm\' is not a function, but \'int32\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -415,7 +415,7 @@ public test bool test_on_body() {
 	'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["use of undeclared variable \'points\'"];
+	expectedMsgs = [< referenceError(), "use of undeclared variable \'points\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -439,7 +439,7 @@ public test bool test_statemachine_typedef() {
 	";
 	msgs = resolver( input );
 
-	expectedMsgs = ["redefinition of \'FlightAnalyzer\'"];
+	expectedMsgs = [< redefinitionError(), "redefinition of \'FlightAnalyzer\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	

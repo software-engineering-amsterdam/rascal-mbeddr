@@ -12,8 +12,6 @@ import typing::Scope;
 import typing::resolver::Base;
 import extensions::baseextensions::AST;
 
-// DESUGAR BASEEXTENSIONS
-
 Module desugarBaseExtensions( Module m:\module( name, imports, decls ) ) {
 	m = desugarLambdas( m );
 	
@@ -25,17 +23,15 @@ private Module desugarLambdas( Module m:\module( name, imports, decls ) ) {
 	list[Decl] liftedLambdas = [];
 	IndexTable liftedLambdaGlobals = (); 
 
-	// Find lambdas and lift to top-level function
 	solve( m ) {
 		m = visit( m ) {
 			case l:lambda( list[Param] params, body ) : { 
 				i += 1;
 				liftedParams = findLiftedParams( body, params, liftedLambdaGlobals );
 		
-				liftedLambdas += function( [static()], l@\type, id("lambda_function_$<i>"), params + liftedParams, liftLambdaBody( body ) );
+				liftedLambdas += function( [], l@\type.returnType, id("lambda_function_$<i>"), params + liftedParams, liftLambdaBody( body ) );
 				liftedLambdaGlobals = store( liftedLambdaGlobals, symbolKey("lambda_function_$<i>"), symbolRow( l@\type, global(), true ) ).table;
 				
-				// TODO detect uses of lambda and replace those 
 				n = var( id( "lambda_function_$<i>" ) );
 				insert n;
 			}

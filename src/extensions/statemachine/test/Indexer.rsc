@@ -4,16 +4,22 @@ extend \test::Base;
 import extensions::statemachine::\test::Helper;
 
 public test bool test_empty_statemachine() {
+	str testCaseName = "test_empty_statemachine";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {
 	'}";
 	msgs = indexer( input );
+
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );	
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	return size(msgs) == 0;
+	return passed;
 }
 
 public test bool test_state_redefinition() {
+	str testCaseName = "test_state_redefinition";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {
@@ -22,11 +28,15 @@ public test bool test_state_redefinition() {
 	'}";
 	msgs = indexer( input );
 	
-	return size(msgs) == 1 &&
-		   error( "redefinition of \'airborne\'", _ ) := msgs[0];
+	expectedMsgs = [< indexError(), "redefinition of \'airborne\'" >];
+	passed = equalMessages( msgs, expectedMsgs );	
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_var_redefinition() {
+	str testCaseName = "test_var_redefinition";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {
@@ -35,11 +45,15 @@ public test bool test_var_redefinition() {
 	'}";
 	msgs = indexer( input );
 	
-	return size(msgs) == 1 &&
-		   error( "redefinition of \'points\'", _ ) := msgs[0];
+	expectedMsgs = [< indexError(), "redefinition of \'points\'" >];
+	passed = equalMessages( msgs, expectedMsgs );	
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_inevent_redefinition() {
+	str testCaseName = "test_inevent_redefinition";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {
@@ -48,11 +62,15 @@ public test bool test_inevent_redefinition() {
 	'}";
 	msgs = indexer( input );
 	
-	return size(msgs) == 1 &&
-		   error( "redefinition of \'next\'", _ ) := msgs[0];
+	expectedMsgs = [< indexError(), "redefinition of \'next\'" >];
+	passed = equalMessages( msgs, expectedMsgs );	
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_outevent_redefinition() {
+	str testCaseName = "test_outevent_redefinition";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {
@@ -61,11 +79,15 @@ public test bool test_outevent_redefinition() {
 	'}";
 	msgs = indexer( input );
 	
-	return size(msgs) == 1 &&
-		   error( "redefinition of \'crashNotification\'", _ ) := msgs[0];
+	expectedMsgs = [< indexError(), "redefinition of \'crashNotification\'" >];
+	passed = equalMessages( msgs, expectedMsgs );	
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
 public test bool test_inevent() {
+	str testCaseName = "test_inevent";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {
@@ -74,6 +96,10 @@ public test bool test_inevent() {
 	'}";
 	msgs = indexer( input );
 	
-	return size(msgs) == 0;
+	expectedMsgs = [];
+	passed = equalMessages( msgs, expectedMsgs );	
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 

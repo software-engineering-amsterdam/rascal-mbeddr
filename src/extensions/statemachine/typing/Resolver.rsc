@@ -15,15 +15,15 @@ StateMachineStat resolve( StateMachineStat s:outEvent( id( name ), list[Param] p
 		if( Type t:function(_,_) := lookup( table, symbolKey(ref) ).\type ) {
 			
 			if( parameterTypes(params) != t.args ) {
-				s@message = error( "wrong argument type(s)", s@location );
+				s@message = error( argumentsMismatchError(), "wrong argument type(s)", s@location );
 			} 
 			
 		} else {
-			s@message = error( "\'<ref>\' is not a function, but \'<typeToString( lookup( table, symbolKey(ref) ).\type)>\'", s@location );
+			s@message = error( functionReferenceError(), "\'<ref>\' is not a function, but \'<typeToString( lookup( table, symbolKey(ref) ).\type)>\'", s@location );
 		}
 		
 	} else {
-		s@message = error( "unkown function \'<ref>\'", s@location );
+		s@message = error( referenceError(), "unkown function \'<ref>\'", s@location );
 	}
 	
 	return s;
@@ -37,24 +37,24 @@ Stat resolve( Stat s:send( id( name ), list[Expr] args ) ) {
 		if( outEvent( list[Type] argsTypes ) := lookup( table, symbolKey( name ) ).\type ) {
 			
 			if( size( argsTypes ) != size( args ) ) {
-				s@message = error( "too many arguments to out event call, expected <size(argsTypes)>, have <size(args)>", s@location );
+				s@message = error( argumentsMismatchError(), "too many arguments to out event call, expected <size(argsTypes)>, have <size(args)>", s@location );
 			} else {
 			
 				for( i <- [0..size( argsTypes )] ) {
 					arg_type = getType( args[i] );
 					if( !isEmpty( arg_type ) && !(argsTypes[i] in CTypeTree[ arg_type ]) ) {
-						s@message = error( "wrong argument type(s)", s@location );
+						s@message = error( argumentsMismatchError(), "wrong argument type(s)", s@location );
 					}
 				}
 			
 			}
 			
 		} else {
-			s@message = error( "\'<name>\' is not an out event, but \'<typeToString( lookup( table, symbolKey(name) ).\type )>\'", s@location );
+			s@message = error( typeMismatchError(), "\'<name>\' is not an out event, but \'<typeToString( lookup( table, symbolKey(name) ).\type )>\'", s@location );
 		} 
 	
 	} else {
-		s@message = error( "unkown out event \'<name>\'", s@location );
+		s@message = error( referenceError(), "unkown out event \'<name>\'", s@location );
 	}
 	
 	return s;
@@ -78,21 +78,21 @@ private StateStat resolveOn( StateStat s, id( event ), list[Expr] cond, id( next
 				expr_type = getType( e );
 				
 				if( ! isEmpty( expr_type ) && !(boolean() := expr_type) ) { 
-					e@message = error( "expression expected to be of \'boolean\' type", e@location );
+					e@message = error( conditionalAbuseError(), "expression expected to be of \'boolean\' type", e@location );
 					s.cond = [e];
 				}
 			}
 			
 			if( !( contains( table, symbolKey(next) ) && lookup( table, symbolKey(next) ).\type == state() ) ) {
-				s.next@message = error( "unknown event \'<next>\'", s@location );
+				s.next@message = error( referenceError(), "unknown event \'<next>\'", s@location );
 			}
 			
 		} else {
-			s@message = error( "\'<event>\' is not an in event, but \'<typeToString(lookup( table, symbolKey(event) ).\type)>\'", s@location );
+			s@message = error( typeMismatchError(), "\'<event>\' is not an in event, but \'<typeToString(lookup( table, symbolKey(event) ).\type)>\'", s@location );
 		}
 		
 	} else {
-		s@message = error( "unkown in event \'<event>\'", s@location );	
+		s@message = error( referenceError(), "unkown in event \'<event>\'", s@location );	
 	}
 	
 	return s;
@@ -104,9 +104,9 @@ Decl resolve( Decl d:stateMachine( list[Modifier] mods, Id name, list[Id] initia
 		table = body[0]@indextable;
 
 		if( !contains( table, symbolKey(initialState.name) ) ) {
-			initialState@message = error( "undefined initial state \'<initialState.name>\'", initialState@location );
+			initialState@message = error( referenceError(), "undefined initial state \'<initialState.name>\'", initialState@location );
 		} else if( contains( table, symbolKey(initialState.name) ) && lookup( table, symbolKey(initialState.name) ).\type != state() ) {
-			initialState@message = error( "initial state \'<initialState.name>\' is not of the type \'state\'", initialState@location );
+			initialState@message = error( typeMismatchError(), "initial state \'<initialState.name>\' is not of the type \'state\'", initialState@location );
 		}
 		
 		d.initial = [initialState];
@@ -121,7 +121,7 @@ StateMachineStat resolve( StateMachineStat s:var( list[Modifier] mods, Type \typ
 	if( isEmpty( init_type ) ) { return s; }
 	
 	if( !(\type in CTypeTree[ init_type ]) ) {
-		s@message = error( "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", s@location );
+		s@message = error( incompatibleTypesError(), "\'<typeToString(init_type)>\' not a subtype of \'<typeToString(\type)>\'", s@location );
 	}
 	
 	return s;
@@ -157,7 +157,7 @@ public Expr resolveField( Expr e, stateMachine( str stateMachineName ), str name
     
         e@\type = lookup( symbols, symbolKey(name) ).\type;
     } else {
-        e@message = error( "unkown statemachine property \'<name>\' for statemachine \'<stateMachineName>\'", e@location );
+        e@message = error( fieldReferenceError(), "unkown statemachine property \'<name>\' for statemachine \'<stateMachineName>\'", e@location );
     } 
     return e;
 }

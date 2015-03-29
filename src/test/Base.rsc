@@ -3,7 +3,7 @@ module \test::Base
 import IO;
 import ext::List;
 import ext::Node;
-import Message;
+import typing::TypeMessage;
 
 import lang::mbeddr::AST;
 import lang::mbeddr::ToC;
@@ -12,6 +12,40 @@ import typing::IndexTable;
 
 private bool PRINT = true;
 private bool DEBUG = true;
+
+private tuple[Module,Module] splitAst( Module ast ) = < retrieveHeader( ast ), retrieveC( ast ) >;
+private Module retrieveHeader( Module ast ) = ast[decls=retrieveHeaderDecls( ast )];
+private Module retrieveC( Module ast ) = ast[decls= ast.decls - retrieveHeaderDecls( ast )];
+
+private list[Decl] retrieveHeaderDecls( Module ast ) {
+	headerDecls = [];
+	
+	visit( ast ) {
+		case Decl d : {
+			if( "header" in getAnnotations(d) && d@header ) { 
+				headerDecls += d; 
+			}
+		}
+	}
+	
+	return headerDecls;
+}
+
+private bool equalMessages( list[Message] msgs, list[tuple[ErrorType error,str msg]] expectedMsgs ) {
+	result = size(msgs) == size(expectedMsgs);
+	
+	for( i <- [0..size(expectedMsgs)], i < size(msgs) ) {
+        result = result && msgs[i].error == expectedMsgs[i].error; 
+        
+        if( PRINT && result && msgs[i].msg != expectedMsgs[i].msg ) {
+        	println("WARNING: found error with correct error type but different message");
+        	println("	 expected message: \'<expectedMsgs[i].msg>\'");
+        	println("	 actual message: \'<msgs[i].msg>\'");
+        } 
+	}
+	
+	return result;
+}
 
 private bool equalMessages( list[Message] msgs, list[str] expectedMsgs ) {
 	result = size(msgs) == size(expectedMsgs);
@@ -23,11 +57,22 @@ private bool equalMessages( list[Message] msgs, list[str] expectedMsgs ) {
 	return result;
 }
 
-private void outputTest( str testCaseName, bool passed, list[str] expectedMsgs, list[Message] msgs ) {
+private void outputStart( str testCaseName ) {
+	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+}
+
+private void outputResult( str testCaseName, bool passed ) {
+	if( PRINT ) {
+		if( passed ) { println( "         PASSED" ); }
+		else { println( "         FAILED" ); }
+	}
+}
+
+private void outputTest( str testCaseName, bool passed, list[tuple[ErrorType error, str msg]] expectedMsgs, list[Message] msgs ) {
 	if( ! passed && PRINT ) {
         println("ERROR: <testCaseName> failed");
-        println("expected errors: <expectedMsgs>");
-        println("detected errors: <[ msg.msg | msg <- msgs ]>");
+        println("expected errors: <[ msg.error | msg <- expectedMsgs]>");
+        println("detected errors: <[ msg.error | msg <- msgs ]>");
         println("");
 	}
 }
@@ -79,23 +124,7 @@ private list[&T <: node] detect( str testCaseName, bool inHeader, &T <: node n, 
 	return lst;
 }
 
-private bool validateDesugarOutput( str testCaseName, Module ast, list[&T <: node] headerOutput, list[&T <: node] cOutput ) {
-	visit( ast ) {
-		case &T <: node n : {
-			headerOutput = detect( testCaseName, true, n, headerOutput );
-			cOutput = detect( testCaseName, false, n, cOutput );
-		}	
-	}
-	
-	if( size( headerOutput ) != 0 && PRINT ) {
-		println("ERROR: did not find all nodes in header ast, following nodes where not found:");
-		iprintln( headerOutput );
-	}
-	
-	if( size( cOutput ) != 0 && PRINT ) {
-		println("ERROR: did not find all nodes in c ast, following nodes where not found:");
-		iprintln( cOutput );
-	}
-
-	return size(headerOutput) == 0 && size(cOutput) == 0;	
+private bool validateDesugarOutput( bool valid, str pattern, str file = "c file" ) {
+	if( ! valid && PRINT ) { println( "ERROR: expected to find node \'<pattern>\' in desugared AST of <file>" ); }
+	return valid; 
 }

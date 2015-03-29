@@ -2,7 +2,7 @@ module typing::IndexTable
 
 import IO;
 import ext::Node;
-import Message;
+import typing::TypeMessage;
 
 import lang::mbeddr::AST;
 import typing::Util;

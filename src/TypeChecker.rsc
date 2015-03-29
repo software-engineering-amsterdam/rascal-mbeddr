@@ -1,6 +1,7 @@
 module TypeChecker
 
 import lang::mbeddr::AST;
+import typing::TypeMessage;
 
 extend extensions::baseextensions::TypeChecker;
 extend extensions::unittest::TypeChecker;
@@ -35,7 +36,7 @@ public map[loc,Message] collectMessages( Module m ) {
 bool hasErrors( Module m ) {
 	visit( m ) {
 		case &T <: node n : {
-			if( "message" in getAnnotations( n ) && error(_,_) := n@message ) {
+			if( "message" in getAnnotations( n ) ) {
 				return true;
 			}
 		}

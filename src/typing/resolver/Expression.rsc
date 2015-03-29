@@ -20,15 +20,14 @@ Expr resolve( Expr e:var( id( name ) ) ) {
 	table = e@indextable;
 	
 	if( contains( table, symbolKey( name ) ) ) {
-		\type = lookup( table, symbolKey( name ) ).\type;
-		
+		\type = lookup( table, symbolKey( name ) ).\type;	
 		\type = resolveTypeDefs( table, \type );
 		
-		if( isEmpty(\type) ) { e@message = error( "unkown type \'<name>\'", e@location ); }
+		if( isEmpty(\type) ) { e@message = error( unknownTypeError(), "unkown type \'<name>\'", e@location ); }
 		
 		return e@\type = \type;
 	} else {
-		return e@message = error( "use of undeclared variable \'<name>\'", e@location );
+		return e@message = error( referenceError(), "use of undeclared variable \'<name>\'", e@location );
 	}
 }
 
@@ -99,7 +98,7 @@ Expr resolve( Expr e:ptrField( Expr record, id( name ) ) ) {
 	if( pointer( Type \type ) := record_type ) {
 		return resolveField( e, \type, name );
 	} else {
-		return e@message = error(  "member reference type \'<typeToString(record_type)>\' is not a pointer", e@location );
+		return e@message = error( referenceMismatchError(),  "member reference type \'<typeToString(record_type)>\' is not a pointer", e@location );
 	}
 }
 
@@ -121,7 +120,7 @@ Expr resolve( Expr e:refOf( Expr arg ) ) {
 	if( pointer( \type ) := arg_type ) {
 		e@\type = \type;
 	} else {
-		e@message = error(  "indirection requires pointer operand (\'<typeToString(arg_type)>\' invalid)", e@location );
+		e@message = error( referenceMismatchError(),  "indirection requires pointer operand (\'<typeToString(arg_type)>\' invalid)", e@location );
 	}
 	
 	return e;
@@ -181,7 +180,7 @@ Expr resolve( Expr e:cond( Expr cond, Expr then, Expr els ) ) {
 	if( isEmpty( cond_type ) ) return e;
 	
 	if( cond_type != \boolean() ) {
-		return e@message = error(  "\'<typeToString(cond_type)>\' is not a subtype of \'boolean\'", e@location ); 
+		return e@message = error( conditionalMisuseError(),  "\'<typeToString(cond_type)>\' is not a subtype of \'boolean\'", e@location ); 
 	}
 	
 	then_type = getType( then );
@@ -190,7 +189,7 @@ Expr resolve( Expr e:cond( Expr cond, Expr then, Expr els ) ) {
 	if( isEmpty(then_type ) || isEmpty(els_type ) ) return e;
 	
 	if( then_type != els_type ) {
-		return e@message = error(  "<typeToString(then_type)>/<typeToString(els_type)> type mismatch in conditional expression (\'<typeToString(then_type)>\' and \'<typeToString(els_type)>\')", e@location );
+		return e@message = error( conditionalMismatchError(),  "<typeToString(then_type)>/<typeToString(els_type)> type mismatch in conditional expression (\'<typeToString(then_type)>\' and \'<typeToString(els_type)>\')", e@location );
 	} 
 	
 	return e@\type = then_type;

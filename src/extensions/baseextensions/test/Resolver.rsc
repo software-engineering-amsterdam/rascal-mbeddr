@@ -1,14 +1,14 @@
 module extensions::baseextensions::\test::Resolver
 extend \test::Base;
 
-import Message;
+import typing::TypeMessage;
 import ext::Node;
 
 import extensions::baseextensions::\test::Helper;
 
-public test bool test_multiple_lambdas() {
-	str testCaseName = "test_multiple_lambdas";
-	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+public test bool testResolveMultipleLambdasWithoutErrors() {
+	str testCaseName = "testResolveMultipleLambdas";
+	outputStart( testCaseName );
 	passed = true;
 	str input =
 	"module MultipleLambda;
@@ -26,12 +26,13 @@ public test bool test_multiple_lambdas() {
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
+	outputResult( testCaseName, passed );
 	return passed;
 }
 
 public test bool lambdaReturnsAreNotMatchedAsFunctionReturn() {
 	str testCaseName = "lambdaReturnsAreNotMatchedAsFunctionReturn";
-	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+	outputStart( testCaseName );
 	passed = true;
 	str input =
 	"module MultipleLambda;
@@ -47,12 +48,13 @@ public test bool lambdaReturnsAreNotMatchedAsFunctionReturn() {
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
+	outputResult( testCaseName, passed );
 	return passed;
 }
 
-public test bool test_multiple_lambdas() {
-	str testCaseName = "test_multiple_lambdas";
-	if( PRINT ) { println("RUNNING: <testCaseName>"); }
+public test bool testResolveNestedLambdasWithoutErrors() {
+	str testCaseName = "testResolveNestedLambdasWithoutErrors";
+	outputStart( testCaseName );
 	passed = true;
 	str input =
 	"module NestedReturns; 
@@ -74,5 +76,29 @@ public test bool test_multiple_lambdas() {
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
+	outputResult( testCaseName, passed );
+	return passed;
+}
+
+public test bool testConstantsAreImmutable() {
+	str testCaseName = "testConstantsAreImmutable";
+	outputStart( testCaseName );
+	passed = true;
+	str input =
+	"module NestedReturns; 
+	
+	#constant x = 10;
+	
+	void main() {
+		x = 20;
+	}
+	";
+	msgs = resolver( input );
+	
+	expectedMsgs = [< constantAssignmentError(), "can not modify constants" >];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	outputResult( testCaseName, passed );
 	return passed;
 }

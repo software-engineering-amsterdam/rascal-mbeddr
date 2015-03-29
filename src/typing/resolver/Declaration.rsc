@@ -63,7 +63,7 @@ ReturnResolver resolveReturnType( Stat s:\returnExpr(Expr expr), Type expectedRe
 	n_type = getType( n );
 	
 	if( !( isEmpty( n_type ) ) && !( getType( expectedReturnType ) in CTypeTree[ n_type ] ) ) {
-		n@message = error(  "return type \'<typeToString( n_type )>\' not a subtype of expected type \'<typeToString( expectedReturnType )>\'", n@location );	
+		n@message = error( returnMismatchError(), "return type \'<typeToString( n_type )>\' not a subtype of expected type \'<typeToString( expectedReturnType )>\'", n@location ); 	
 	}
 	
 	return n;
@@ -75,7 +75,7 @@ tuple[&T<:node,Type,list[Stat]] resolveFunctionReturnType( &T <: node n, list[St
 	< hasReturn, returnType, stats > = resolveReturnType( stats, expectedReturnType, false );
 
 	if(!hasReturn && returnType != \void() ) {
-		n@message = error(  "control reaches end of non-void function", n@location );
+		n@message = error( returnMismatchError(), "control reaches end of non-void function", n@location );
 	}
 	
 	return < n, returnType, stats >;

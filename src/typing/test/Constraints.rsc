@@ -3,18 +3,23 @@ extend \test::Base;
 
 import typing::\test::Helper;
 
-public test bool test_case_constraint_1() {
+public test bool testDisallowedCaseInFunctionBody() {
+	str testCaseName = "testDisallowedCaseInFunctionBody";
 	str input = "module Test;
 				'void main() {
 				'	case \"test\" : return;
 				'}";
 	msgs = constraints( input );
+
+	expectedMsgs = [ < constraintError(), "case statement is constrained to switch bodies" > ];
+	passed = equalMessages( msgs, expectedMsgs );	
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	return size(msgs) == 1 &&
-		   error( "case statement is constrained to switch bodies", _ ) := msgs[0];
+	return passed;
 }
 
-public test bool test_case_constraint_2() {
+public test bool testCaseConstrainedToSwitch() {
+	str testCaseName = "testCaseConstrainedToSwitch";
 	str input = "module Test;
 				'void main() {
 				'	switch( true ) {	
@@ -26,18 +31,23 @@ public test bool test_case_constraint_2() {
 	return size(msgs) == 0;
 }
 
-public test bool test_default_constraint() {
+public test bool testDisallowedDefaultStatementInFunctionBody() {
+	str testCaseName = "testDisallowedDefaultStatementInFunctionBody";
 	str input = "module Test;
 				'void main() {
 				'	default: return;
 				'}";
 	msgs = constraints( input );
 	
-	return size(msgs) == 1 &&
-		   error( "default statement is constrained to switch bodies", _ ) := msgs[0];
+	expectedMsgs = [ < constraintError(), "default statement is constrained to switch bodies" > ];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
-public test bool test_default_constraint_2() {
+public test bool testDefaultConstrainedToSwitch() {
+	str testCaseName = "testDefaultConstrainedToSwitch";
 	str input = "module Test;
 				'void main() {
 				'	switch( true ) {	
@@ -49,22 +59,30 @@ public test bool test_default_constraint_2() {
 	return size(msgs) == 0;
 }
 
-public test bool test_function_constraint() {
+public test bool testDisallowedFunctionDeclInFunctionBody() {
+	str testCaseName = "testDisallowedFunctionDeclInFunctionBody";
 	str input = "module Test;
 				'void main() {
 				'	void add() {};
 				'}";
 	msgs = constraints( input );
 	
-	return size(msgs) == 1 &&
-		   error( "function declaration is constrained to global scope", _ ) := msgs[0];
+	expectedMsgs = [ < constraintError(), "function declaration is constrained to global scope" > ];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }
 
-public test bool test_addrOf_constraint() {
+public test bool testDisallowedAddrOfLiteral() {
+	str testCaseName = "testDisallowedAddrOfLiteral";
 	str input = "module Test;
 				'int8* x = &1;";
 	msgs = constraints( input );
 	
-	return size(msgs) == 1 &&
-		   error( "cannot take the address of an rvalue of type \'int\'", _ ) := msgs[0];
+	expectedMsgs = [ < constraintError(), "cannot take the address of an rvalue of type \'int\'" > ];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
 }

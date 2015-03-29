@@ -14,7 +14,7 @@ public test bool test_no_return() {
 				'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["control reaches end of non-void function"];
+	expectedMsgs = [< returnMismatchError(), "control asdfreaches end of non-void function" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -50,7 +50,7 @@ public test bool test_implicit_type_conversion_2() {
 				'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["return type \'int16\' not a subtype of expected type \'int8\'"];
+	expectedMsgs = [< returnMismatchError(), "return type \'int16\' not a subtype of expected type \'int8\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -68,7 +68,7 @@ public test bool test_implicit_type_conversion_3() {
 				'}";
 	msgs = resolver( input );
 
-	expectedMsgs = ["return type \'double\' not a subtype of expected type \'float\'"];
+	expectedMsgs = [< returnMismatchError(), "return type \'double\' not a subtype of expected type \'float\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -90,7 +90,7 @@ public test bool test_struct_initialization() {
 				'struct point p = { x, 1 };";
 	msgs = resolver( input );
 
-	expectedMsgs = ["\'int64\' not a subtype of \'int32\'"];
+	expectedMsgs = [< structAssignmentError(), "\'int64\' not a subtype of \'int32\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -112,7 +112,7 @@ public test bool test_struct_field_selection_1() {
 				'int8 x = p.x;";
 	msgs = resolver( input );
 
-	expectedMsgs = ["\'int32\' not a subtype of \'int8\'"];
+	expectedMsgs = [< incompatibleTypesError(), "\'int32\' not a subtype of \'int8\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -134,7 +134,7 @@ public test bool test_struct_field_selection_2() {
 				'int32 z = p.z;";
 	msgs = resolver( input );
 
-	expectedMsgs = ["no member named \'z\' in \'struct point\'"];
+	expectedMsgs = [< fieldReferenceError(), "no member named \'z\' in \'struct point\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -156,7 +156,7 @@ public test bool test_function_call_1() {
 				'int32 r = add( 1, 2, 3);";
 	msgs = resolver( input );
 
-	expectedMsgs = ["too many arguments to function call, expected 2, have 3"];
+	expectedMsgs = [< argumentsMismatchError(), "too many arguments to function call, expected 2, have 3" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -172,7 +172,7 @@ public test bool test_function_call_2() {
 				'int32 r = add( 1, 2, 3);";
 	msgs = resolver( input );
 
-	expectedMsgs = ["calling undefined function \'add\'"];
+	expectedMsgs = [< referenceError(), "calling undefined function \'add\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -193,7 +193,7 @@ public test bool test_function_call_3() {
 				'int32 r = add( x, 2 );";
 	msgs = resolver( input );
 
-	expectedMsgs = ["wrong argument type(s)"];
+	expectedMsgs = [< argumentsMismatchError(), "wrong argument type(s)" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -213,7 +213,7 @@ public test bool test_if_condition() {
 				'}";				
 	msgs = resolver( input );
 
-	expectedMsgs = ["if condition should be a \'boolean\'"];
+	expectedMsgs = [< conditionalAbuseError(), "if condition should be a \'boolean\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -233,7 +233,7 @@ public test bool test_while_condition() {
 				'}";				
 	msgs = resolver( input );
 
-	expectedMsgs = ["while condition should be a \'boolean\'"];
+	expectedMsgs = [< loopAbuseError(), "while condition should be a \'boolean\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -253,7 +253,7 @@ public test bool test_do_while_condition() {
 				'}";				
 	msgs = resolver( input );
 
-	expectedMsgs = ["do while condition should be a \'boolean\'"];
+	expectedMsgs = [< loopAbuseError(), "do while condition should be a \'boolean\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -273,7 +273,7 @@ public test bool test_while_condition() {
 				'}";				
 	msgs = resolver( input );
 
-	expectedMsgs = ["while condition should be a \'boolean\'"];
+	expectedMsgs = [< loopAbuseError(), "while condition should be a \'boolean\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -288,7 +288,7 @@ public test bool test_wrong_assignment_1() {
 				'int32 x = \"str\";";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["\'pointer char\' not a subtype of \'int32\'"];
+	expectedMsgs = [< incompatibleTypesError(), "\'pointer char\' not a subtype of \'int32\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -304,7 +304,7 @@ public test bool test_wrong_assignment_2() {
 				'int8 z = true;";
 	msgs = resolver( input );
 
-	expectedMsgs = ["\'boolean\' not a subtype of \'int8\'"];
+	expectedMsgs = [< incompatibleTypesError(), "\'boolean\' not a subtype of \'int8\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -320,7 +320,7 @@ public test bool test_wrong_assignment_3() {
 				'int8[10] xs = 1;";
 	msgs = resolver( input );
 
-	expectedMsgs = ["\'uint8 || int8\' not a subtype of \'array[10] int8\'"];
+	expectedMsgs = [< incompatibleTypesError(), "\'uint8 || int8\' not a subtype of \'array[10] int8\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -336,7 +336,7 @@ public test bool test_wrong_implicit_assignment_1() {
 				'int8 y = 256;";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["\'uint16 || int16\' not a subtype of \'int8\'"];
+	expectedMsgs = [< incompatibleTypesError(), "\'uint16 || int16\' not a subtype of \'int8\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -352,7 +352,7 @@ public test bool test_wrong_implicit_assignment_2() {
 				'uint8 y = -10;";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["\'int8\' not a subtype of \'uint8\'"];
+	expectedMsgs = [< incompatibleTypesError(), "\'int8\' not a subtype of \'uint8\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -367,7 +367,7 @@ public test bool test_pointer_assignment() {
 				'int8** i = &8;";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["type \'uint8 || int8\' is not a subtype of type \'pointer int8\'"];
+	expectedMsgs = [< pointerAssignmentError(), "type \'uint8 || int8\' is not a subtype of type \'pointer int8\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -387,7 +387,7 @@ public test bool test_pointer_assignment_expression() {
 				"; 
 	msgs = resolver( input );
 	
-	expectedMsgs = ["type \'uint8 || int8\' is not a subtype of type \'pointer int8\'"];
+	expectedMsgs = [< pointerAssignmentError(), "type \'uint8 || int8\' is not a subtype of type \'pointer int8\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -430,8 +430,8 @@ public test bool test_pointer_arithmetic_2() {
 	return passed;
 }
 
-public test bool test_pointer_assignment() {
-	str testCaseName = "test_pointer_assignment";
+public test bool test_pointer_assignment_2() {
+	str testCaseName = "test_pointer_assignment_2";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -440,7 +440,7 @@ public test bool test_pointer_assignment() {
 				'}";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["\'uint8 || int8\' not a subtype of \'pointer int8\'"];
+	expectedMsgs = [< incompatibleTypesError(), "\'uint8 || int8\' not a subtype of \'pointer int8\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -458,7 +458,7 @@ public test bool test_pointer_addition() {
 				'}";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["operator can not be applied to \'pointer int8\' and \'pointer int8\'"];
+	expectedMsgs = [< nonFittingTypesError(), "operator can not be applied to \'pointer int8\' and \'pointer int8\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -557,7 +557,7 @@ public test bool test_assignment() {
 				";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["use of undeclared variable \'x\'"];
+	expectedMsgs = [< referenceError(), "use of undeclared variable \'x\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	

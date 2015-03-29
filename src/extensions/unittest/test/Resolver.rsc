@@ -2,6 +2,7 @@ module extensions::unittest::\test::Resolver
 extend \test::Base;
 
 import extensions::unittest::\test::Helper;
+import extensions::unittest::typing::TypeMessage;
 
 public test bool test_assert_boolean() {
 	str testCaseName = "test_assert_boolean";
@@ -16,7 +17,7 @@ public test bool test_assert_boolean() {
 	";
 	msgs = resolver( input );
 
-	expectedMsgs = ["an assert expression should be of the type boolean"];
+	expectedMsgs = [< assertAbuseError(), "an assert expression should be of the type boolean" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -36,7 +37,7 @@ public test bool test_unkown_testcase_test() {
 	";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["unkown testcase \'HelloWorld\'"];
+	expectedMsgs = [< referenceError(), "unkown testcase \'HelloWorld\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -56,7 +57,7 @@ public test bool test_wrong_testcase_test() {
 	";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["referenced test \'HelloWorld\' is not a testcase"];
+	expectedMsgs = [< typeMismatchError(), "referenced test \'HelloWorld\' is not a testcase" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	

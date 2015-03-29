@@ -1,8 +1,11 @@
 module \test::Helper
 
 import ParseTree;
+import ext::Node;
+
 import lang::mbeddr::MBeddrC;
 import lang::mbeddr::AST;
+import typing::TypeMessage;
 
 Module createAST( loc l ) = implode( #Module, parse( #start[Module], l ) );
 Module createAST( str i ) = implode( #Module, parse( #start[Module], i ) );

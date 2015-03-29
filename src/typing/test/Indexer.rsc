@@ -12,7 +12,7 @@ public test bool test_redefinition_1() {
 				'char c = \'y\';";
 	msgs = indexer( input );
 	
-	expectedMsgs = ["redefinition of \'c\'"];
+	expectedMsgs = [ < indexError(), "redefinition of \'c\'" > ];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -44,7 +44,7 @@ public test bool test_redefinition_3() {
 				'int8 c = 1;";
 	msgs = indexer( input );
 	
-	expectedMsgs = ["redefinition of \'c\' with a different type \'int8\' vs \'char\'"];
+	expectedMsgs = [ < indexError(), "redefinition of \'c\' with a different type \'int8\' vs \'char\'" > ];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -59,7 +59,7 @@ public test bool test_custom_type() {
 				'point c;";
 	msgs = indexer( input );
 	
-	expectedMsgs = ["unknown type name \'point\'"];
+	expectedMsgs = [ < indexError(), "unknown type name \'point\'" > ];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -74,7 +74,7 @@ public test bool test_struct() {
 				'struct point c;";
 	msgs = indexer( input );
 	
-	expectedMsgs = ["unkown struct \'point\'"];
+	expectedMsgs = [ < indexError(), "unkown struct \'point\'" > ];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -89,7 +89,7 @@ public test bool test_enum() {
 				'enum color c;";
 	msgs = indexer( input );
 	
-	expectedMsgs = ["unkown enum \'color\'"];
+	expectedMsgs = [ < indexError(), "unkown enum \'color\'" > ];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -128,7 +128,7 @@ public test bool test_constant_indexer() {
 	";
 	msgs = indexer( input );
 	
-	expectedMsgs = ["global constants must be statically evaluatable"];
+	expectedMsgs = [ < staticEvaluationError(), "global constants must be statically evaluatable" > ];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	

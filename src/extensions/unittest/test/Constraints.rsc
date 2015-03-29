@@ -16,7 +16,7 @@ public test bool test_assert_constraint() {
 	";
 	msgs = constraints( input );
 	
-	expectedMsgs = ["assert statement is constrained to test case bodies"];
+	expectedMsgs = [< constraintError(), "assert statement is constrained to test case bodies" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -36,7 +36,7 @@ public test bool test_testcase_constraint() {
 	";
 	msgs = constraints( input );
 
-	expectedMsgs = ["testcase declaration is constrained to the global scope"];
+	expectedMsgs = [< constraintError(), "testcase declaration is constrained to the global scope" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	

@@ -8,7 +8,7 @@
 @contributor{Tijs van der Storm - storm@cwi.nl}
 module lang::mbeddr::AST
 
-import Message;
+import typing::TypeMessage;
 
 anno loc Module@location;
 anno loc Import@location;
