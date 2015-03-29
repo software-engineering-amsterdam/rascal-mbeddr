@@ -21,7 +21,7 @@ data IndexTableKey
 	;
 
 data IndexTableRow 
-	= symbolRow( Type \type, Scope scope, bool initialized )
+	= symbolRow( Type \type, Scope scope, bool initialized, loc at )
 	| typeRow( Type \type, Scope scope, bool initialized )
 	;
 
@@ -44,7 +44,7 @@ anno Scope Modifier@scope;
 anno Scope Field@scope;
 anno Scope Enum@scope;
 
-StoreResult store( IndexTable table, key:symbolKey(_), row:symbolRow(_,_,_) ) {
+StoreResult store( IndexTable table, key:symbolKey(_), row:symbolRow(_,_,_,_) ) {
 	str errorMsg = "";
 	
 	if( contains( table, key ) && lookup( table, key ).scope == row.scope ) {
@@ -86,7 +86,7 @@ StoreResult store( IndexTable table, key:symbolKey(_), row:symbolRow(_,_,_) ) {
 	 
 }
 
-IndexTable update( IndexTable table, key:symbolKey(_), row:symbolRow( _, _, _ ) ) {
+IndexTable update( IndexTable table, key:symbolKey(_), row:symbolRow( _, _, _, _ ) ) {
 	if( contains( table, key ) ) {
 		table[ key ] = row;
 	}
@@ -96,7 +96,7 @@ IndexTable update( IndexTable table, key:symbolKey(_), row:symbolRow( _, _, _ ) 
 
 IndexTableRow lookup( IndexTable table, key:symbolKey(_) ) {
 	row = table[ key ];
-	assert symbolRow(_,_,_) := row : "Can only store SymbolTableRow under SymbolTableKey";
+	assert "symbolRow" == getName( row ) : "Can only store SymbolTableRow under SymbolTableKey";
 	return row;
 }
 
@@ -134,7 +134,7 @@ IndexTable update( IndexTable table, key:typeKey(_,_), row:typeRow(_,_,_) ) {
 
 IndexTableRow lookup( IndexTable table, key:typeKey(_,_) ) {
 	row = table[ key ];
-	assert typeRow(_,_,_) := row : "Can only store TypeTableRow under TypeTableKey";
+	assert "typeRow" == getName( row ) : "Can only store TypeTableRow under TypeTableKey";
 	
 	return row;
 }

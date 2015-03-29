@@ -32,6 +32,20 @@ public map[loc,Message] collectMessages( Module m ) {
 	return result;
 }
 
+public map[loc,loc] collectLinks( Module m ) {
+	result = ();
+	
+	visit( m ) {
+		case &T <: node n : {
+			if( "link" in getAnnotations( n ) ) {
+				result[n@location] = n@link;
+			}
+		}
+	}
+	
+	return result;
+}
+
 
 bool hasErrors( Module m ) {
 	visit( m ) {

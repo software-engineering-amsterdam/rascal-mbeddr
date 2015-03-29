@@ -17,15 +17,15 @@ indexer( Decl d:stateMachine( list[Modifier] mods, id( name ), list[Id] initial,
 		d.name = id( name )[@message = error( indexError(), storeResult.errorMsg, d.name@location )]; 
 	}
 	
-	storeResult = store( storeResult.table, symbolKey( name ), symbolRow( stateMachine( name ), scope, true ) );
+	storeResult = store( storeResult.table, symbolKey( name ), symbolRow( stateMachine( name ), scope, true, d@location ) );
 	d.body = indexer( body, storeResult.table, stateMachine( scope ) );
 	
 	d = hoistStateMachineIndextable( d );
 	
 	IndexTable symbols = size( d.body ) > 0 ? d.body[0]@indextable : ();
-    symbols = store( symbols, symbolKey( "init" ), symbolRow( \function( \void(), [] ), scope, true ) ).table;
-	symbols = store( symbols, symbolKey( "isInState" ), symbolRow( \function( \boolean(), [ state() ] ), scope, true ) ).table;
-	symbols = store( symbols, symbolKey( "setState" ), symbolRow( \function( \void(), [ state() ] ), scope, true ) ).table;
+    symbols = store( symbols, symbolKey( "init" ), symbolRow( \function( \void(), [] ), scope, true, d@location ) ).table;
+	symbols = store( symbols, symbolKey( "isInState" ), symbolRow( \function( \boolean(), [ state() ] ), scope, true, d@location ) ).table;
+	symbols = store( symbols, symbolKey( "setState" ), symbolRow( \function( \void(), [ state() ] ), scope, true, d@location ) ).table;
 		
 	storeResult.table = store( storeResult.table, objectKey( name ), objectRow( symbols ) ).table; 
 	
@@ -65,7 +65,7 @@ indexer( StateMachineStat s:var( list[Modifier] mods, Type \type, id( name ), Ex
 		 IndexTable table,
 		 Scope scope
 		) {
-	storeResult = store( table, symbolKey(name), symbolRow( \type, scope, true ) );
+	storeResult = store( table, symbolKey(name), symbolRow( \type, scope, true, s@location ) );
 	s.init = indexWrapper( init, table, scope );
 	return < s[@scope=scope], storeResult.table, storeResult.errorMsg >;	
 }
@@ -75,7 +75,7 @@ indexer( StateMachineStat s:inEvent( id( name ), list[Param] params ),
 		 IndexTable table,
 		 Scope scope
 		) {
-	storeResult = store( table, symbolKey( name ), symbolRow( inEvent( params ), scope, true ) );
+	storeResult = store( table, symbolKey( name ), symbolRow( inEvent( params ), scope, true, s@location ) );
 	
 	return < s[@scope=scope], storeResult.table, storeResult.errorMsg >;	
 }
@@ -85,7 +85,7 @@ indexer( StateMachineStat s:outEvent( id( name ), list[Param] params, Id ref ),
 		 IndexTable table,
 		 Scope scope
 		) {
-	storeResult = store( table, symbolKey( name ), symbolRow( outEvent( parameterTypes( params ) ), scope, true ) );
+	storeResult = store( table, symbolKey( name ), symbolRow( outEvent( parameterTypes( params ) ), scope, true, s@location ) );
 	
 	return < s[@scope=scope], storeResult.table, storeResult.errorMsg >;	
 }
@@ -95,7 +95,7 @@ indexer( StateMachineStat s:state( id( name ), list[StateStat] body ),
 		 IndexTable table,
 		 Scope scope
 		) {
-	storeResult = store( table, symbolKey( name ), symbolRow( state(), scope, true ) );
+	storeResult = store( table, symbolKey( name ), symbolRow( state(), scope, true, s@location ) );
 	s.body = indexer( body, table, scope );
 	return < s[@scope=scope], storeResult.table, storeResult.errorMsg >;	
 }

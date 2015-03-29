@@ -38,6 +38,7 @@ anno Message Modifier@message;
 anno Message Field@message;
 anno Message Enum@message;
 
+anno loc Expr@link;
 anno bool Decl@header;
 
 data Module

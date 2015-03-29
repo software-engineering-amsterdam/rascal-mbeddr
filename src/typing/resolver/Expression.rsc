@@ -25,6 +25,7 @@ Expr resolve( Expr e:var( id( name ) ) ) {
 		
 		if( isEmpty(\type) ) { e@message = error( unknownTypeError(), "unkown type \'<name>\'", e@location ); }
 		
+		e@link = lookup( table, symbolKey( name ) ).at;	
 		return e@\type = \type;
 	} else {
 		return e@message = error( referenceError(), "use of undeclared variable \'<name>\'", e@location );

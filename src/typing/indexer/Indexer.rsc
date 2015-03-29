@@ -197,7 +197,7 @@ tuple[ Decl astNode, IndexTable table, str errorMsg ]
 indexer( Decl d:function(list[Modifier] mods, Type \type, id( name ), list[Param] params, list[Stat] stats),
 		 IndexTable table, 
 		 Scope scope ) {
-	storeResult = store( table, symbolKey(name), symbolRow( \function( \type, parameterTypes( params ) ), scope, true ) );
+	storeResult = store( table, symbolKey(name), symbolRow( \function( \type, parameterTypes( params ) ), scope, true, d@location ) );
 	
 	result = indexParams( params, storeResult.table, function( scope ) );
 	
@@ -212,7 +212,7 @@ indexer( Decl d:function(list[Modifier] mods, Type \type, id( name ), list[Param
 		 IndexTable table, 
 		 Scope scope ) {
 	
-	storeResult = store( table, symbolKey(name), symbolRow( \function( \type, parameterTypes( params ) ), scope, false ) );
+	storeResult = store( table, symbolKey(name), symbolRow( \function( \type, parameterTypes( params ) ), scope, false, d@location ) );
 	
 	return < d[@scope=scope], storeResult.table, storeResult.errorMsg >;
 }
@@ -222,7 +222,7 @@ indexer( Decl d:variable(list[Modifier] mods, Type \type, id( name ) ),
 		 IndexTable table, 
 		 Scope scope ) {
 	
-	storeResult = store( table, symbolKey(name), symbolRow( \type, scope, false ) );
+	storeResult = store( table, symbolKey(name), symbolRow( \type, scope, false, d@location ) );
 	
 	return < d[@scope=scope], storeResult.table, storeResult.errorMsg >;
 }
@@ -232,7 +232,7 @@ indexer( Decl d:variable(list[Modifier] mods, Type \type, id( name ), Expr init)
 		 IndexTable table, 
 		 Scope scope ) {
 	
-	storeResult = store( table, symbolKey(name), symbolRow( \type, scope, true ) );
+	storeResult = store( table, symbolKey(name), symbolRow( \type, scope, true, d@location ) );
 	d.init = indexWrapper( init, storeResult.table, scope );
 	
 	return < d[@scope=scope], storeResult.table, storeResult.errorMsg >;
@@ -322,7 +322,7 @@ indexer( Decl f:field( Type \type, id( name ) ),
 		 IndexTable table, 
 		 Scope scope ) {
 	
-	storeResult = store( table, symbolKey( name ), symbolRow( \type, scope, true ) );
+	storeResult = store( table, symbolKey( name ), symbolRow( \type, scope, true, f@location ) );
 	
 	return < f[@scope=scope], storeResult.table, storeResult.errorMsg >;
 }
@@ -332,7 +332,7 @@ indexer( Decl c:const( id( name ) ),
 		 IndexTable table, 
 		 Scope scope ) {
 	
-	storeResult = store( table, symbolKey( name ), symbolRow( \void(), scope, true ) );
+	storeResult = store( table, symbolKey( name ), symbolRow( \void(), scope, true, c@location ) );
 	
 	return < c[@scope=scope], storeResult.table, storeResult.errorMsg >;
 }
@@ -342,7 +342,7 @@ indexer( Decl c:const( id( name ), _ ),
 		 IndexTable table, 
 		 Scope scope ) {
 	
-	storeResult = store( table, symbolKey( name ), symbolRow( \void(), scope, true ) );
+	storeResult = store( table, symbolKey( name ), symbolRow( \void(), scope, true, c@location ) );
 	
 	return < c[@scope=scope], storeResult.table, storeResult.errorMsg >;
 }
@@ -363,7 +363,7 @@ indexer( Decl d:constant( id( name ), Expr init ), IndexTable table, Scope scope
 	
 	if( isEmpty() := initType ) { d@message = error( "unable to statically resolve global constant\'s type", d@location ); }
 	
-	storeResult = store( table, symbolKey( name ), symbolRow( initType,scope,true ) );
+	storeResult = store( table, symbolKey( name ), symbolRow( initType,scope,true,d@location ) );
 
 	return < d, storeResult.table, storeResult.errorMsg >;	
 }
@@ -373,7 +373,7 @@ indexer( Param p:param(list[Modifier] mods, Type \type, id( name ) ),
 		 IndexTable table, 
 		 Scope scope ) {
 	
-	storeResult = store( table, symbolKey( name ), symbolRow( \type, scope, true ) );
+	storeResult = store( table, symbolKey( name ), symbolRow( \type, scope, true, p@location ) );
 
 	return < p[@scope=scope], storeResult.table, storeResult.errorMsg >;
 }

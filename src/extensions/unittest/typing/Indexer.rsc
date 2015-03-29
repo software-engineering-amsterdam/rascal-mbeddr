@@ -9,7 +9,7 @@ indexer( Decl d:testCase(list[Modifier] mods, id( name ), list[Stat] stats),
 	   	 IndexTable table, 
 	   	 Scope scope
 	   ) {
-	storeResult = store( table, symbolKey(name), symbolRow(testCase(), scope, true ) );
+	storeResult = store( table, symbolKey(name), symbolRow(testCase(), scope, true, d@location ) );
 	d.stats = indexer( stats, storeResult.table, \test( scope ) );
 			 
 	return < d[@scope=scope], storeResult.table, storeResult.errorMsg >;

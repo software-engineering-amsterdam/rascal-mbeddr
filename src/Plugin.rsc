@@ -72,14 +72,23 @@ start[Module] typeCheckerAnnotator( start[Module] m ) {
 	ast = runTypeChecker( ast );
 	
 	msgs = collectMessages( ast );
-	
+	links = collectLinks( ast );
+	iprintln(links);
 	return visit( m ) {
 		case Tree t : { 
 			if( msgs[t@\loc]? ) {
 				msg = msgs[t@\loc];
 				msgs = delete( msgs, t@\loc );
-				insert t[@message=msg];
+				t@message = msg;
 			}
+			
+			if( links[t@\loc]? ) {
+				link = links[t@\loc];
+				links = delete( links, t@\loc );
+				t@link = link;
+			}
+			
+			insert t;
 		} 
 	}
 }
