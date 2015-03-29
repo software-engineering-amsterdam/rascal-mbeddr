@@ -3,8 +3,8 @@ extend \test::Base;
 
 import typing::\test::Helper;
 
-public test bool test_no_return() {
-	str testCaseName = "test_no_return";
+public test bool testDisallowNonVoidFunctionToReturnVoid() {
+	str testCaseName = "testDisallowNonVoidFunctionToReturnVoid";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -14,15 +14,15 @@ public test bool test_no_return() {
 				'}";
 	msgs = resolver( input );
 
-	expectedMsgs = [< returnMismatchError(), "control asdfreaches end of non-void function" >];
+	expectedMsgs = [< returnMismatchError(), "control reaches end of non-void function" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
 	return passed;
 }
 
-public test bool test_implicit_type_conversion_1() {
-	str testCaseName = "test_implicit_type_conversion_1";
+public test bool testAllowImplicitConversionOfCharToInt() {
+	str testCaseName = "testAllowImplicitConversionOfCharToInt";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -39,8 +39,8 @@ public test bool test_implicit_type_conversion_1() {
 	return passed;
 }
 
-public test bool test_implicit_type_conversion_2() {
-	str testCaseName = "test_implicit_type_conversion_2";
+public test bool testDisallowBiggerIntegerTypeConversionToSmallerIntegerType() {
+	str testCaseName = "testDisallowBiggerIntegerTypeConversionToSmallerIntegerType";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -57,8 +57,8 @@ public test bool test_implicit_type_conversion_2() {
 	return passed;
 }
 
-public test bool test_implicit_type_conversion_3() {
-	str testCaseName = "test_implicit_type_conversion_3";
+public test bool testDisallowConversionFromDoubleToFloat() {
+	str testCaseName = "testDisallowConversionFromDoubleToFloat";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -75,8 +75,8 @@ public test bool test_implicit_type_conversion_3() {
 	return passed;
 }
 
-public test bool test_struct_initialization() {
-	str testCaseName = "test_struct_initialization";
+public test bool testDisallowWrongTypesInStructInitialization() {
+	str testCaseName = "testDisallowWrongTypesInStructInitialization";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -97,8 +97,8 @@ public test bool test_struct_initialization() {
 	return passed;
 }
 
-public test bool test_struct_field_selection_1() {
-	str testCaseName = "test_struct_field_selection_1";
+public test bool testDisallowDisallowedTypeConversionFromFieldSelection() {
+	str testCaseName = "testDisallowDisallowedTypeConversionFromFieldSelection";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -119,8 +119,8 @@ public test bool test_struct_field_selection_1() {
 	return passed;
 }
 
-public test bool test_struct_field_selection_2() {
-	str testCaseName = "test_struct_field_selection_2";
+public test bool testDisallowSelectionOfUnkownStructField() {
+	str testCaseName = "testDisallowSelectionOfUnkownStructField";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -141,8 +141,8 @@ public test bool test_struct_field_selection_2() {
 	return passed;
 }
 
-public test bool test_function_call_1() {
-	str testCaseName = "test_function_call_1";
+public test bool testDisallowFunctionCallWithTooManyArguments() {
+	str testCaseName = "testDisallowFunctionCallWithTooManyArguments";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -163,8 +163,8 @@ public test bool test_function_call_1() {
 	return passed;
 }
 
-public test bool test_function_call_2() {
-	str testCaseName = "test_function_call_2";
+public test bool testDisallowCallOfUndefinedFunction() {
+	str testCaseName = "testDisallowCallOfUndefinedFunction";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -179,8 +179,8 @@ public test bool test_function_call_2() {
 	return passed;
 }
 
-public test bool test_function_call_3() {
-	str testCaseName = "test_function_call_3";
+public test bool testDisallowCallWithWrongArgumentTypes() {
+	str testCaseName = "testDisallowCallWithWrongArgumentTypes";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -200,8 +200,8 @@ public test bool test_function_call_3() {
 	return passed;
 }
 
-public test bool test_if_condition() {
-	str testCaseName = "test_if_condition";
+public test bool testDisallowNonBooleanTypeInIfCondition() {
+	str testCaseName = "testDisallowNonBooleanTypeInIfCondition";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -220,8 +220,8 @@ public test bool test_if_condition() {
 	return passed;
 }
 
-public test bool test_while_condition() {
-	str testCaseName = "test_while_condition";
+public test bool testDisallowNonBooleanTypeInWhileCondition() {
+	str testCaseName = "testDisallowNonBooleanTypeInWhileCondition";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -240,8 +240,8 @@ public test bool test_while_condition() {
 	return passed;
 }
 
-public test bool test_do_while_condition() {
-	str testCaseName = "test_do_while_condition";
+public test bool testDisallowNonBooleanTypeInWhileDoCondition() {
+	str testCaseName = "testDisallowNonBooleanTypeInWhileDoCondition";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -260,28 +260,8 @@ public test bool test_do_while_condition() {
 	return passed;
 }
 
-public test bool test_while_condition() {
-	str testCaseName = "test_while_condition";
-	if( PRINT ) { println("RUNNING: <testCaseName>"); }
-	passed = true;
-	str input = "module Test;
-				'// While condition should be a boolean
-				'void switchBool() {
-				'	while( \"str\" ) {
-				'		return;
-				'	}
-				'}";				
-	msgs = resolver( input );
-
-	expectedMsgs = [< loopAbuseError(), "while condition should be a \'boolean\'" >];
-	passed = equalMessages( msgs, expectedMsgs );
-	outputTest( testCaseName, passed, expectedMsgs, msgs );
-	
-	return passed;
-}
-
-public test bool test_wrong_assignment_1() {
-	str testCaseName = "test_wrong_assignment_1";
+public test bool testDisallowAssignmentOfStringToInteger() {
+	str testCaseName = "testDisallowAssignmentOfStringToInteger";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -295,8 +275,8 @@ public test bool test_wrong_assignment_1() {
 	return passed;
 }
 
-public test bool test_wrong_assignment_2() {
-	str testCaseName = "test_wrong_assignment_2";
+public test bool testDisallowAssignmentOfBooleanToInteger() {
+	str testCaseName = "testDisallowAssignmentOfBooleanToInteger";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -311,8 +291,8 @@ public test bool test_wrong_assignment_2() {
 	return passed;
 }
 
-public test bool test_wrong_assignment_3() {
-	str testCaseName = "test_wrong_assignment_3";
+public test bool testDisallowAssignmentOfIntegerToArray() {
+	str testCaseName = "testDisallowAssignmentOfIntegerToArray";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -327,8 +307,8 @@ public test bool test_wrong_assignment_3() {
 	return passed;
 }
 
-public test bool test_wrong_implicit_assignment_1() {
-	str testCaseName = "test_wrong_implicit_assignment_1";
+public test bool testDisallowAssignmentOfInt16LiteralToInt8() {
+	str testCaseName = "testDisallowAssignmentOfInt16LiteralToInt8";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -343,8 +323,8 @@ public test bool test_wrong_implicit_assignment_1() {
 	return passed;
 }
 
-public test bool test_wrong_implicit_assignment_2() {
-	str testCaseName = "test_wrong_implicit_assignment_2";
+public test bool testDisallowAssignmentOfSignedLiteralToUnsignedInt() {
+	str testCaseName = "testDisallowAssignmentOfSignedLiteralToUnsignedInt";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -359,8 +339,8 @@ public test bool test_wrong_implicit_assignment_2() {
 	return passed;
 }
 
-public test bool test_pointer_assignment() {
-	str testCaseName = "test_pointer_assignment";
+public test bool testDisallowAssignmentOfPointerToPointerPointer() {
+	str testCaseName = "testDisallowAssignmentOfPointerToPointerPointer";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -374,8 +354,8 @@ public test bool test_pointer_assignment() {
 	return passed;
 }
 
-public test bool test_pointer_assignment_expression() {
-	str testCaseName = "test_pointer_assignment_expression";
+public test bool testDisallowAssignmentOfPointerToPointerPointerInFunctionBody() {
+	str testCaseName = "testDisallowAssignmentOfPointerToPointerPointerInFunctionBody";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -394,8 +374,8 @@ public test bool test_pointer_assignment_expression() {
 	return passed;
 }
 
-public test bool test_pointer_arithmetic_1() {
-	str testCaseName = "test_pointer_arithmetic_1";
+public test bool testAllowPlusMinusOperatorWithPointerAndInteger() {
+	str testCaseName = "testAllowPlusMinusOperatorWithPointerAndInteger";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -411,8 +391,8 @@ public test bool test_pointer_arithmetic_1() {
 	return passed;
 }
 
-public test bool test_pointer_arithmetic_2() {
-	str testCaseName = "test_pointer_arithmetic_2";
+public test bool testAllowPluMinusAssignmentOperatorWithPointerAndInteger() {
+	str testCaseName = "testAllowPluMinusAssignmentOperatorWithPointerAndInteger";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -430,8 +410,8 @@ public test bool test_pointer_arithmetic_2() {
 	return passed;
 }
 
-public test bool test_pointer_assignment_2() {
-	str testCaseName = "test_pointer_assignment_2";
+public test bool testDisallowAssignmentOfIntegerToPointerOfInteger() {
+	str testCaseName = "testDisallowAssignmentOfIntegerToPointerOfInteger";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -446,8 +426,8 @@ public test bool test_pointer_assignment_2() {
 	
 	return passed;
 }
-public test bool test_pointer_addition() {
-	str testCaseName = "test_pointer_addition";
+public test bool testDisallowPlusOperatorWithPointerAndPointer() {
+	str testCaseName = "testDisallowPlusOperatorWithPointerAndPointer";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -465,8 +445,8 @@ public test bool test_pointer_addition() {
 	return passed;
 }
 
-public test bool test_typedef_var_1() {
-	str testCaseName = "test_typedef_var_1";
+public test bool testAllowDeclarationWithTypeDef() {
+	str testCaseName = "testAllowDeclarationWithTypeDef";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -482,8 +462,8 @@ public test bool test_typedef_var_1() {
 	return passed;
 }
 
-public test bool test_typedef_var_2() {
-	str testCaseName = "test_typedef_var_2";
+public test bool testAllowDeclartionWithTypeDefOfWithInitialization() {
+	str testCaseName = "testAllowDeclartionWithTypeDefOfWithInitialization";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -546,8 +526,8 @@ public test bool testCorrectlyResolveTypeDefVariableAssignment() {
 	return passed;
 }
 
-public test bool test_assignment() {
-	str testCaseName = "test_assignment";
+public test bool testDisallowAssignmentOfUninitializedVariable() {
+	str testCaseName = "testDisallowAssignmentOfUninitializedVariable";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -564,8 +544,8 @@ public test bool test_assignment() {
 	return passed;
 }
 
-public test bool test_binary_operator_1() {
-	str testCaseName = "test_binary_operator_1";
+public test bool testAllowComparisonInIfCondition() {
+	str testCaseName = "testAllowComparisonInIfCondition";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -584,8 +564,8 @@ public test bool test_binary_operator_1() {
 	return passed;
 }
 
-public test bool test_struct_field_reference() {
-	str testCaseName = "test_struct_field_reference";
+public test bool testAllowReferenceOfKnownStructField() {
+	str testCaseName = "testAllowReferenceOfKnownStructField";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "
@@ -610,8 +590,8 @@ public test bool test_struct_field_reference() {
 	return passed;
 }
 	
-public test bool test_constant() {
-	str testCaseName = "test_constant";
+public test bool testAllowInitializationOfConstant() {
+	str testCaseName = "testAllowInitializationOfConstant";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;

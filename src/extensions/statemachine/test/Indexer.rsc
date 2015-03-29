@@ -3,8 +3,8 @@ extend \test::Base;
 
 import extensions::statemachine::\test::Helper;
 
-public test bool test_empty_statemachine() {
-	str testCaseName = "test_empty_statemachine";
+public test bool testAllowEmptyStatemachine() {
+	str testCaseName = "testAllowEmptyStatemachine";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {
@@ -18,8 +18,8 @@ public test bool test_empty_statemachine() {
 	return passed;
 }
 
-public test bool test_state_redefinition() {
-	str testCaseName = "test_state_redefinition";
+public test bool testDisallowStateRedefinition() {
+	str testCaseName = "testDisallowStateRedefinition";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {
@@ -35,8 +35,8 @@ public test bool test_state_redefinition() {
 	return passed;
 }
 
-public test bool test_var_redefinition() {
-	str testCaseName = "test_var_redefinition";
+public test bool testDisallowRedefinitionVar() {
+	str testCaseName = "testDisallowRedefinitionVar";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {
@@ -52,8 +52,8 @@ public test bool test_var_redefinition() {
 	return passed;
 }
 
-public test bool test_inevent_redefinition() {
-	str testCaseName = "test_inevent_redefinition";
+public test bool testDisallowRedefinitionInEvent() {
+	str testCaseName = "testDisallowRedefinitionInEvent";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {
@@ -69,8 +69,8 @@ public test bool test_inevent_redefinition() {
 	return passed;
 }
 
-public test bool test_outevent_redefinition() {
-	str testCaseName = "test_outevent_redefinition";
+public test bool testDisallowRedfeinitionOfOutEvent() {
+	str testCaseName = "testDisallowRedfeinitionOfOutEvent";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {
@@ -86,8 +86,8 @@ public test bool test_outevent_redefinition() {
 	return passed;
 }
 
-public test bool test_inevent() {
-	str testCaseName = "test_inevent";
+public test bool testAllowRedefinitionOfInEventWithDifferentName() {
+	str testCaseName = "testAllowRedefinitionOfInEventWithDifferentName";
 	str input = 
 	"module Test;
 	'statemachine FlightAnalyzer {

@@ -3,8 +3,8 @@ extend \test::Base;
 
 import typing::\test::Helper;
 
-public test bool test_redefinition_1() {
-	str testCaseName = "test_redefenition_1";
+public test bool testDisallowRedefinitonOfVariable() {
+	str testCaseName = "testDisallowRedefinitonOfVariable";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -19,8 +19,8 @@ public test bool test_redefinition_1() {
 	return passed;
 }
 
-public test bool test_redefinition_2() {
-	str testCaseName = "test_redefenition_2";
+public test bool testAllowInstantiationOfUninitializedVariable() {
+	str testCaseName = "testAllowInstantiationOfUninitializedVariable";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -35,8 +35,8 @@ public test bool test_redefinition_2() {
 	return passed;
 }
 
-public test bool test_redefinition_3() {
-	str testCaseName = "test_redefenition_3";
+public test bool testDisallowInstantiationOfUnitializedVariableWithDifferentType() {
+	str testCaseName = "testDisallowInstantiationOfUnitializedVariableWithDifferentType";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -51,8 +51,8 @@ public test bool test_redefinition_3() {
 	return passed;
 }
 
-public test bool test_custom_type() {
-	str testCaseName = "test_custom_type";
+public test bool testDisallowDeclarationWithUnkownType() {
+	str testCaseName = "testDisallowDeclarationWithUnkownType";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -66,8 +66,8 @@ public test bool test_custom_type() {
 	return passed;
 }
 
-public test bool test_struct() {
-	str testCaseName = "test_struct";
+public test bool testDisallowDeclarationWithUnkownStructType() {
+	str testCaseName = "testDisallowDeclarationWithUnkownStructType";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -81,8 +81,8 @@ public test bool test_struct() {
 	return passed;
 }
 
-public test bool test_enum() {
-	str testCaseName = "test_enum";
+public test bool testDisallowDeclarationWithUnkownEnumType() {
+	str testCaseName = "testDisallowDeclarationWithUnkownEnumType";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "module Test;
@@ -96,7 +96,7 @@ public test bool test_enum() {
 	return passed;
 }
 
-public test bool test_scope() {
+public test bool testAllowRedefinitionInDifferentScope() {
 	str testCaseName = "test_scope";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
@@ -117,8 +117,8 @@ public test bool test_scope() {
 	return passed;
 }
 	
-public test bool test_constant_indexer() {
-	str testCaseName = "test_constant_indexer";
+public test bool testDisallowConstantDeclarationWithExpressionThatIsNotStaticallyEvaluatable() {
+	str testCaseName = "testDisallowConstantDeclarationWithExpressionThatIsNotStaticallyEvaluatable";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = "

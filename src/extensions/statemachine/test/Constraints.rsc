@@ -3,8 +3,8 @@ extend \test::Base;
 
 import extensions::statemachine::\test::Helper;
 
-public test bool test_send_constraint_1() {
-	str testCaseName = "test_send_constraint_1";
+public test bool testDisallowSendStatementOutsideState() {
+	str testCaseName = "testDisallowSendStatementOutsideState";
 	str input = 
 	" module Test;
 	' 
@@ -21,8 +21,8 @@ public test bool test_send_constraint_1() {
 	return passed;
 }
 
-public test bool test_send_constraint_2() {
-	str testCaseName = "test_send_constraint_2";
+public test bool testAllowSendStatementInState() {
+	str testCaseName = "testAllowSendStatementInState";
 	str input = 
 	" module Test;
 	' 
@@ -41,8 +41,8 @@ public test bool test_send_constraint_2() {
 	return passed;
 }
 
-public test bool test_send_constraint_3() {
-	str testCaseName = "test_send_constraint_3";
+public test bool testAllowSendInIfStatementInState() {
+	str testCaseName = "testAllowSendInIfStatementInState";
 	str input = 
 	" module Test;
 	' 

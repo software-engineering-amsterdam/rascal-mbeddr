@@ -7,8 +7,8 @@ import extensions::statemachine::AST;
 import extensions::statemachine::Desugar;
 import extensions::statemachine::\test::Helper;
 
-public test bool test_state_desugar() {
-	str testCaseName = "test_state_desugar";
+public test bool testDesugaringStatemachineWithState() {
+	str testCaseName = "testDesugaringStatemachineWithState";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -34,8 +34,8 @@ public test bool test_state_desugar() {
 	return passed;
 }
 
-public test bool test_in_event_desugar() {
-    str testCaseName = "test_in_event_desugar";
+public test bool testDesugarInComingEvent() {
+    str testCaseName = "testDesugarInComingEvent";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -58,7 +58,7 @@ public test bool test_in_event_desugar() {
 	return passed;
 }
 
-public test bool test_init_desugar() {
+public test bool testDesugarStatemachineWithInitialState() {
     str testCaseName = "test_init_desugar";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
@@ -84,8 +84,8 @@ public test bool test_init_desugar() {
 	return passed;
 }
 
-public test bool test_var_cond() {
-    str testCaseName = "test_var_cond";
+public test bool testDesugarStatemachineWithVarInStateCondition() {
+    str testCaseName = "testDesugarStatemachineWithVarInStateCondition";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -108,8 +108,8 @@ public test bool test_var_cond() {
 	return passed;
 }
 
-public test bool test_entry_exit() {
-    str testCaseName = "test_entry_exit";
+public test bool testDesugarStatemachineWithEntryExitState() {
+    str testCaseName = "testDesugarStatemachineWithEntryExitState";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -137,8 +137,8 @@ public test bool test_entry_exit() {
 	return passed;
 }
 
-public test bool test_initialization() {
-    str testCaseName = "test_initialization";
+public test bool testDesugarStatemachineInitialization() {
+    str testCaseName = "testDesugarStatemachineInitialization";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -162,8 +162,8 @@ public test bool test_initialization() {
 	return passed;
 }
 
-public test bool test_setState() {
-    str testCaseName = "test_setState";
+public test bool testDesugarStatemachineInitializationWithSetState() {
+    str testCaseName = "testDesugarStatemachineInitializationWithSetState";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -188,8 +188,8 @@ public test bool test_setState() {
 	return passed;
 }
 
-public test bool test_isInState() {
-    str testCaseName = "test_isInState";
+public test bool testDesugarStatemachineInitializationIsInState() {
+    str testCaseName = "testDesugarStatemachineInitializationIsInState";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -214,8 +214,8 @@ public test bool test_isInState() {
 	return passed;
 }
 
-public test bool test_trigger() {
-    str testCaseName = "test_trigger";
+public test bool testDesugarStatemachineInitializationTrigger() {
+    str testCaseName = "testDesugarStatemachineInitializationTrigger";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -241,10 +241,8 @@ public test bool test_trigger() {
 	return passed;
 }
 
-	
-
-public test bool test_send_notification() {
-    str testCaseName = "test_send_notification";
+public test bool testDesugarStatemachineWithOutEvent() {
+    str testCaseName = "testDesugarStatemachineWithOutEvent";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
@@ -268,8 +266,8 @@ public test bool test_send_notification() {
 	return passed;
 }
 
-public test bool test_compileStateMachines() {
-    str testCaseName = "test_compileStateMachines";
+public test bool testCompilingStatemachine() {
+    str testCaseName = "testDesugarStatemachineWithOutEvent";
 	if( PRINT ) { println("RUNNING: <testCaseName>"); }
 	passed = true;
 	str input = 
