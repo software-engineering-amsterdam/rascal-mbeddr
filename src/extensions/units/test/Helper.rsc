@@ -9,7 +9,7 @@ import extensions::units::typing::Constraints;
 import extensions::units::typing::Resolver;
 
 extend \test::Helper;
-extend desugar::Helper;
-extend typing::indexer::Helper;
-extend typing::constraints::Helper;
-extend typing::resolver::Helper;
+extend core::desugar::Runner;
+extend typechecker::indexer::Runner;
+extend typechecker::constraints::Runner;
+extend typechecker::resolver::Runner;

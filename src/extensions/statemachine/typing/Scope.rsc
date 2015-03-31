@@ -1,5 +1,5 @@
 module extensions::statemachine::typing::Scope
-extend typing::Scope;
+extend core::typing::Scope;
 
 data Scope
 	= stateMachine( Scope s )

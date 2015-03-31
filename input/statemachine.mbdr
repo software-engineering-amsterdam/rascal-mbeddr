@@ -1,16 +1,99 @@
 module StateMachine;
 
-statemachine FlightAnalyzer initial = beforeFlight {
-	in event next(int32* tp)
+#constant TAKEOFF = 100;
+#constant HIGH_SPEED = 10;
+#constant VERY_HIGH_SPEED = 20;
+#constant LANDING = 100;
+
+typedef struct TrackPoint as TrackPoint;
+struct TrackPoint {
+	int8 id;
+	int32 time;
+	int32 alt;
+	int32 speed;
+};
+
+void raiseAlarm() {
+	// Do some external stuff
+}
+
+exported statemachine FlightAnalyzer initial = beforeFlight {
+	in event next(TrackPoint* tp)
+	in event reset()
+	
+	out event crashNotification() => raiseAlarm
 	readable var int16 points = 0
+	readable var int16[25] pointsArray = (int16[25]) 0
 
 	state beforeFlight {
 		entry { points = 0; }
-		on next [*tp > 0] -> airborne
-		exit { points += 100; }
+		on next [tp->alt > 0] -> airborne
+		exit { points += TAKEOFF; }
 	}
 	
 	state airborne {
 		entry { points = 100; }
+		on next [tp->alt == 0 && tp->speed == 0 && points == 0] -> crashed
+		on next [tp->alt == 0 && tp->speed > 0] -> landed
+		on next [tp->speed > 200 && tp->alt == 0] -> airborne { points += VERY_HIGH_SPEED; }
+		on next [tp->speed > 100 && tp->speed <= 200 && tp->alt == 0] -> airborne { points += HIGH_SPEED; }
+		on reset [] -> beforeFlight
 	}
+	state landing {
+		on next [tp->speed == 0] -> landed
+		on next [tp->speed > 0] -> landing { points--; }
+		on reset [] -> beforeFlight
+	}
+	
+	state landed {
+		entry { 
+			points += LANDING;
+			pointsArray = [ x + 10 | int16 x <- pointsArray, x <= 10 ]; 
+		}
+		on reset [] -> beforeFlight
+	}
+	
+	state crashed {
+		entry { ; } //send crashNotification(); }
+	}
+
+}
+
+exported TrackPoint* makeTP( int16 alt, int16 speed ) {
+	static int8 trackPointCounter = 0;
+	trackPointCounter++;
+	
+	TrackPoint* tp = ((TrackPoint*) 100);
+	tp->id = trackPointCounter;
+	tp->time = trackPointCounter;
+	tp->alt = alt;
+	tp->speed = speed;
+	return tp;
+}
+
+exported testcase TestFlightAnalyzer {
+	FlightAnalyzer f;
+	f.init();
+	
+	f.setState( f.airborne );
+	
+	assert f.isInState( f.beforeFlight );
+	assert f.points == 0;
+	
+	f.next( makeTP(0, 20) );
+	
+	assert f.isInState( f.beforeFlight ) && f.points == 0;
+	
+	f.next( makeTP(100, 100) );
+	
+	assert f.isInState( f.airborne ) && f.points == 100;
+	
+	f.next( makeTP( 200, 100 ) );
+	assert f.isInState( f.airborne );
+	f.next( makeTP( 300, 150 ) );
+	assert f.isInState( f.airborne );
+	f.next( makeTP( 0, 90 ) );
+	assert f.isInState( f.landing );
+	f.next( makeTP( 0, 0 ) );
+	assert f.isInState( f.landed );
 }

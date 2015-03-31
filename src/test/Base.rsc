@@ -3,12 +3,12 @@ module \test::Base
 import IO;
 import util::ext::List;
 import util::ext::Node;
-import typing::TypeMessage;
+import core::typing::TypeMessage;
 
 import lang::mbeddr::AST;
 import lang::mbeddr::ToC;
 
-import typing::IndexTable;
+import core::typing::IndexTable;
 
 private bool PRINT = true;
 private bool DEBUG = true;

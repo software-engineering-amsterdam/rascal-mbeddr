@@ -10,10 +10,10 @@ import extensions::unittest::typing::Resolver;
 import extensions::unittest::typing::Scope;
 
 extend \test::Helper;
-extend desugar::Helper;
-extend typing::resolver::Helper;
-extend typing::indexer::Helper;
-extend typing::constraints::Helper;
+extend core::desugar::Runner;
+extend typechecker::resolver::Runner;
+extend typechecker::indexer::Runner;
+extend typechecker::constraints::Runner;
 
 Module desugarModule( Module ast ) {
 	ast = desugarUnitTest( ast );

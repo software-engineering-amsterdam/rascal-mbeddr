@@ -1,5 +1,5 @@
 module extensions::statemachine::typing::Resolver
-extend typing::Resolver;
+extend core::typing::resolver::Resolver;
 
 import extensions::statemachine::AST;
 import extensions::statemachine::typing::IndexTable;
@@ -120,7 +120,7 @@ StateMachineStat resolve( StateMachineStat s:var( list[Modifier] mods, Type \typ
 	
 	if( isEmpty( initType ) ) { return s; }
 	
-	if( !(\type in CTypeTree[ initType ]) ) {
+	if( !(inTypeTree( CTypeTree, \type,  initType  )) ) {
 		s@message = error( incompatibleTypesError(), "\'<typeToString(initType)>\' not a subtype of \'<typeToString(\type)>\'", s@location );
 	}
 	
@@ -129,7 +129,8 @@ StateMachineStat resolve( StateMachineStat s:var( list[Modifier] mods, Type \typ
 
 IndexTable convertInEventToFunction( IndexTable table, str name ) {
 	if( contains( table, symbolKey(name) ) && inEvent( params ) := lookup( table, symbolKey( name ) ).\type ) {
-		table = update( table, symbolKey(name), lookup( table, symbolKey(name) )[\type=function( \void(), [ t | param(_,t,_) <- params ] )] );
+		row = lookup( table, symbolKey(name) )[\type=function( \void(), [ t | param(_,t,_) <- params ] )];
+		table = update( table, symbolKey(name), row );
 	}
 	
 	return table;
@@ -154,7 +155,6 @@ public Expr resolveField( Expr e, stateMachine( str stateMachineName ), str name
 	symbols = lookup( e@indextable, objectKey( stateMachineName ) ).symbols;
 
     if( contains( symbols, symbolKey(name) ) ) {
-    
         e@\type = lookup( symbols, symbolKey(name) ).\type;
     } else {
         e@message = error( fieldReferenceError(), "unkown statemachine property \'<name>\' for statemachine \'<stateMachineName>\'", e@location );

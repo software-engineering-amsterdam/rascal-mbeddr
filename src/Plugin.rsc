@@ -11,10 +11,10 @@ import util::Editors;
 
 // LOCAL IMPORTS 
 import Parser;
-import TypeChecker;
+import typechecker::TypeChecker;
 import Desugar;
 import lang::mbeddr::ToC;
-import typing::IndexTable;
+import core::typing::IndexTable;
 import util::Util;
 
 private str LANG = "MBeddr";
@@ -56,6 +56,7 @@ void printLinks( start[Module] m ) {
 	}
 }
 
+void convert2C( Tree tree ) = convert2C( tree, |tmp:///| );
 void convert2C(Tree tree, loc selection) {
     println("Showing C...");
     if (start[Module] m := tree) {
@@ -73,6 +74,8 @@ void convert2C(Tree tree, loc selection) {
 	      writeFile(|project://rascal-mbeddr/<cOut.path>|, cSrc);
 	      writeFile(|project://rascal-mbeddr/<hOut.path>|, hSrc);
 	      //edit(out, []);
+	  } else {
+		println( "Found errors in input" );
 	  }
     }        
 }

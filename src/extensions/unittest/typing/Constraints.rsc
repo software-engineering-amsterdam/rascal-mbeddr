@@ -1,5 +1,5 @@
 module extensions::unittest::typing::Constraints
-extend typing::constraints::Constraints;
+extend core::typing::constraints::Constraints;
 
 import Node;
 import IO;

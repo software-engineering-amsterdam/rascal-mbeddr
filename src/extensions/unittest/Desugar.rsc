@@ -1,5 +1,5 @@
 module extensions::unittest::Desugar
-extend desugar::Base;
+extend core::desugar::Base;
 
 import util::ext::List;
 

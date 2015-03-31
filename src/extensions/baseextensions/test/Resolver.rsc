@@ -1,7 +1,7 @@
 module extensions::baseextensions::\test::Resolver
 extend \test::Base;
 
-import typing::TypeMessage;
+import core::typing::TypeMessage;
 import util::ext::Node;
 
 import extensions::baseextensions::\test::Helper;
@@ -26,7 +26,6 @@ public test bool testResolveMultipleLambdasWithoutErrors() {
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	outputResult( testCaseName, passed );
 	return passed;
 }
 
@@ -48,7 +47,6 @@ public test bool lambdaReturnsAreNotMatchedAsFunctionReturn() {
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	outputResult( testCaseName, passed );
 	return passed;
 }
 
@@ -76,7 +74,6 @@ public test bool testResolveNestedLambdasWithoutErrors() {
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	outputResult( testCaseName, passed );
 	return passed;
 }
 
@@ -99,6 +96,93 @@ public test bool testConstantsAreImmutable() {
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
-	outputResult( testCaseName, passed );
+	return passed;
+}
+
+public test bool testArrayComprehensionsDefineCorrectType() {
+	str testCaseName = "testArrayComprehensionsDefineCorrectType";
+	outputStart( testCaseName );
+	passed = true;
+	str input =
+	"module Test;
+	
+	int8 notList;
+	
+	int8[10] main() {
+		return [ y | int8 y \<- notList, y \>= 10 ]; 
+	}
+	";
+	msgs = resolver( input );
+	
+	expectedMsgs = [< typeMismatchError(), "Array comprehensions can only retrieve items from arrays" >];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}
+
+public test bool testWrongGetTypeInArrayComprehension() {
+	str testCaseName = "testWrongGetTypeInArrayComprehension";
+	outputStart( testCaseName );
+	passed = true;
+	str input =
+	"module Test;
+	
+	int8[10] list;
+	
+	int8[10] main() {
+		return [ y | float y \<- list ]; 
+	}
+	";
+	msgs = resolver( input );
+	
+	expectedMsgs = [< nonFittingTypesError(), "Expected array with items of type \'float\' but got array with items of type \'int8\'" >];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}
+
+public test bool testDisallowNonBooleanConditionInArrayComprehension() {
+	str testCaseName = "testDisallowNonBooleanConditionInArrayComprehension";
+	outputStart( testCaseName );
+	passed = true;
+	str input =
+	"module Test;
+	
+	int8[10] list;
+	
+	int8[10] main() {
+		return [ y | int8 y \<- list, y + 1 ]; 
+	}
+	";
+	msgs = resolver( input );
+	
+	expectedMsgs = [< conditionalMismatchError(), "Expected something of boolean type, but got something of \'uint8 || int8\'" >];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
+	return passed;
+}
+
+public test bool testDisallowArraysWithoutDimensionInArrayComprehensions() {
+	str testCaseName = "testDisallowArraysWithoutDimensionInArrayComprehensions";
+	outputStart( testCaseName );
+	passed = true;
+	str input =
+	"module Test;
+	
+	int8[] list;
+	
+	int8[] main() {
+		return [ y | int8 y \<- list ]; 
+	}
+	";
+	msgs = resolver( input );
+	
+	expectedMsgs = [< typeMismatchError(), "Array comprehensions can only retrieve items from arrays with dimensions" >];
+	passed = equalMessages( msgs, expectedMsgs );
+	outputTest( testCaseName, passed, expectedMsgs, msgs );
+	
 	return passed;
 }

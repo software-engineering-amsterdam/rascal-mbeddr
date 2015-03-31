@@ -1,7 +1,7 @@
 module extensions::statemachine::\test::Resolver
 extend \test::Base;
 
-import typing::TypeMessage;
+import core::typing::TypeMessage;
 
 import extensions::statemachine::\test::Helper;
 

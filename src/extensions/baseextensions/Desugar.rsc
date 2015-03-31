@@ -1,5 +1,5 @@
 module extensions::baseextensions::Desugar
-extend desugar::Base;
+extend core::desugar::Base;
 
 // LIBRARY IMPORTS
 import util::ext::List;
@@ -7,16 +7,87 @@ import util::ext::Node;
 import IO;
 
 // LOCAL IMPORTS
-import typing::IndexTable;
-import typing::Scope;
-import typing::resolver::Base;
+import core::typing::IndexTable;
+import core::typing::Scope;
+import core::typing::resolver::Base;
 import extensions::baseextensions::AST;
 
 Module desugarBaseExtensions( Module m:\module( name, imports, decls ) ) {
 	m = desugarLambdas( m );
+	m = desugarComprehensions( m );
 	
 	return m;
 }
+
+private Module desugarComprehensions( Module m ) {
+	int i = 0;
+	list[Decl] comprehensionFunctions = [];
+	IndexTable liftedComprehensions = ();
+	
+	solve( m ) {
+		m = visit( m ) {
+			case Expr e:arrayComprehension(Expr put, Type getType, Id get, Expr from, list[Expr] conds) : {
+				i += 1;
+				str liftedComprehensionName = "comprehension_function_$<i>";
+				
+				liftedVariables = findLiftedParams( put, [], e@indextable );
+				
+				comprehensionFunctions += function( [], e@\type, id( liftedComprehensionName ), liftedVariables, comprehensionBody( e ) );
+				liftedComprehensions = store( liftedComprehensions, symbolKey( liftedComprehensionName ), function( e@\type, parameterTypes( liftedVariables ) ), global(), true, e@location ).table;
+				
+				insert call( var( id( liftedComprehensionName ) ), [] ); 
+			}
+		}
+	}
+	
+	m.decls = comprehensionFunctions + m.decls;
+	return m;
+}
+
+private list[Stat] comprehensionBody( Expr e:arrayComprehension(_,_,_,_,_) ) {
+	Type itemType;
+	int dimension;
+	
+	if( array( Type t, int dim ) := e@\type ) { 
+		itemType = t;
+		dimension = dim;
+	}
+	
+	list[Stat] body = [];
+	
+	body += decl( variable( [], e@\type, id("result"), call( var( id( "malloc" ) ), [lit( \int( "10" ) )] ) ) );
+	body += decl( variable( [], \int32(), id("i"), lit( \int( "0" ) ) ) );
+	body += decl( variable( [], \int32(), id("j"), lit( \int( "0" ) ) ) );
+	
+	body += \for( [], [ lt( var( id( "i" ) ), lit( \int( "<dimension>" ) ) ) ], [ postIncr( var( id( "i" ) ) ) ], comprehensionForBody( e ) );
+	body += returnExpr( var( id( "result" ) ) );
+	
+	return body;
+}
+
+private Stat comprehensionForBody( Expr e:arrayComprehension(_,_,_,_,_) ) {
+	list[Stat] body = [];
+	
+	body += decl( variable( [], getType( e.from ).\type, e.get, subscript( var( id( "input" ) ), var( id( "i" ) ) ) ) );
+	
+	body += comprehensionConditions( e );
+	
+	return block( body );
+}
+
+private Stat comprehensionConditions( Expr e:arrayComprehension(_,_,_,_,_) ) {
+	return ifThen( createConditions( e.conds ), block( comprehensionConditionBody( e ) ) );
+}
+
+private list[Stat] comprehensionConditionBody( Expr e ) = [
+	expr( assign( subscript( var( id( "result" ) ), var( id( "j" ) ) ), e.put ) ),
+	expr( postIncr( var( id( "j" ) ) ) )
+];
+
+private Expr createConditions( [] ) = lit( boolean( "true" ) );
+private Expr createConditions( [Expr e] ) = e;
+private Expr createConditions( [Expr l, Expr r] ) = and( l, r ); 
+private default Expr createConditions( [Expr l, Expr r, *Expr rest] ) = and( and( l, r ), createConditions( rest ) ); 
 
 private Module desugarLambdas( Module m:\module( name, imports, decls ) ) {
 	int i = 0;
@@ -30,7 +101,7 @@ private Module desugarLambdas( Module m:\module( name, imports, decls ) ) {
 				liftedParams = findLiftedParams( body, params, liftedLambdaGlobals );
 		
 				liftedLambdas += function( [], l@\type.returnType, id("lambda_function_$<i>"), params + liftedParams, liftLambdaBody( body ) );
-				liftedLambdaGlobals = store( liftedLambdaGlobals, symbolKey("lambda_function_$<i>"), symbolRow( l@\type, global(), true ) ).table;
+				liftedLambdaGlobals = store( liftedLambdaGlobals, symbolKey("lambda_function_$<i>"), l@\type, global(), true, l@location ).table;
 				
 				n = var( id( "lambda_function_$<i>" ) );
 				insert n;

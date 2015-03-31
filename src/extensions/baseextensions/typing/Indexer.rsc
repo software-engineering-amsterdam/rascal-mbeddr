@@ -1,6 +1,7 @@
 module extensions::baseextensions::typing::Indexer
-extend typing::indexer::Indexer;
+extend core::typing::indexer::Indexer;
 
+import extensions::baseextensions::typing::Scope;
 import extensions::baseextensions::AST;
 
 tuple[ Expr astNode, IndexTable table, str errorMsg ]
@@ -24,4 +25,13 @@ indexer( Expr e:lambda(list[Param] params, Expr body ), IndexTable table, Scope 
 	e.expr = indexWrapper( body, result.table, scope );
 	
 	return < e[@scope = scope], table, "" >;	
+}
+
+tuple[ Expr astNode, IndexTable table, str errorMsg ]
+indexer( Expr e:arrayComprehension(Expr put, Type getType, Id get, Expr from, list[Expr] conds), IndexTable table, Scope scope ) {
+	scope = comprehension(scope);
+	
+	storeResult = store( table, symbolKey( get.name ), getType, scope, true, e@location ); 
+	
+	return < e[@scope = scope], storeResult.table, storeResult.errorMsg >;
 }

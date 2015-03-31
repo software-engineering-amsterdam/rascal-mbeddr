@@ -116,7 +116,7 @@ syntax Expr
     > left and: Expr "&&" Expr 
     > left or: Expr "||" Expr 
     > right cond: Expr "?" Expr ":" Expr 
-    > right ( assign: Expr "=" Expr 
+    > right ( assign: Expr!mul "=" Expr 
             | mulAssign: Expr "*=" Expr 
             | divAssign: Expr "/=" Expr 
             | modAssign: Expr "%=" Expr 

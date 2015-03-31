@@ -1,5 +1,5 @@
 module extensions::units::typing::IndexTable
-extend typing::IndexTable;
+extend core::typing::IndexTable;
 
 import extensions::units::AST;
 

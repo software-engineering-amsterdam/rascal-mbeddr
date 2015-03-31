@@ -1,5 +1,5 @@
 module extensions::unittest::typing::Indexer
-extend typing::indexer::Indexer;
+extend core::typing::indexer::Indexer;
 
 import extensions::unittest::AST;
 import extensions::unittest::typing::Scope;
@@ -9,7 +9,7 @@ indexer( Decl d:testCase(list[Modifier] mods, id( name ), list[Stat] stats),
 	   	 IndexTable table, 
 	   	 Scope scope
 	   ) {
-	storeResult = store( table, symbolKey(name), symbolRow(testCase(), scope, true, d@location ) );
+	storeResult = store( table, symbolKey(name), testCase(),  scope,  true,  d@location );
 	d.stats = indexer( stats, storeResult.table, \test( scope ) );
 			 
 	return < d[@scope=scope], storeResult.table, storeResult.errorMsg >;

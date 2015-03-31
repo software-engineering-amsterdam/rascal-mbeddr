@@ -145,3 +145,59 @@ public test bool testLambdaLiftGlobalVariables() {
 	outputResult( testCaseName, passed );
 	return passed;
 }
+
+public test bool testListComprehensionDesugar() {
+	str testCaseName = "testListComprehensionDesugar";
+	outputStart( testCaseName );
+	passed = true;
+	str input = "
+	'module MultipleLambda;
+	
+	int8[10] list;
+	
+	int8[10] main() {
+		return [ y | int8 y \<- list, y \>= 10 ]; 
+	}
+	
+	";
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
+	
+	if( passed ) {
+		ast = desugarModule( ast );
+		<headerAst,cAst> = splitAst( ast );
+		
+		printC( ast );
+	}
+	
+	outputResult( testCaseName, passed );
+	return passed;
+}
+
+public test bool testListComprehensionMultipleConditionsDesugar() {
+	str testCaseName = "testListComprehensionMultipleConditionsDesugar";
+	outputStart( testCaseName );
+	passed = true;
+	str input = "
+	'module MultipleLambda;
+	
+	int16[10] list;
+	
+	int16[10] main() {
+		return [ y | int16 y \<- list, y \>= 10, y \<= 1000 ]; 
+	}
+	
+	";
+	ast = resolver( createIndexTable( createAST( input ) ) );
+	passed = checkForTypeErrors( ast, testCaseName );
+	
+	if( passed ) {
+		ast = desugarModule( ast );
+		<headerAst,cAst> = splitAst( ast );
+		
+		printC( ast );
+	}
+	
+	outputResult( testCaseName, passed );
+	return passed;
+}

@@ -1,5 +1,5 @@
 module extensions::statemachine::typing::IndexTable
-extend typing::IndexTable;
+extend core::typing::IndexTable;
 
 import extensions::statemachine::AST;
 

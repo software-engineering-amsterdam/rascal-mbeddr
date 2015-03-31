@@ -209,6 +209,7 @@ public test bool testDesugarStatemachineInitializationIsInState() {
 	
 	if( passed ) {
 		ast = desugarModule( ast );
+		
 		printC( ast );
 	}
 	return passed;
@@ -250,7 +251,7 @@ public test bool testDesugarStatemachineWithOutEvent() {
 	  void raiseAlarm() { }
 	
 	' exported statemachine FlightAnalyzer {
-	'   out event crashNotification =\> raiseAlarm
+	'   out event crashNotification() =\> raiseAlarm
 	'   state crashed {
 			entry { send crashNotification(); }
 		}

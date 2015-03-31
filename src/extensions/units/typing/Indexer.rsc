@@ -1,5 +1,5 @@
 module extensions::units::typing::Indexer
-extend typing::indexer::Indexer;
+extend core::typing::indexer::Indexer;
 
 import extensions::units::AST;
 import extensions::units::typing::IndexTable;

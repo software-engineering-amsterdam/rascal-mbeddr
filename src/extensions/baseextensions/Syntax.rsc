@@ -9,4 +9,5 @@ extend lang::mbeddr::MBeddrC;
 syntax Expr
  	= lambda: "[" {Param ","}* "|" Stat* "]"
  	| lambda: "[" {Param ","}* "|" Expr "]"
+ 	| arrayComprehension : "[" Expr "|" Type Id "\<-" Expr ("," { Expr "," }*)? "]"
 	;

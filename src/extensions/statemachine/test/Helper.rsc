@@ -10,11 +10,12 @@ import extensions::statemachine::typing::Resolver;
 import extensions::statemachine::typing::IndexTable;
 import extensions::statemachine::typing::Scope;
 
-extend extensions::statemachine::typing::resolver::Helper;
 extend \test::Helper;
-extend desugar::Helper;
-extend typing::indexer::Helper;
-extend typing::constraints::Helper;
+extend core::desugar::Runner;
+extend typechecker::indexer::Runner;
+extend typechecker::resolver::Runner;
+
+extend typechecker::constraints::Runner;
 
 Module desugarModule( Module m ) {
 	m = desugarStateMachine( m );

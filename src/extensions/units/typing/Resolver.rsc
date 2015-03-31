@@ -1,1 +1,1 @@
-module extensions::units::typing::Resolver
+module extensions::units::typing::resolver::Resolver

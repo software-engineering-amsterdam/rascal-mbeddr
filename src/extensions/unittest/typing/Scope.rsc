@@ -1,5 +1,5 @@
 module extensions::unittest::typing::Scope
-extend typing::Scope;
+extend core::typing::Scope;
 
 data Scope
 	= \test( Scope scope )

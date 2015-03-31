@@ -1,5 +1,5 @@
 module extensions::unittest::typing::Resolver
-extend typing::Resolver;
+extend core::typing::resolver::Resolver;
 
 import extensions::unittest::AST;
 import extensions::unittest::typing::TypeMessage;

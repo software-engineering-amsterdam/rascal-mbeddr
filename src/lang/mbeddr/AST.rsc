@@ -8,7 +8,7 @@
 @contributor{Tijs van der Storm - storm@cwi.nl}
 module lang::mbeddr::AST
 
-import typing::TypeMessage;
+import core::typing::TypeMessage;
 
 anno loc Module@location;
 anno loc Import@location;
@@ -197,6 +197,7 @@ data Type
   | usint16()
   | usint32()
   | usint64()
+  | constant( Type \type )
   ; 
 
 data Modifier

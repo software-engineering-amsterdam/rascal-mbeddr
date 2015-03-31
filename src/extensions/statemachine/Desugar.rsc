@@ -1,10 +1,11 @@
 module extensions::statemachine::Desugar
-extend desugar::Base;
+extend core::desugar::Base;
 
 import IO;
 import String;
 import util::ext::List;
 import util::ext::Node;
+import util::ext::Map;
 
 import util::Util;
 import extensions::statemachine::AST;
@@ -185,11 +186,11 @@ Stat createStateSwitch( StateMachine s ) {
 
 list[Stat] createStateCases( StateMachine s, State state ) = [ createTransitionsForEvent( s, state, eventName ) | eventName <- state.transitions ];
 
-list[Stat] createEntryExitCall( StateMachine s, list[Stat] stats, str namespace ) {
+list[Stat] createEntryExitCall( StateMachine s, list[Stat] stats, str nameSpace ) {
 	result = [];
 	i = 0;
 	for( Stat stat <- stats ) {
-		result += expr( call( var( id( namespace( s.name, "<namespace><i>" ) ) ), [instanceVar] ) );
+		result += expr( call( var( id( namespace( s.name, "<nameSpace><i>" ) ) ), [instanceVar] ) );
 		i += 1;
 	}
 	
@@ -245,7 +246,7 @@ list[Decl] createEntryExitFunctions( StateMachine s ) {
 
 Decl createEntryExitFunction( StateMachine s, str name, str stateName, str actionName, list[Stat] body ) {
 	return function(
-		[static(),inline()],
+		[inline()],
 		\void(),
 		id( namespace( name, "<stateName>_<actionName>"  ) ),
 		[ param( [], pointer( id( id( namespace( name, "data_t" ) ) ) ), instanceId ) ],
@@ -369,12 +370,12 @@ Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr reco
 	return expr( e );
 }
 
-Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr record, "setState", [ dotField( Expr record, id( stateName ) ) ] ) {
-	e =  assign( dotField( record, currentState ), var( id( namespaceState( stateMachineName, stateName ) ) ) );
+Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr record, "setState", [ stateVar ] ) {
+	e =  assign( dotField( record, currentState ), stateVar );
 	return expr( e );
 }
 
-Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr record, "isInState", [ dotField( Expr record, id( stateName ) ) ]  ) {
-	e = eq( dotField( record, currentState ), var( id( namespaceState( stateMachineName, stateName ) ) ) );
+Stat desugarDotFieldCall( Type t:stateMachine( str stateMachineName ), Expr record, "isInState", [ stateVar ]  ) {
+	e = eq( dotField( record, currentState ), stateVar );
 	return expr( e );
 }
