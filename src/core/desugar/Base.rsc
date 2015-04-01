@@ -8,7 +8,7 @@ default &T <: node desugarSingle( &T <: node n ) = n;
 default list[&T <: node] desugarToList( &T <: node n ) = [];
 
 default &T <: node desugar( &T <: node n ) = n;
-default Stat desugar(Stat s) { iprintln(s); return  s; }
+default Stat desugar(Stat s) { return s; }
 default Expr desugar(Expr e) = e;
 default Decl desugar(Decl d) = d;
 

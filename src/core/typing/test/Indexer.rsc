@@ -1,7 +1,7 @@
-module typing::\test::Indexer
+module core::typing::\test::Indexer
 extend \test::Base;
 
-import typing::\test::Helper;
+import core::typing::\test::Helper;
 
 public test bool testDisallowRedefinitionOfVariable() {
 	str testCaseName = "testDisallowRedefinitionOfVariable";

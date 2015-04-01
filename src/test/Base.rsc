@@ -11,7 +11,7 @@ import lang::mbeddr::ToC;
 import core::typing::IndexTable;
 
 private bool PRINT = true;
-private bool DEBUG = true;
+private bool DEBUG = false;
 
 private tuple[Module,Module] splitAst( Module ast ) = < retrieveHeader( ast ), retrieveC( ast ) >;
 private Module retrieveHeader( Module ast ) = ast[decls=retrieveHeaderDecls( ast )];

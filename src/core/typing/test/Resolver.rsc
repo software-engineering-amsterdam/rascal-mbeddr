@@ -1,7 +1,7 @@
-module typing::\test::Resolver
+module core::typing::\test::Resolver
 extend \test::Base;
 
-import typing::\test::Helper;
+import core::typing::\test::Helper;
 
 public test bool testDisallowNonVoidFunctionToReturnVoid() {
 	str testCaseName = "testDisallowNonVoidFunctionToReturnVoid";

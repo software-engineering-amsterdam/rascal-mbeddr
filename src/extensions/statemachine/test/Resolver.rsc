@@ -438,7 +438,7 @@ public test bool testDisallowRedefinitionOfInitializedStateMachine() {
 	";
 	msgs = resolver( input );
 
-	expectedMsgs = [< redefinitionError(), "redefinition of \'FlightAnalyzer\'" >];
+	expectedMsgs = [< indexError(), "redefinition of \'FlightAnalyzer\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	
@@ -535,7 +535,7 @@ public test bool testDisallowCallingUndefinedFunctionOnInitializedStateMachine()
 	";
 	msgs = resolver( input );
 	
-	expectedMsgs = ["calling undefined function \'next\'"];
+	expectedMsgs = [< referenceError(), "calling undefined function \'next\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	

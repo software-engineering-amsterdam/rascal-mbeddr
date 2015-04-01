@@ -128,15 +128,15 @@ public test bool testWrongGetTypeInArrayComprehension() {
 	str input =
 	"module Test;
 	
-	int8[10] list;
+	float[10] list;
 	
 	int8[10] main() {
-		return [ y | float y \<- list ]; 
+		return [ y | int8 y \<- list ]; 
 	}
 	";
 	msgs = resolver( input );
 	
-	expectedMsgs = [< nonFittingTypesError(), "Expected array with items of type \'float\' but got array with items of type \'int8\'" >];
+	expectedMsgs = [< nonFittingTypesError(), "Expected array with items of type \'int8\' but got array with items of type \'float\'" >];
 	passed = equalMessages( msgs, expectedMsgs );
 	outputTest( testCaseName, passed, expectedMsgs, msgs );
 	

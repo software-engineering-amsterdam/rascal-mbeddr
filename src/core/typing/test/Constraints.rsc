@@ -1,7 +1,7 @@
-module typing::\test::Constraints
+module core::typing::\test::Constraints
 extend \test::Base;
 
-import typing::\test::Helper;
+import core::typing::\test::Helper;
 
 public test bool testDisallowedCaseInFunctionBody() {
 	str testCaseName = "testDisallowedCaseInFunctionBody";

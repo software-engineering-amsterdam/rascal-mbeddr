@@ -1,4 +1,4 @@
-module typing::\test::Helper
+module core::typing::\test::Helper
 
 import core::typing::Scope;
 import core::typing::IndexTable;

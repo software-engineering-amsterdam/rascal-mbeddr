@@ -1,6 +1,6 @@
-module typing::\test::Test
+module core::typing::\test::Test
 
-extend typing::\test::Constraints;
-extend typing::\test::Resolver;
-extend typing::\test::Indexer;
-extend typing::\test::Scope;
+extend core::typing::\test::Constraints;
+extend core::typing::\test::Resolver;
+extend core::typing::\test::Indexer;
+extend core::typing::\test::Scope;
